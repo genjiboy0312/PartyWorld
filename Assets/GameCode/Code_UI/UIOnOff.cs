@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UISetting :MonoBehaviour
+public class UIOnOff : MonoBehaviour
 {
     [SerializeField] private GameObject _btnOnOff;
     private bool _isChecking;

@@ -2,32 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//  아이템 정보 저장 Script
 public enum ItemType
 {
-    Coin,
-    Heart,
-    Weapon,
-    ETC
+    None,
+    Shoes,
+    Clothe,
+    Hat,
+    Acc
 }
-
-public class Item : MonoBehaviour
+[System.Serializable]
+public class Item
 {
-    public ItemType itemType;
-    public int value;
-
-    void Update()
-    {
-        ItemRotate(30);
-    }
-    void Start()
-    {
-        
-    }
-
-    // 아이템 회전 함수
-    void ItemRotate(int speed)
-    {
-        transform.Rotate(Vector3.up * speed * Time.deltaTime);
-    }
-
+    public string _itemName;
+    public int _itemID;
+    public ItemType _itemType;
 }

@@ -1,30 +1,45 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
 public class UITextTypingMotion : MonoBehaviour
 {
-    [SerializeField] private Text _txtLoading;
-    [SerializeField] private string _loadingText = "Loading....";  // 반복할 텍스트
+    [Header("UI Settings")]
+    [SerializeField] private Text _txtLoading;          // 로딩 텍스트 UI
+    [SerializeField] private string _loadingText = "Loading...."; // 반복할 텍스트
 
-    void Start()
+    private Coroutine _typingCoroutine;
+
+    private void Start()
     {
-        StartCoroutine(TypingLoop());
+        if (_txtLoading != null)
+            _typingCoroutine = StartCoroutine(TypingLoop());
+        else
+            Debug.LogWarning("UITextTypingMotion: _txtLoading이 할당되지 않았습니다.");
     }
 
-    IEnumerator TypingLoop()
+    private IEnumerator TypingLoop()
     {
         while (true)
         {
             _txtLoading.text = string.Empty;
 
-            // DOTween을 사용하여 텍스트 애니메이션
+            // DOTween을 사용하여 텍스트 타이핑 애니메이션
             yield return _txtLoading.DOText(_loadingText, 2.5f).WaitForCompletion();
 
-            // 다음 대사 딜레이
-            yield return new WaitForSeconds(1.0f);
+            // 텍스트 애니메이션 후 잠깐 대기
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    private void OnDisable()
+    {
+        // 씬 전환 등에서 Coroutine 종료
+        if (_typingCoroutine != null)
+        {
+            StopCoroutine(_typingCoroutine);
+            _typingCoroutine = null;
         }
     }
 }

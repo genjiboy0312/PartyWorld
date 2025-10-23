@@ -328,19 +328,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 97501793}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 747804304}
-        m_TargetAssemblyTypeName: LogInSystem, Assembly-CSharp
-        m_MethodName: LogIn
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &97501793
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -584,19 +572,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 259198040}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 747804304}
-        m_TargetAssemblyTypeName: LogInSystem, Assembly-CSharp
-        m_MethodName: Create
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &259198040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1320,6 +1296,9 @@ MonoBehaviour:
   _email: {fileID: 801744319}
   _password: {fileID: 703465385}
   _outputTxt: {fileID: 2017282769}
+  _logInBtn: {fileID: 97501792}
+  _logOutBtn: {fileID: 1849360514}
+  _createBtn: {fileID: 259198039}
 --- !u!1 &801744317
 GameObject:
   m_ObjectHideFlags: 0
@@ -1925,6 +1904,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1354634773}
   m_CullTransparentMesh: 1
+--- !u!1 &1366392452
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1366392453}
+  - component: {fileID: 1366392454}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1366392453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366392452}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1704239763}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1366392454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366392452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f9f51e48a0742149b785746a6cde166, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _currentGameState: 0
 --- !u!1 &1498404807
 GameObject:
   m_ObjectHideFlags: 0
@@ -2070,6 +2093,7 @@ Transform:
   m_Children:
   - {fileID: 747804303}
   - {fileID: 44310088}
+  - {fileID: 1366392453}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2155,19 +2179,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1849360515}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 747804304}
-        m_TargetAssemblyTypeName: LogInSystem, Assembly-CSharp
-        m_MethodName: LogOut
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1849360515
 MonoBehaviour:
   m_ObjectHideFlags: 0

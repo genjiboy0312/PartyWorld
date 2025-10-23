@@ -1,7 +1,7 @@
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 public enum GameState
 {
@@ -10,89 +10,111 @@ public enum GameState
     Playing,
     GameOver
 }
+
 public class GameManager : MonoBehaviour
 {
-    public static GameManager _gameManager;
-    public GameState _currentGameState = GameState.Menu;
+    public static GameManager Instance;  // ì™¸ë¶€ì—ì„œ ì ‘ê·¼ ê°€ëŠ¥
 
-    public static int _stage;                        // staticÀ¸·Î Àü¿ª¿¡¼­ ÇÒ ¼ö ÀÖ°Ô, °ÔÀÓ ½ºÅ×ÀÌÁö
-    public event Action<GameState> _onGameStateChange;   //  ¿ÉÀú¹ö ÆĞÅÏ »ç¿ë event 
+    [SerializeField] private GameState _currentGameState = GameState.Menu;
+    [SerializeField] private static int _stage;  // ì „ì—­ ê²Œì„ ìŠ¤í…Œì´ì§€
+
+    // ì˜µì €ë²„ íŒ¨í„´: êµ¬ë…ìê°€ ê²Œì„ ìƒíƒœ ë³€í™”ë¥¼ ë°›ìŒ
+    public event Action<GameState> _onGameStateChange;
+    public event Action<GameState> OnGameStateChangeEvent
+    {
+        add { _onGameStateChange += value; }
+        remove { _onGameStateChange -= value; }
+    }
 
     private PhotonManager _photonMgr;
     private ChatManager _chatMgr;
-    [SerializeField] private bool _ischatMgrCheck = false;
+    [SerializeField] private bool _isChatMgrCheck = false;
 
     private void Awake()
     {
-        _gameManager = this;
+        // ì‹±ê¸€í†¤ ì²˜ë¦¬
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
 
         _stage = 1;
 
-        // PhotonManager ÂüÁ¶
+        // PhotonManager ì°¸ì¡°
         _photonMgr = FindObjectOfType<PhotonManager>();
         if (_photonMgr == null)
-        {
-            Debug.LogError("PhotonManager¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù!");
-        }
+            Debug.LogError("PhotonManagerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤!");
 
         InitializeChatManager();
     }
-    void Start()
+
+    private void Start()
     {
         StartGame();
     }
 
-    void Update()
-    {
-
-    }
     public void StartGame()
     {
-        // °ÔÀÓÀÌ ½ÃÀÛµÇ¸é ÇÃ·¹ÀÌ »óÅÂ·Î
         SetGameState(GameState.Playing);
     }
+
     public void GameOver()
     {
         SetGameState(GameState.GameOver);
     }
+
     public void InitializeChatManager()
     {
-        // ChatManager ÂüÁ¶ ¹× ÀÌº¥Æ® µî·Ï
         _chatMgr = FindObjectOfType<ChatManager>();
-        _ischatMgrCheck = _chatMgr != null;
+        _isChatMgrCheck = _chatMgr != null;
 
-        if (_ischatMgrCheck)
-        {
+        if (_isChatMgrCheck)
             _onGameStateChange += _chatMgr.OnGameStateChange;
-        }
         else
+            Debug.LogWarning("*** ChatManager is Null ***");
+    }
+
+    private void SetGameState(GameState newGameState)
+    {
+        // PhotonManager í˜¸ì¶œ
+        if (newGameState == GameState.Playing)
+            _photonMgr?.StartGame();
+        else if (newGameState == GameState.GameOver)
+            _photonMgr?.EndGame();
+
+        _currentGameState = newGameState;
+
+        // ì˜µì €ë²„ ì´ë²¤íŠ¸ ì•ˆì „ í˜¸ì¶œ
+        SafeInvokeGameStateChange(newGameState);
+    }
+
+    // ì˜µì €ë²„ ì´ë²¤íŠ¸ í˜¸ì¶œ ì‹œ ì˜¤ë¥˜ ìºì¹˜
+    private void SafeInvokeGameStateChange(GameState newGameState)
+    {
+        if (_onGameStateChange == null) return;
+
+        foreach (Delegate d in _onGameStateChange.GetInvocationList())
         {
-            Debug.Log("<color=red>" + " *** ChatManager is Null *** " + "</color>");
+            try
+            {
+                ((Action<GameState>)d)?.Invoke(newGameState);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"GameManager ì´ë²¤íŠ¸ í˜¸ì¶œ ì˜¤ë¥˜: {d.Method.Name} -> {e}");
+            }
         }
     }
-    void SetGameState(GameState newGameState)
+
+    // í”„ë¡œí¼í‹°
+    public GameState CurrentGameState => _currentGameState;
+    public static int Stage
     {
-        //  Menu »óÅÂ
-        if (newGameState == GameState.Menu)
-        {
-
-        }
-        //  Loading »óÅÂ
-        else if (newGameState == GameState.Loading)
-        {
-
-        }
-        //  Play »óÅÂ
-        else if (newGameState == GameState.Playing)
-        {
-            _photonMgr?.StartGame(); // PhotonManager¿¡¼­ °ÔÀÓ ½ÃÀÛ Ã³¸®
-        }
-        //  GameOver »óÅÂ
-        else if (newGameState == GameState.GameOver)
-        {
-            _photonMgr?.EndGame(); // PhotonManager¿¡¼­ °ÔÀÓ ¿À¹ö Ã³¸®
-        }
-        _currentGameState = newGameState;
-        _onGameStateChange?.Invoke(newGameState);
+        get => _stage;
+        set => _stage = value;
     }
 }

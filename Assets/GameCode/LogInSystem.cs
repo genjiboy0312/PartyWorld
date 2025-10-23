@@ -1,57 +1,61 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using Firebase.Auth;
-using Photon.Pun;
-using Photon.Realtime;
-
 
 public class LogInSystem : MonoBehaviour
 {
     [SerializeField] private InputField _email;
     [SerializeField] private InputField _password;
-
     [SerializeField] private Text _outputTxt;
+    [SerializeField] private Button _logInBtn;
+    [SerializeField] private Button _logOutBtn;
+    [SerializeField] private Button _createBtn;
 
-    void Start()
+    private void OnEnable()
     {
+        // 로그인 상태 이벤트 구독
         FirebaseAuthManager.Instance._loginState += OnChangedState;
+    }
+
+    private void OnDisable()
+    {
+        FirebaseAuthManager.Instance._loginState -= OnChangedState;
+    }
+
+    private void Start()
+    {
+        // Firebase 초기화
         FirebaseAuthManager.Instance.Init();
+
+        // 버튼 클릭 이벤트 코드에서 등록
+        if (_logInBtn != null) _logInBtn.onClick.AddListener(OnLogInClicked);
+        if (_logOutBtn != null) _logOutBtn.onClick.AddListener(OnLogOutClicked);
+        if (_createBtn != null) _createBtn.onClick.AddListener(OnCreateClicked);
     }
 
-    private void OnChangedState(bool sign)
+    // 로그인 상태 변경 시 UI 갱신
+    private void OnChangedState(bool signedIn)
     {
-        _outputTxt.text = sign ? " *** 로그인 *** " : " *** 로그아웃 *** ";
-        _outputTxt.text += FirebaseAuthManager.Instance._userId;
-
-        if (sign)
-        {
-            // 로그인 상태일 경우 Photon 서버에 연결
-            PhotonNetwork.ConnectUsingSettings();
-
-            // 원하는 씬으로 이동
-            SceneManager.LoadScene("Scene_Lobby");
-            PhotonNetwork.JoinLobby();           // 로비 입장 (여기가 문제 였나봄, 바로 로비로 접속)
-        }
+        _outputTxt.text = signedIn ? "로그인" : "로그아웃";
+        _outputTxt.text += "\nUserID: " + FirebaseAuthManager.Instance._userId;
     }
 
-    public void Create()
+    // 버튼 이벤트 콜백
+    private void OnLogInClicked()
     {
-        string _e = _email.text;
-        string _p = _password.text;
-
-        FirebaseAuthManager.Instance.Create(_e, _p);
-
-        //  Create 실패시 띄우는 UI   -> 추후 제작
+        string email = _email.text;
+        string password = _password.text;
+        FirebaseAuthManager.Instance.LogIn(email, password);
     }
-    public void LogIn()
-    {
-        FirebaseAuthManager.Instance.LogIn(_email.text, _password.text);
-    }
-    public void LogOut()
+
+    private void OnLogOutClicked()
     {
         FirebaseAuthManager.Instance.LogOut();
+    }
+
+    private void OnCreateClicked()
+    {
+        string email = _email.text;
+        string password = _password.text;
+        FirebaseAuthManager.Instance.Create(email, password);
     }
 }

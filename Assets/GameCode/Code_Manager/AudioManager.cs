@@ -1,14 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-//  인스턴스르 선언했으니 타 스크립트에서 필요한 사운드 호출시
-//  AudioManager.Instance.함수명~
+// 다른 스크립트에서 AudioManager.Instance.함수명 으로 호출 가능
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
-    [Header("Sound")]
+
+    [Header("Sound 설정")]
     [SerializeField] private Sound[] _musicSounds;
     [SerializeField] private Sound[] _sfxSounds;
 
@@ -26,63 +24,74 @@ public class AudioManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
         }
+
+        if (_musicSource == null || _sfxSource == null)
+            Debug.LogWarning("AudioManager: AudioSource가 할당되지 않았습니다.");
     }
+
     private void Start()
     {
-        // AudioManager -> Music SOurce에 넣은 노래
+        // 기본 BGM 재생
         PlayMusic("BGM_01");
     }
-    //  Game BGM 재생 메소드
+
+    /// <summary>
+    /// 배경음악 재생
+    /// </summary>
     public void PlayMusic(string name)
     {
-        Sound _sound = Array.Find(_musicSounds, x => x._name == name);
+        if (_musicSource == null) return;
 
-        if (_sound == null)
+        Sound sound = Array.Find(_musicSounds, x => x._name == name);
+        if (sound == null)
         {
-            Debug.Log(" ***** Sound Not Found ***** ");
+            Debug.LogWarning("AudioManager: 요청한 음악을 찾을 수 없습니다. 이름: " + name);
+            return;
         }
-        else
-        {
-            //  추후 노래 추가하고 랜덤으로 수정
-            _musicSource.clip = _sound._clip;
-            _musicSource.Play();
-        }
+
+        // 이미 재생 중인 음악이면 재생하지 않음
+        if (_musicSource.clip == sound._clip && _musicSource.isPlaying) return;
+
+        _musicSource.clip = sound._clip;
+        _musicSource.loop = true; // 기본 루프 설정
+        _musicSource.Play();
     }
 
-    //  Game SFX 재생 메소드
+    /// <summary>
+    /// 효과음 재생
+    /// </summary>
     public void PlaySFX(string name)
     {
-        Sound _sound = Array.Find(_sfxSounds, x => x._name == name);
+        if (_sfxSource == null) return;
 
-        if (_sound == null)
+        Sound sound = Array.Find(_sfxSounds, x => x._name == name);
+        if (sound == null)
         {
-            Debug.Log(" ***** SFXSounds Not Found ***** ");
+            Debug.LogWarning("AudioManager: 요청한 SFX를 찾을 수 없습니다. 이름: " + name);
+            return;
         }
-        else
-        {
-            //  추후 노래 추가하고 랜덤으로 수정
-            _sfxSource.PlayOneShot(_sound._clip);
-        }
+
+        _sfxSource.PlayOneShot(sound._clip);
     }
 
-    //  해당 이미지 버튼 누르면 소리 끔
-    public void ToggleMusic()
-    {
-        _musicSource.mute = !_musicSource.mute;
-    }
-    public void ToggleSFX()
-    {
-        _sfxSource.mute = !_sfxSource.mute;
-    }
+    /// <summary>
+    /// 배경음/효과음 음소거 토글
+    /// </summary>
+    public void ToggleMusic() => _musicSource.mute = !_musicSource.mute;
+    public void ToggleSFX() => _sfxSource.mute = !_sfxSource.mute;
 
-    //  소리 조절
+    /// <summary>
+    /// 볼륨 조절
+    /// </summary>
     public void MusicVolume(float volume)
     {
-        _musicSource.volume = volume;
+        if (_musicSource != null) _musicSource.volume = Mathf.Clamp01(volume);
     }
+
     public void SFXVolume(float volume)
     {
-        _sfxSource.volume = volume;
+        if (_sfxSource != null) _sfxSource.volume = Mathf.Clamp01(volume);
     }
 }

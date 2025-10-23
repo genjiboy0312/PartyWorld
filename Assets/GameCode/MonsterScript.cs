@@ -42,7 +42,7 @@ public class MonsterScript : MonoBehaviour
             player.GetComponent<PlayerScript>().Monster = null;
             //Destroy(gameObject, 2f);
 
-            GameManager._stage++;
+            GameManager.Stage++;
             Invoke("Monster_Hide", 2f);
             Invoke("Regen", 1f);
         }
@@ -66,9 +66,9 @@ public class MonsterScript : MonoBehaviour
     {
         for (int i = 1; i < Monsters.transform.childCount; i++)
         {
-            if (GameManager._stage == i)
+            if (GameManager.Stage == i)
             {
-                Monsters.transform.GetChild(GameManager._stage - 1).gameObject.SetActive(true);
+                Monsters.transform.GetChild(GameManager.Stage - 1).gameObject.SetActive(true);
                 break;
             }
         }
