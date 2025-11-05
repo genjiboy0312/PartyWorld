@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private JoyStick _joyStick;
 
     // Photon
-    public PhotonView _pv;
+    private PhotonView _pv;
 
     [Header("Player State")]
     [SerializeField] private float _speed = 10f;
@@ -36,15 +36,23 @@ public class PlayerController : MonoBehaviour, IPunObservable
         _animator = GetComponentInChildren<Animator>();
         _playerRigidbody = GetComponent<Rigidbody>();
         _navMeshAgent = GetComponent<NavMeshAgent>();
+        _pv = GetComponent<PhotonView>();
     }
 
     private void Start()
     {
         _joyStick = GameObject.Find("BackGround_JoyStick")?.GetComponent<JoyStick>();
 
-        // GameManager 상태 변경 이벤트 구독
+        // 옵저버 패턴 등록
         if (GameManager.Instance != null)
             GameManager.Instance.OnGameStateChangeEvent += OnGameStateChange;
+    }
+
+    private void OnDisable()
+    {
+        // 옵저버 해제 (PhotonNetwork.Destroy 등에서도 안전)
+        if (GameManager.Instance != null)
+            GameManager.Instance.OnGameStateChangeEvent -= OnGameStateChange;
     }
 
     private void Update()
@@ -57,13 +65,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
         PlayerTurn();
         PlayerJump();
         PlayerDash();
-    }
-
-    private void OnDestroy()
-    {
-        // 이벤트 해제
-        if (GameManager.Instance != null)
-            GameManager.Instance.OnGameStateChangeEvent -= OnGameStateChange;
     }
 
     // 입력 처리
@@ -163,16 +164,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
         }
     }
 
-    // GameManager 상태 이벤트 처리
+    // 옵저버 이벤트: GameManager 상태 변경 처리
     private void OnGameStateChange(GameState newGameState)
     {
         switch (newGameState)
         {
             case GameState.Playing:
                 _speed = 10f;
+                _navMeshAgent.enabled = true;
                 break;
             case GameState.GameOver:
                 _speed = 0f;
+                _navMeshAgent.enabled = false;
+                _playerRigidbody.velocity = Vector3.zero;
                 break;
         }
     }

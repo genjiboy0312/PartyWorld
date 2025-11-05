@@ -57,15 +57,8 @@ public class GameManager : MonoBehaviour
         StartGame();
     }
 
-    public void StartGame()
-    {
-        SetGameState(GameState.Playing);
-    }
-
-    public void GameOver()
-    {
-        SetGameState(GameState.GameOver);
-    }
+    public void StartGame() => SetGameState(GameState.Playing);
+    public void GameOver() => SetGameState(GameState.GameOver);
 
     public void InitializeChatManager()
     {

@@ -376,7 +376,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &380815820
 Transform:
   m_ObjectHideFlags: 0
@@ -7134,7 +7134,7 @@ MonoBehaviour:
   _isDash: 0
   _jumpPower: 5
   _pv: {fileID: 4827948848203112479}
-  _speed: 5
+  _speed: 10
 --- !u!136 &4827948848203112476
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -7240,7 +7240,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowLayerWeightsInspector: 1
   ShowParameterInspector: 1
-  m_SynchronizeParameters: []
+  m_SynchronizeParameters:
+  - Type: 4
+    SynchronizeType: 0
+    Name: isWalk
+  - Type: 4
+    SynchronizeType: 0
+    Name: isMove
+  - Type: 9
+    SynchronizeType: 0
+    Name: doJump
+  - Type: 9
+    SynchronizeType: 0
+    Name: doDash
+  - Type: 9
+    SynchronizeType: 0
+    Name: doAttack
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0

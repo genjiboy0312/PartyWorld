@@ -5,23 +5,32 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
+    [Header("Setting Music")]
     [SerializeField] private Slider _musicSlider;
-    [SerializeField] private Slider _sfxSlider;
+    [SerializeField] private Button _musicBtn;
 
-    public void ToggleMusic()
+    [Header("Setting SFX")]
+    [SerializeField] private Slider _sfxSlider;
+    [SerializeField] private Button _sfxBtn;
+
+    [Header("Setting Exit")]
+    [SerializeField] private GameObject _settingBoard;
+    [SerializeField] private Button _exitBtn;
+
+    private void Start()
     {
-        AudioManager.Instance.ToggleMusic();
+        //  이벤트 등록
+        _musicBtn.onClick.AddListener(ToggleMusic);
+        _sfxBtn.onClick.AddListener(ToggleSFX);
+        _exitBtn.onClick.AddListener(Exit);
+
+        _musicSlider.onValueChanged.AddListener(delegate { MusicVolume(); });
+        _sfxSlider.onValueChanged.AddListener(delegate { SFXVolume(); });
     }
-    public void ToggleSFX()
-    {
-        AudioManager.Instance.ToggleSFX();
-    }
-    public void MusicVolume()
-    {
-        AudioManager.Instance.MusicVolume(_musicSlider.value);
-    }
-    public void SFXVolume()
-    {
-        AudioManager.Instance.SFXVolume(_sfxSlider.value);
-    }
+
+    private void ToggleMusic() => AudioManager.Instance.ToggleMusic();
+    private void ToggleSFX() => AudioManager.Instance.ToggleSFX();
+    private void MusicVolume() => AudioManager.Instance.MusicVolume(_musicSlider.value);
+    private void SFXVolume() => AudioManager.Instance.SFXVolume(_sfxSlider.value);
+    private void Exit() => _settingBoard.SetActive(false);
 }
