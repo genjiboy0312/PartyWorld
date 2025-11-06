@@ -5,7 +5,7 @@ using UnityEngine;
 
 public enum GameState
 {
-    Menu,
+    Title,
     Loading,
     Playing,
     GameOver
@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;  // 외부에서 접근 가능
 
-    [SerializeField] private GameState _currentGameState = GameState.Menu;
+    [SerializeField] private GameState _currentGameState = GameState.Title;
     [SerializeField] private static int _stage;  // 전역 게임 스테이지
 
     // 옵저버 패턴: 구독자가 게임 상태 변화를 받음

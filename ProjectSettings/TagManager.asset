@@ -4,6 +4,7 @@
 TagManager:
   serializedVersion: 2
   tags:
+  - CanBeGrabbed
   - Floor
   - Monster
   - MeleeWeapon
@@ -19,11 +20,11 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player_1
+  - Player_2
+  - Player_3
+  - Player_4
+  - Ground
   - 
   - 
   - 
