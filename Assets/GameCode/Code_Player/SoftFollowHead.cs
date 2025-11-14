@@ -3,55 +3,83 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class SoftFollowHead : MonoBehaviour
 {
-    public Transform target;        // Neck 기준
-    public Rigidbody rootRb;        // 캐릭터의 메인 리지드바디 (몸통)
-    public float torqueForce = 400f; // 복원 강도
-    public float damping = 5f;       // 감쇠
-    public float inertiaFactor = 8f; // 관성 토크 강도
-    public float maxAngle = 45f;
+    [Header("References")]
+    [SerializeField] private Transform _target;        // 목(Neck) 또는 Chest
+    [SerializeField] private Rigidbody _rootRb;        // 캐릭터의 중심 리지드바디
 
-    Rigidbody rb;
-    Vector3 prevVelocity;
+    [Header("Settings")]
+    [SerializeField] private float _torqueForce = 400f;
+    [SerializeField] private float _damping = 5f;
+    [SerializeField] private float _inertiaFactor = 12f;
+    [SerializeField] private float _maxBackAngle = 45f;
+
+    private Rigidbody _rb;
+    private Vector3 _prevVelocity;
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        if (rootRb == null)
-        {
-            // 자동으로 상위에서 찾아봄
-            rootRb = GetComponentInParent<Rigidbody>();
-        }
-        prevVelocity = rootRb ? rootRb.velocity : Vector3.zero;
+        _rb = GetComponent<Rigidbody>();
+        _prevVelocity = _rootRb ? _rootRb.velocity : Vector3.zero;
     }
 
     void FixedUpdate()
     {
-        if (target == null || rootRb == null) return;
+        if (_target == null || _rootRb == null)
+            return;
 
-        // 회전 복원 토크
-        Quaternion deltaRot = rb.rotation * Quaternion.Inverse(target.rotation);
-        deltaRot.ToAngleAxis(out float angle, out Vector3 axis);
+        // ------------------------------
+        // [1] 기본 자세 복원 회전
+        // ------------------------------
+        Quaternion delta = _rb.rotation * Quaternion.Inverse(_target.rotation);
+        delta.ToAngleAxis(out float angle, out Vector3 axis);
 
         if (angle > 180f) angle -= 360f;
+
         if (Mathf.Abs(angle) > 0.01f)
         {
             axis = transform.TransformDirection(axis);
-            Vector3 torque = axis * angle * torqueForce - rb.angularVelocity * damping;
-            rb.AddTorque(torque, ForceMode.Acceleration);
+            Vector3 torque = axis * angle * _torqueForce - _rb.angularVelocity * _damping;
+            _rb.AddTorque(torque, ForceMode.Acceleration);
         }
 
-        // --- 관성 반응 추가 (몸의 가속도 방향 반대쪽으로 머리 젖힘) ---
-        Vector3 acceleration = (rootRb.velocity - prevVelocity) / Time.fixedDeltaTime;
-        prevVelocity = rootRb.velocity;
+        // ------------------------------
+        // [2] 관성 기반 뒤로 젖힘
+        // ------------------------------
+        Vector3 acceleration = (_rootRb.velocity - _prevVelocity) / Time.fixedDeltaTime;
+        _prevVelocity = _rootRb.velocity;
 
-        // 가속의 반대 방향으로 머리를 젖히는 힘
-        Vector3 inertialTorque = Vector3.Cross(transform.forward, acceleration.normalized) * inertiaFactor;
-        rb.AddTorque(inertialTorque, ForceMode.Acceleration);
+        float accelMag = acceleration.magnitude;
+
+        // 정지 시 관성 제거
+        if (accelMag < 0.05f)
+            return;
+
+        // 전진 방향 가속도만 영향받게 (좌/우/후진 무시)
+        float forwardDot = Vector3.Dot(_rootRb.transform.forward, acceleration.normalized);
+        forwardDot = Mathf.Clamp(forwardDot, 0f, 1f); // 전진할 때만 머리 뒤로
+
+        // 뒤로 젖힐 최대 각도 제한
+        float currentLocalX = NormalizeAngle(transform.localEulerAngles.x);
+        if (currentLocalX < -_maxBackAngle)
+            return;
+
+        // 뒤로 젖히는 힘 = 로컬 X축 기준 토크
+        float tilt = forwardDot * _inertiaFactor;
+        Vector3 inertialTorque = -transform.right * tilt;
+
+        _rb.AddTorque(inertialTorque, ForceMode.Acceleration);
 
 #if UNITY_EDITOR
-        Debug.DrawRay(transform.position, axis * 0.3f, Color.red);      // 복원 축
-        Debug.DrawRay(transform.position, -acceleration.normalized * 0.5f, Color.blue); // 관성 방향
-        Debug.Log($"angle={angle:F2}, accel={acceleration.magnitude:F2}");
+        Debug.DrawRay(transform.position, axis * 0.3f, Color.red);
+        Debug.DrawRay(transform.position, -acceleration.normalized * 0.5f, Color.blue);
+        Debug.Log($"angle={angle:F2}, accel={accelMag:F2}, forward={forwardDot:F2}, localX={currentLocalX:F2}");
 #endif
+    }
+
+    // Unity LocalEulerAngles 보정
+    private float NormalizeAngle(float angle)
+    {
+        if (angle > 180f) angle -= 360f;
+        return angle;
     }
 }
