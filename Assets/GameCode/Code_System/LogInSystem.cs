@@ -41,7 +41,7 @@ public class LogInSystem : MonoBehaviour
         FirebaseAuthManager.Instance.LogIn(_email, _password);
     }
 
-    private void OnLogOutClicked() => FirebaseAuthManager.Instance.LogOut();
+    private void OnLogOutClicked() =>  FirebaseAuthManager.Instance.LogOut();
 
     private void OnCreateClicked()
     {

@@ -8,19 +8,15 @@ public class FollowCamera : MonoBehaviour
     [SerializeField] private Transform _playerTransform;
     [SerializeField] private Vector3 _offset;
 
-    void FixedUpdate()
+    void Update()
     {
         GameObject _playerObj = GameObject.FindGameObjectWithTag(_playerTag);
-        // 플레이어 오브젝트를 찾았다면 해당 트랜스폼을 저장합니다.
+        // 플레이어 오브젝트를 찾았다면 해당 트랜스폼을 저장
         if (_playerObj != null)
-        {
             _playerTransform = _playerObj.transform;
-        }
 
-        // 플레이어를 찾았다면 위치를 업데이트합니다.
+        // 플레이어를 찾았다면 위치를 업데이트
         if (_playerTransform != null)
-        {
             transform.position = _playerTransform.position + _offset;
-        }
     }
 }
