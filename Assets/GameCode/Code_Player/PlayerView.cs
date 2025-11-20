@@ -39,7 +39,7 @@ public class PlayerView : MonoBehaviour
         }
 
         // 이동 여부 애니메이션 반영
-        Animator.SetBool("isMove", _targetVelocity.sqrMagnitude > 0.01f);
+        Animator.SetBool("isWalk", _targetVelocity.sqrMagnitude > 0.01f);
     }
 
     public void Move(Vector3 velocity)

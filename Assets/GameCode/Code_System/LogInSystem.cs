@@ -10,16 +10,10 @@ public class LogInSystem : MonoBehaviour
     [SerializeField] private Button _logOutBtn;
     [SerializeField] private Button _createBtn;
 
-    private void OnEnable()
-    {
-        // 로그인 상태 이벤트 구독
-        FirebaseAuthManager.Instance._loginState += OnChangedState;
-    }
+    // 로그인 상태 이벤트 구독
+    private void OnEnable() => FirebaseAuthManager.Instance._loginState += OnChangedState;
 
-    private void OnDisable()
-    {
-        FirebaseAuthManager.Instance._loginState -= OnChangedState;
-    }
+    private void OnDisable() => FirebaseAuthManager.Instance._loginState -= OnChangedState;
 
     private void Start()
     {
@@ -47,10 +41,7 @@ public class LogInSystem : MonoBehaviour
         FirebaseAuthManager.Instance.LogIn(_email, _password);
     }
 
-    private void OnLogOutClicked()
-    {
-        FirebaseAuthManager.Instance.LogOut();
-    }
+    private void OnLogOutClicked() => FirebaseAuthManager.Instance.LogOut();
 
     private void OnCreateClicked()
     {
