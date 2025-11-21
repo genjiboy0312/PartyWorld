@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum GameState
@@ -13,22 +11,29 @@ public enum GameState
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;  // 외부에서 접근 가능
+    public static GameManager Instance { get; private set; }
 
     [SerializeField] private GameState _currentGameState = GameState.Title;
-    [SerializeField] private static int _stage;  // 전역 게임 스테이지
+    [SerializeField] private static int _stage;
 
-    // 옵저버 패턴: 구독자가 게임 상태 변화를 받음
-    public event Action<GameState> _onGameStateChange;
+    // 옵저버 패턴
+    private event Action<GameState> _onGameStateChange;
+
     public event Action<GameState> OnGameStateChangeEvent
     {
-        add { _onGameStateChange += value; }
-        remove { _onGameStateChange -= value; }
+        add => _onGameStateChange += value;
+        remove => _onGameStateChange -= value;
     }
 
     private PhotonManager _photonMgr;
     private ChatManager _chatMgr;
-    [SerializeField] private bool _isChatMgrCheck = false;
+
+    public GameState CurrentGameState => _currentGameState;
+    public static int Stage
+    {
+        get => _stage;
+        set => _stage = value;
+    }
 
     private void Awake()
     {
@@ -57,22 +62,38 @@ public class GameManager : MonoBehaviour
         StartGame();
     }
 
+    private void OnDestroy()
+    {
+        // 싱글톤 정리
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
     public void StartGame() => SetGameState(GameState.Playing);
     public void GameOver() => SetGameState(GameState.GameOver);
 
     public void InitializeChatManager()
     {
         _chatMgr = FindObjectOfType<ChatManager>();
-        _isChatMgrCheck = _chatMgr != null;
 
-        if (_isChatMgrCheck)
+        if (_chatMgr != null)
+        {
             _onGameStateChange += _chatMgr.OnGameStateChange;
+        }
         else
-            Debug.LogWarning("*** ChatManager is Null ***");
+        {
+            Debug.LogWarning("ChatManager를 찾을 수 없습니다.");
+        }
     }
 
     private void SetGameState(GameState newGameState)
     {
+        // 중복 상태 변경 방지
+        if (_currentGameState == newGameState)
+            return;
+
         // PhotonManager 호출
         if (newGameState == GameState.Playing)
             _photonMgr?.StartGame();
@@ -85,29 +106,24 @@ public class GameManager : MonoBehaviour
         SafeInvokeGameStateChange(newGameState);
     }
 
-    // 옵저버 이벤트 호출 시 오류 캐치
+    // 개선된 안전한 이벤트 호출
     private void SafeInvokeGameStateChange(GameState newGameState)
     {
-        if (_onGameStateChange == null) return;
+        if (_onGameStateChange == null)
+            return;
 
-        foreach (Delegate d in _onGameStateChange.GetInvocationList())
+        // 각 구독자를 안전하게 호출
+        foreach (Delegate subscriber in _onGameStateChange.GetInvocationList())
         {
             try
             {
-                ((Action<GameState>)d)?.Invoke(newGameState);
+                var action = subscriber as Action<GameState>;
+                action?.Invoke(newGameState);
             }
             catch (Exception e)
             {
-                Debug.LogError($"GameManager 이벤트 호출 오류: {d.Method.Name} -> {e}");
+                Debug.LogError($"GameState 이벤트 호출 오류 [{subscriber.Method.Name}]: {e.Message}");
             }
         }
-    }
-
-    // 프로퍼티
-    public GameState CurrentGameState => _currentGameState;
-    public static int Stage
-    {
-        get => _stage;
-        set => _stage = value;
     }
 }

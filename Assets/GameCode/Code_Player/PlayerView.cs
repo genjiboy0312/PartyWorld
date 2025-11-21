@@ -1,3 +1,5 @@
+ï»¿// PlayerView.cs
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -7,76 +9,173 @@ public class PlayerView : MonoBehaviour
     public Animator Animator { get; private set; }
 
     private Vector3 _targetVelocity;
-    private float _rotationSpeed = 15f; // È¸Àü ºÎµå·´°Ô º¸°£¿ë
+    private float _rotationSpeed = 15f;
+    private Coroutine _currentDiveCoroutine;
+    private WaitForFixedUpdate _waitForFixedUpdate;
+    private bool _isDiving;
+
+    // Model ì°¸ì¡° ì¶”ê°€
+    private PlayerModel _model;
+
+    public bool IsDiving => _isDiving;
 
     private void Awake()
     {
         Rigidbody = GetComponent<Rigidbody>();
         Animator = GetComponentInChildren<Animator>();
 
-        // ¹°¸® ±â¹Ý ÀÌµ¿¿¡ ºÒÇÊ¿äÇÑ NavMesh Á¦°Å
         var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (agent != null)
-            Destroy(agent);
+        if (agent != null) Destroy(agent);
 
-        // ·çÆ® ¸ð¼Ç °­Á¦ ºñÈ°¼ºÈ­
-        if (Animator != null)
-            Animator.applyRootMotion = false;
+        if (Animator != null) Animator.applyRootMotion = false;
 
-        // ¹°¸® ¼Ó¼º ±âº»°ª ¼³Á¤
         Rigidbody.useGravity = true;
         Rigidbody.drag = 0f;
         Rigidbody.mass = 1f;
-        Rigidbody.interpolation = RigidbodyInterpolation.Interpolate; // ¹°¸® ÀÌµ¿ º¸°£À¸·Î ºÎµå·´°Ô
+        Rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+        Rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+
+        _waitForFixedUpdate = new WaitForFixedUpdate();
     }
 
-    private void FixedUpdate()
+    // Model ì„¤ì • ë©”ì„œë“œ ì¶”ê°€
+    public void SetModel(PlayerModel model)
     {
-        // FixedUpdate¿¡¼­ ¹°¸® ÀÌµ¿
-        if (_targetVelocity != Vector3.zero)
+        _model = model;
+    }
+
+    private void Update()
+    {
+        if (!_isDiving && _targetVelocity.sqrMagnitude > 0.01f)
         {
-            Rigidbody.velocity = new Vector3(_targetVelocity.x, Rigidbody.velocity.y, _targetVelocity.z);
+            var velocity = Rigidbody.velocity;
+            velocity.x = _targetVelocity.x;
+            velocity.z = _targetVelocity.z;
+            Rigidbody.velocity = velocity;
         }
 
-        // ÀÌµ¿ ¿©ºÎ ¾Ö´Ï¸ÞÀÌ¼Ç ¹Ý¿µ
         Animator.SetBool("isWalk", _targetVelocity.sqrMagnitude > 0.01f);
     }
 
     public void Move(Vector3 velocity)
     {
-        // Update()¿¡¼­ ¹ÞÀº ÀÌµ¿ º¤ÅÍ¸¦ FixedUpdate()¿¡¼­ ½ÇÁ¦ Àû¿ëÇÏµµ·Ï ÀúÀå
         _targetVelocity = velocity;
     }
 
     public void LookAt(Vector3 direction)
     {
-        if (direction == Vector3.zero)
-            return;
+        if (_isDiving || direction == Vector3.zero) return;
 
-        // Áï°¢ È¸Àü ´ë½Å ºÎµå·´°Ô º¸°£
         Quaternion targetRot = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * _rotationSpeed);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRot,
+            Time.deltaTime * _rotationSpeed
+        );
     }
 
     public void Jump(float jumpPower)
     {
-        // ¼öÁ÷ ¹æÇâ ¼Óµµ¸¸ µ¤¾î¾²±â
-        var v = Rigidbody.velocity;
-        v.y = jumpPower;
-        Rigidbody.velocity = v;
+        var vel = Rigidbody.velocity;
+        vel.y = jumpPower * 10f;
+        Rigidbody.velocity = vel;
 
         Animator.SetTrigger("doJump");
     }
 
-    public void Dash()
+    public void Dive(Vector3 direction, float force)
     {
+        if (_currentDiveCoroutine != null)
+        {
+            StopCoroutine(_currentDiveCoroutine);
+        }
+
+        _isDiving = true;
         Animator.SetTrigger("doDash");
+
+        Rigidbody.useGravity = false;
+
+        Vector3 horizontalDirection = new Vector3(direction.x, 0f, direction.z).normalized;
+        Rigidbody.velocity = Vector3.zero;
+        Rigidbody.AddForce(horizontalDirection * force * 10f, ForceMode.VelocityChange);
+
+        _targetVelocity = Vector3.zero;
+
+        _currentDiveCoroutine = StartCoroutine(DiveRoutine());
+
+        Debug.Log($"Dive ì‹œìž‘! ë°©í–¥: {horizontalDirection}, íž˜: {force}");
     }
 
+    private IEnumerator DiveRoutine()
+    {
+        float duration = 0.5f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            var vel = Rigidbody.velocity;
+            vel.x *= 0.95f;
+            vel.z *= 0.95f;
+            vel.y = 0f;
+            Rigidbody.velocity = vel;
+
+            elapsed += Time.fixedDeltaTime;
+            yield return _waitForFixedUpdate;
+        }
+
+        // Dive ì¢…ë£Œ ì²˜ë¦¬
+        Rigidbody.useGravity = true;
+        _isDiving = false;
+        _currentDiveCoroutine = null;
+
+        // Modelì˜ IsDiveë„ falseë¡œ ì„¤ì •
+        if (_model != null)
+            _model.IsDive = false;
+
+        Debug.Log("Dive ì¢…ë£Œ! Model.IsDive = false");
+    }
     public void StopMovement()
     {
         _targetVelocity = Vector3.zero;
         Rigidbody.velocity = Vector3.zero;
         Animator.SetBool("isMove", false);
+
+        if (_currentDiveCoroutine != null)
+        {
+            StopCoroutine(_currentDiveCoroutine);
+            _currentDiveCoroutine = null;
+            _isDiving = false;
+            Rigidbody.useGravity = true;
+
+            // Model ìƒíƒœë„ ì´ˆê¸°í™”
+            if (_model != null)
+                _model.IsDive = false;
+        }
+    }
+
+    public void ResetDiveState()
+    {
+        _isDiving = false;
+        if (_currentDiveCoroutine != null)
+        {
+            StopCoroutine(_currentDiveCoroutine);
+            _currentDiveCoroutine = null;
+        }
+        Rigidbody.useGravity = true;
+
+        if (_model != null)
+        {
+            _model.IsDive = false;
+        }
+
+        Debug.Log("Dive ìƒíƒœ ê°•ì œ ë¦¬ì…‹!");
+    }
+
+    private void OnDestroy()
+    {
+        if (_currentDiveCoroutine != null)
+        {
+            StopCoroutine(_currentDiveCoroutine);
+        }
     }
 }
