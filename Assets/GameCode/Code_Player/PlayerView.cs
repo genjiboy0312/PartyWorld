@@ -24,8 +24,10 @@ public class PlayerView : MonoBehaviour
         Rigidbody = GetComponent<Rigidbody>();
         Animator = GetComponentInChildren<Animator>();
 
-        var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (agent != null) Destroy(agent);
+        //  혹시 모를 NavMeshAgent 제거
+        var _agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (_agent != null) 
+            Destroy(_agent);
 
         if (Animator != null) Animator.applyRootMotion = false;
 
@@ -64,21 +66,22 @@ public class PlayerView : MonoBehaviour
 
     public void LookAt(Vector3 direction)
     {
-        if (_isDiving || direction == Vector3.zero) return;
+        if (_isDiving || direction == Vector3.zero) 
+            return;
 
-        Quaternion targetRot = Quaternion.LookRotation(direction);
+        Quaternion _targetRot = Quaternion.LookRotation(direction);
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
-            targetRot,
+            _targetRot,
             Time.deltaTime * _rotationSpeed
         );
     }
 
     public void Jump(float jumpPower)
     {
-        var vel = Rigidbody.velocity;
-        vel.y = jumpPower * 10f;
-        Rigidbody.velocity = vel;
+        var _velocity = Rigidbody.velocity;
+        _velocity.y = jumpPower * 10f;
+        Rigidbody.velocity = _velocity;
 
         Animator.SetTrigger("doJump");
     }
@@ -86,40 +89,42 @@ public class PlayerView : MonoBehaviour
     public void Dive(Vector3 direction, float force)
     {
         if (_currentDiveCoroutine != null)
-        {
             StopCoroutine(_currentDiveCoroutine);
-        }
 
         _isDiving = true;
         Animator.SetTrigger("doDash");
 
         Rigidbody.useGravity = false;
 
-        Vector3 horizontalDirection = new Vector3(direction.x, 0f, direction.z).normalized;
+        Vector3 _horizontalDirection = new Vector3(direction.x, 0f, direction.z).normalized;
         Rigidbody.velocity = Vector3.zero;
-        Rigidbody.AddForce(horizontalDirection * force * 10f, ForceMode.VelocityChange);
+        Rigidbody.AddForce(_horizontalDirection * force * 10f, ForceMode.VelocityChange);
 
         _targetVelocity = Vector3.zero;
 
         _currentDiveCoroutine = StartCoroutine(DiveRoutine());
 
-        Debug.Log($"Dive 시작! 방향: {horizontalDirection}, 힘: {force}");
+        Debug.Log($"Dive 시작! 방향: {_horizontalDirection}, 힘: {force}");
     }
+    public void Grap()
+    {
 
+        Debug.Log($"{gameObject.name} 잡음");
+    }
     private IEnumerator DiveRoutine()
     {
-        float duration = 0.5f;
-        float elapsed = 0f;
+        float _duration = 0.5f;
+        float _elapsed = 0f;
 
-        while (elapsed < duration)
+        while (_elapsed < _duration)
         {
-            var vel = Rigidbody.velocity;
-            vel.x *= 0.95f;
-            vel.z *= 0.95f;
-            vel.y = 0f;
-            Rigidbody.velocity = vel;
+            var _velocity = Rigidbody.velocity;
+            _velocity.x *= 0.95f;
+            _velocity.z *= 0.95f;
+            _velocity.y = 0f;
+            Rigidbody.velocity = _velocity;
 
-            elapsed += Time.fixedDeltaTime;
+            _elapsed += Time.fixedDeltaTime;
             yield return _waitForFixedUpdate;
         }
 

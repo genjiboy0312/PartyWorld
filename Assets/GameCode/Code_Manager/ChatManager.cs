@@ -316,6 +316,5 @@ public class ChatManager : MonoBehaviourPunCallbacks
             _textHide.SetActive(isActive);
         }
     }
-
     #endregion
 }

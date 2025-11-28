@@ -9,6 +9,7 @@ public class PlayerModel
 
     [SerializeField] private bool _isJump;
     [SerializeField] private bool _isDive;
+    [SerializeField] private bool _isGrap;
     private Vector3 _moveDirection;
 
     public float Speed
@@ -36,6 +37,12 @@ public class PlayerModel
         }
     }
 
+    public bool IsGrap
+    {
+        get => _isGrap;
+        set => _isGrap = value;
+    }
+
     public Vector3 MoveDirection
     {
         get => _moveDirection;
@@ -44,6 +51,8 @@ public class PlayerModel
 
     public bool CanJump() => !_isJump && !_isDive;
     public bool CanDive() => !_isJump && !_isDive;
+
+    public bool CanGrap() => !_isGrap;
 
     public void ResetStates()
     {
