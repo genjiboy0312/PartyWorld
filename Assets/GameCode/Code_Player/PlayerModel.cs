@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [System.Serializable]
 public class PlayerModel
@@ -33,7 +33,7 @@ public class PlayerModel
         set
         {
             _isDive = value;
-            Debug.Log($"Model IsDive ¼³Á¤: {value}"); // µð¹ö±×¿ë
+            Debug.Log($"Model IsDive ì„¤ì •: {value}"); // ë””ë²„ê·¸ìš©
         }
     }
 
@@ -58,7 +58,7 @@ public class PlayerModel
     {
         _isJump = false;
         _isDive = false;
-        Debug.Log("Model »óÅÂ ¸®¼Â ¿Ï·á");
+        Debug.Log("Model ìƒíƒœ ë¦¬ì…‹ ì™„ë£Œ");
     }
 
     public bool CanMove() => !_isDive;

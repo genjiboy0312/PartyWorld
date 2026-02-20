@@ -1,12 +1,12 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class MovementHandler : MonoBehaviour
 {
-    [SerializeField] private List<GameObject> _moventPoints;        //  ÀÌµ¿ Æ÷ÀÎÆ®
-    [SerializeField] private float _moveSpeed = 5f;                 //  ÀÌµ¿ ¼Óµµ
-    [SerializeField] private bool _isMoving = false;                //  ÀÌµ¿ Áß ¿©ºÎ Ã¼Å©
+    [SerializeField] private List<GameObject> _moventPoints;        //  ì´ë™ í¬ì¸íŠ¸
+    [SerializeField] private float _moveSpeed = 5f;                 //  ì´ë™ ì†ë„
+    [SerializeField] private bool _isMoving = false;                //  ì´ë™ ì¤‘ ì—¬ë¶€ ì²´í¬
     void Start()
     {
         if (_moventPoints == null || _moventPoints.Count == 0)
@@ -17,7 +17,7 @@ public class MovementHandler : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        //  ÇÃ·¹ÀÌ¾î¶û ºÎµúÈ÷¸é
+        //  í”Œë ˆì´ì–´ë‘ ë¶€ë”ªíˆë©´
         if (collider.CompareTag("Player"))
         {
             StartCoroutine(MovePlayerToWaypoints(collider.transform));
@@ -28,36 +28,36 @@ public class MovementHandler : MonoBehaviour
         Rigidbody _playerRb = player.GetComponent<Rigidbody>();
         if (_playerRb != null)
         {
-            _playerRb.useGravity = false; // Áß·Â ºñÈ°¼ºÈ­
-            _playerRb.velocity = Vector3.zero; // ÇöÀç ¼Óµµ ÃÊ±âÈ­
+            _playerRb.useGravity = false; // ì¤‘ë ¥ ë¹„í™œì„±í™”
+            _playerRb.velocity = Vector3.zero; // í˜„ì¬ ì†ë„ ì´ˆê¸°í™”
         }
 
-        _isMoving = true; // ÀÌµ¿ Áß »óÅÂ ¼³Á¤
+        _isMoving = true; // ì´ë™ ì¤‘ ìƒíƒœ ì„¤ì •
 
-        // °¢ Waypoint·Î ÀÌµ¿
+        // ê° Waypointë¡œ ì´ë™
         foreach (var point in _moventPoints)
         {
-            // ÇÃ·¹ÀÌ¾î°¡ ¸ñÇ¥ ÁöÁ¡¿¡ µµ´ŞÇÒ ¶§±îÁö ¹İº¹
+            // í”Œë ˆì´ì–´ê°€ ëª©í‘œ ì§€ì ì— ë„ë‹¬í•  ë•Œê¹Œì§€ ë°˜ë³µ
             while (Vector3.Distance(player.position, point.transform.position) > 0.1f)
             {
-                // ÇÃ·¹ÀÌ¾î À§Ä¡¸¦ ¸ñÇ¥ ÁöÁ¡À¸·Î ÀÌµ¿
+                // í”Œë ˆì´ì–´ ìœ„ì¹˜ë¥¼ ëª©í‘œ ì§€ì ìœ¼ë¡œ ì´ë™
                 player.position = Vector3.MoveTowards(player.position, point.transform.position, _moveSpeed * Time.deltaTime);
 
-                // ÀÌµ¿ Áß È¸Àü Ã³¸® (¿É¼Ç)
+                // ì´ë™ ì¤‘ íšŒì „ ì²˜ë¦¬ (ì˜µì…˜)
                 Vector3 direction = (point.transform.position - player.position).normalized;
                 if (direction != Vector3.zero)
                 {
                     player.rotation = Quaternion.Slerp(player.rotation, Quaternion.LookRotation(direction), Time.deltaTime * _moveSpeed);
                 }
 
-                yield return null; // ´ÙÀ½ ÇÁ·¹ÀÓ±îÁö ´ë±â
+                yield return null; // ë‹¤ìŒ í”„ë ˆì„ê¹Œì§€ ëŒ€ê¸°
             }
         }
 
-        _isMoving = false; // ÀÌµ¿ ¿Ï·á
+        _isMoving = false; // ì´ë™ ì™„ë£Œ
         if (_playerRb != null)
         {
-            _playerRb.useGravity = true; // Áß·Â È°¼ºÈ­
+            _playerRb.useGravity = true; // ì¤‘ë ¥ í™œì„±í™”
         }
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -6,8 +6,8 @@ using DG.Tweening;
 public class UITextTypingMotion : MonoBehaviour
 {
     [Header("UI Settings")]
-    [SerializeField] private Text _txtLoading;          // ·Îµù ÅØ½ºÆ® UI
-    [SerializeField] private string _loadingText = "Loading...."; // ¹İº¹ÇÒ ÅØ½ºÆ®
+    [SerializeField] private Text _txtLoading;          // ë¡œë”© í…ìŠ¤íŠ¸ UI
+    [SerializeField] private string _loadingText = "Loading...."; // ë°˜ë³µí•  í…ìŠ¤íŠ¸
 
     private Coroutine _typingCoroutine;
 
@@ -16,7 +16,7 @@ public class UITextTypingMotion : MonoBehaviour
         if (_txtLoading != null)
             _typingCoroutine = StartCoroutine(TypingLoop());
         else
-            Debug.LogWarning("UITextTypingMotion: _txtLoadingÀÌ ÇÒ´çµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            Debug.LogWarning("UITextTypingMotion: _txtLoadingì´ í• ë‹¹ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
     }
 
     private IEnumerator TypingLoop()
@@ -25,17 +25,17 @@ public class UITextTypingMotion : MonoBehaviour
         {
             _txtLoading.text = string.Empty;
 
-            // DOTweenÀ» »ç¿ëÇÏ¿© ÅØ½ºÆ® Å¸ÀÌÇÎ ¾Ö´Ï¸ŞÀÌ¼Ç
+            // DOTweenì„ ì‚¬ìš©í•˜ì—¬ í…ìŠ¤íŠ¸ íƒ€ì´í•‘ ì• ë‹ˆë©”ì´ì…˜
             yield return _txtLoading.DOText(_loadingText, 2.5f).WaitForCompletion();
 
-            // ÅØ½ºÆ® ¾Ö´Ï¸ŞÀÌ¼Ç ÈÄ Àá±ñ ´ë±â
+            // í…ìŠ¤íŠ¸ ì• ë‹ˆë©”ì´ì…˜ í›„ ì ê¹ ëŒ€ê¸°
             yield return new WaitForSeconds(1f);
         }
     }
 
     private void OnDisable()
     {
-        // ¾À ÀüÈ¯ µî¿¡¼­ Coroutine Á¾·á
+        // ì”¬ ì „í™˜ ë“±ì—ì„œ Coroutine ì¢…ë£Œ
         if (_typingCoroutine != null)
         {
             StopCoroutine(_typingCoroutine);

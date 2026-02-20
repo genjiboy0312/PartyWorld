@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // ½ºÅ³ ÄğÅ¸ÀÓ Ã¼Å©¿ë ¸Ş¼Òµå
+    // ìŠ¤í‚¬ ì¿¨íƒ€ì„ ì²´í¬ìš© ë©”ì†Œë“œ
     public void SetCoolTimeCheck(int index, bool value)
     {
         if (index >= 0 && index < _coolTimeScripts.Count)

@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -11,39 +11,39 @@ public class VirtualJoyStick : MonoBehaviour, IPointerDownHandler, IDragHandler,
     void Awake()
     {
         imageBackground = GetComponent<Image>();
-        imageController = transform.GetChild(0).GetComponent<Image>();      // backGround ¹Ø ÀÚ½ÄÀ¸·Î ÀÖÀ¸¹Ç·Î
+        imageController = transform.GetChild(0).GetComponent<Image>();      // backGround ë°‘ ìì‹ìœ¼ë¡œ ìˆìœ¼ë¯€ë¡œ
 
     }
 
-    // ÅÍÄ¡ ½ÃÀÛ ½Ã 1È¸
+    // í„°ì¹˜ ì‹œì‘ ì‹œ 1íšŒ
     public void OnPointerDown(PointerEventData eventData)
     {
         //Debug.Log("Touch Begin" + eventData);
     }
 
-    // ÅÍÄ¡ »óÅÂÀÏ ¶§ ¸Å ÇÁ·¹ÀÓ
+    // í„°ì¹˜ ìƒíƒœì¼ ë•Œ ë§¤ í”„ë ˆì„
     public void OnDrag(PointerEventData eventData)
     {
         Vector2 touchPosition = Vector2.zero;
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(imageBackground.rectTransform, eventData.position,
             eventData.pressEventCamera, out touchPosition))
         {
-            // touchPosition °ªÀÇ Á¤±ÔÈ­ [0 ~ 1] , ÀÌ¹ÌÁö Å©±â·Î ³ª´®
+            // touchPosition ê°’ì˜ ì •ê·œí™” [0 ~ 1] , ì´ë¯¸ì§€ í¬ê¸°ë¡œ ë‚˜ëˆ”
             touchPosition.x = (touchPosition.x / imageBackground.rectTransform.sizeDelta.x);
             touchPosition.y = (touchPosition.y / imageBackground.rectTransform.sizeDelta.y);
 
-            // touchPosition °ªÀÇ Á¤±ÔÈ­ [~n ~ n] , ÀÌ¹ÌÁö Å©±â·Î ³ª´®
-            // ¿ŞÂÊ (-1), Áß½É (0), ¿À¸¥ÂÊ (1) ·Î º¯°æÇÏ±âÀ§ÇØ touchPosition.x * 2 -1
-            // ¾Æ·¡ (-1), Áß½É (0), À§(1)·Î º¯°æÇÏ±â À§ÇØ touchPosition.y * 2 -1
-            // ÀÌ ¼ö½ÄÀº Piviot¿¡ µû¶ó ´Ş¶óÁü (ÁÂ ÇÏ´Ü Pivot ±âÁØ)
+            // touchPosition ê°’ì˜ ì •ê·œí™” [~n ~ n] , ì´ë¯¸ì§€ í¬ê¸°ë¡œ ë‚˜ëˆ”
+            // ì™¼ìª½ (-1), ì¤‘ì‹¬ (0), ì˜¤ë¥¸ìª½ (1) ë¡œ ë³€ê²½í•˜ê¸°ìœ„í•´ touchPosition.x * 2 -1
+            // ì•„ë˜ (-1), ì¤‘ì‹¬ (0), ìœ„(1)ë¡œ ë³€ê²½í•˜ê¸° ìœ„í•´ touchPosition.y * 2 -1
+            // ì´ ìˆ˜ì‹ì€ Piviotì— ë”°ë¼ ë‹¬ë¼ì§ (ì¢Œ í•˜ë‹¨ Pivot ê¸°ì¤€)
             touchPosition = new Vector2(touchPosition.x * 2 - 1, touchPosition.y * 2 - 1);
 
-            // touchPosition °ªÀÇ Á¤±ÔÈ­ [-1 ~ 1]
-            // °¡»ó Á¶ÀÌ½ºÆ½ ¹è°æ ÀÌ¹ÌÁö ¹ÛÀ¸·Î ÅÍÄ¡°¡ ³ª°¡°Ô µÇ¸é -1 ~ 1 º¸´Ù Å« °ªÀÌ ³ª¿Ã ¼ö ÀÖÀ½
-            // ÀÌ¶§ normailzed¸¦ ÀÌ¿ëÇØ -1 ~ 1 »çÀÌÀÇ °ªÀ¸·Î Á¤±ÔÈ­
+            // touchPosition ê°’ì˜ ì •ê·œí™” [-1 ~ 1]
+            // ê°€ìƒ ì¡°ì´ìŠ¤í‹± ë°°ê²½ ì´ë¯¸ì§€ ë°–ìœ¼ë¡œ í„°ì¹˜ê°€ ë‚˜ê°€ê²Œ ë˜ë©´ -1 ~ 1 ë³´ë‹¤ í° ê°’ì´ ë‚˜ì˜¬ ìˆ˜ ìˆìŒ
+            // ì´ë•Œ normailzedë¥¼ ì´ìš©í•´ -1 ~ 1 ì‚¬ì´ì˜ ê°’ìœ¼ë¡œ ì •ê·œí™”
             touchPosition = (touchPosition.magnitude > 1) ? touchPosition.normalized : touchPosition;
 
-            // Á¶ÀÌ½ºÆ½ ÄÁÆ®·Ñ·¯ ÀÌ¹ÌÁö ÀÌµ¿
+            // ì¡°ì´ìŠ¤í‹± ì»¨íŠ¸ë¡¤ëŸ¬ ì´ë¯¸ì§€ ì´ë™
             imageController.rectTransform.anchoredPosition = new Vector2(
                 touchPosition.x * imageBackground.rectTransform.sizeDelta.x / 2,
                 touchPosition.y * imageBackground.rectTransform.sizeDelta.y / 2);
@@ -52,13 +52,13 @@ public class VirtualJoyStick : MonoBehaviour, IPointerDownHandler, IDragHandler,
         }
     }
 
-    // ÅÍÄ¡ Á¾·á½Ã 1È¸
+    // í„°ì¹˜ ì¢…ë£Œì‹œ 1íšŒ
     public void OnPointerUp(PointerEventData eventData)
     {
-        // À§Ä¡ ÃÊ±âÈ­
+        // ìœ„ì¹˜ ì´ˆê¸°í™”
         imageController.rectTransform.anchoredPosition = Vector2.zero;
 
-        // ´Ù¸¥ ¿ÀºêÁ§Æ®¿¡¼­ ÀÌµ¿ ¹æÇâÀ¸·Î »ç¿ëÇÏ±â ¶§¹®¿¡ ÀÌµ¿ ¹æÇâµµ ÃÊ±âÈ­
+        // ë‹¤ë¥¸ ì˜¤ë¸Œì íŠ¸ì—ì„œ ì´ë™ ë°©í–¥ìœ¼ë¡œ ì‚¬ìš©í•˜ê¸° ë•Œë¬¸ì— ì´ë™ ë°©í–¥ë„ ì´ˆê¸°í™”
         touchPosition = Vector2.zero;
         //Debug.Log("Touch & Ended" + eventData);
     }

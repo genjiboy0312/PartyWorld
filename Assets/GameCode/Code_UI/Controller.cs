@@ -1,9 +1,9 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// ÇØ´ç ½ºÅ©¸³Æ®´Â UI¿¡ Á÷Á¢ÀûÀ¸·Î ³Ö¾î¼­ »ç¿ëÇØ¾ßÇÔ
+/// í•´ë‹¹ ìŠ¤í¬ë¦½íŠ¸ëŠ” UIì— ì§ì ‘ì ìœ¼ë¡œ ë„£ì–´ì„œ ì‚¬ìš©í•´ì•¼í•¨
 /// 
 /// </summary>
 public class Controller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
@@ -29,7 +29,7 @@ public class Controller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoi
     {
         if (_joyStickBackground == null || _joyStickImage == null)
         {
-            Debug.LogWarning("Á¶ÀÌ½ºÆ½ ÀÌ¹ÌÁö°¡ ¿¬°áX");
+            Debug.LogWarning("ì¡°ì´ìŠ¤í‹± ì´ë¯¸ì§€ê°€ ì—°ê²°X");
             return;
         }
 
@@ -86,13 +86,13 @@ public class Controller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoi
 
     private void PlayerJump()
     {
-        // Presenter¿¡¼­ Ã³¸®ÇÒ ¿¹Á¤
-        Debug.Log("Jump ¹öÆ° ´­¸²");
+        // Presenterì—ì„œ ì²˜ë¦¬í•  ì˜ˆì •
+        Debug.Log("Jump ë²„íŠ¼ ëˆŒë¦¼");
     }
 
     private void PlayerDive()
     {
-        // Presenter¿¡¼­ Ã³¸®ÇÒ ¿¹Á¤
-        Debug.Log("Dive ¹öÆ° ´­¸²");
+        // Presenterì—ì„œ ì²˜ë¦¬í•  ì˜ˆì •
+        Debug.Log("Dive ë²„íŠ¼ ëˆŒë¦¼");
     }
 }

@@ -1,8 +1,8 @@
-using System;
+ï»¿using System;
 using Firebase.Auth;
 using UnityEngine;
 
-// Firebase ÀÎÁõ °ü¸® ½Ì±ÛÅæ Å¬·¡½º
+// Firebase ì¸ì¦ ê´€ë¦¬ ì‹±ê¸€í†¤ í´ë˜ìŠ¤
 public class FirebaseAuthManager
 {
     private static FirebaseAuthManager _instance = null;
@@ -19,32 +19,32 @@ public class FirebaseAuthManager
         }
     }
 
-    private FirebaseAuth _auth;     // Firebase ÀÎÁõ °´Ã¼
-    private FirebaseUser _user;     // ÀÎÁõµÈ À¯Àú Á¤º¸
+    private FirebaseAuth _auth;     // Firebase ì¸ì¦ ê°ì²´
+    private FirebaseUser _user;     // ì¸ì¦ëœ ìœ ì € ì •ë³´
 
-    // À¯Àú ID¿Í ÀÌ¸ŞÀÏ °¡Á®¿À±â
+    // ìœ ì € IDì™€ ì´ë©”ì¼ ê°€ì ¸ì˜¤ê¸°
     public string _userId => _user != null ? _user.UserId : "None";
     public string _userEmail => _user != null ? _user.Email : "None";
 
-    public Action<bool> _loginState; // ·Î±×ÀÎ »óÅÂ ÀÌº¥Æ®
+    public Action<bool> _loginState; // ë¡œê·¸ì¸ ìƒíƒœ ì´ë²¤íŠ¸
 
-    // Firebase ÀÎÁõ ÃÊ±âÈ­
+    // Firebase ì¸ì¦ ì´ˆê¸°í™”
     public void Init()
     {
         _auth = FirebaseAuth.DefaultInstance;
 
-        // ÀÌ¹Ì ·Î±×ÀÎµÈ À¯Àú°¡ ÀÖÀ¸¸é ·Î±×¾Æ¿ô Ã³¸®
+        // ì´ë¯¸ ë¡œê·¸ì¸ëœ ìœ ì €ê°€ ìˆìœ¼ë©´ ë¡œê·¸ì•„ì›ƒ ì²˜ë¦¬
         if (_auth.CurrentUser != null)
         {
             LogOut();
-            Debug.Log("ÃÊ±âÈ­ Áß ·Î±×¾Æ¿ô ½ÇÇà");
+            Debug.Log("ì´ˆê¸°í™” ì¤‘ ë¡œê·¸ì•„ì›ƒ ì‹¤í–‰");
         }
 
-        // ÀÎÁõ »óÅÂ º¯°æ ÀÌº¥Æ® ±¸µ¶
+        // ì¸ì¦ ìƒíƒœ ë³€ê²½ ì´ë²¤íŠ¸ êµ¬ë…
         _auth.StateChanged += OnAuthStateChanged;
     }
 
-    // ÀÎÁõ »óÅÂ°¡ º¯°æµÉ ¶§ È£Ãâ
+    // ì¸ì¦ ìƒíƒœê°€ ë³€ê²½ë  ë•Œ í˜¸ì¶œ
     private void OnAuthStateChanged(object sender, EventArgs e)
     {
         if (_auth.CurrentUser != _user)
@@ -53,67 +53,67 @@ public class FirebaseAuthManager
 
             if (!signedIn && _user != null)
             {
-                Debug.Log("À¯Àú ·Î±×¾Æ¿ô");
+                Debug.Log("ìœ ì € ë¡œê·¸ì•„ì›ƒ");
                 _loginState?.Invoke(false);
             }
 
             _user = _auth.CurrentUser;
             if (signedIn)
             {
-                Debug.Log("À¯Àú ·Î±×ÀÎ");
+                Debug.Log("ìœ ì € ë¡œê·¸ì¸");
                 _loginState?.Invoke(true);
             }
         }
     }
 
-    // »õ À¯Àú °èÁ¤ »ı¼º
+    // ìƒˆ ìœ ì € ê³„ì • ìƒì„±
     public void Create(string email, string password)
     {
         _auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
         {
             if (task.IsCanceled)
             {
-                Debug.LogError("È¸¿ø°¡ÀÔ Ãë¼Ò");
+                Debug.LogError("íšŒì›ê°€ì… ì·¨ì†Œ");
                 return;
             }
             if (task.IsFaulted)
             {
-                Debug.LogError("È¸¿ø°¡ÀÔ ½ÇÆĞ");
+                Debug.LogError("íšŒì›ê°€ì… ì‹¤íŒ¨");
                 return;
             }
 
             AuthResult authResult = task.Result;
             FirebaseUser newUser = authResult.User;
-            Debug.Log("È¸¿ø°¡ÀÔ ¿Ï·á");
+            Debug.Log("íšŒì›ê°€ì… ì™„ë£Œ");
         });
     }
 
-    // ÀÌ¸ŞÀÏ°ú ºñ¹Ğ¹øÈ£·Î ·Î±×ÀÎ
+    // ì´ë©”ì¼ê³¼ ë¹„ë°€ë²ˆí˜¸ë¡œ ë¡œê·¸ì¸
     public void LogIn(string email, string password)
     {
         _auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
         {
             if (task.IsCanceled)
             {
-                Debug.LogError("·Î±×ÀÎ Ãë¼Ò");
+                Debug.LogError("ë¡œê·¸ì¸ ì·¨ì†Œ");
                 return;
             }
             if (task.IsFaulted)
             {
-                Debug.LogError("·Î±×ÀÎ ½ÇÆĞ");
+                Debug.LogError("ë¡œê·¸ì¸ ì‹¤íŒ¨");
                 return;
             }
 
             AuthResult authResult = task.Result;
             FirebaseUser newUser = authResult.User;
-            Debug.Log("·Î±×ÀÎ ¿Ï·á");
+            Debug.Log("ë¡œê·¸ì¸ ì™„ë£Œ");
         });
     }
 
-    // ÇöÀç À¯Àú ·Î±×¾Æ¿ô
+    // í˜„ì¬ ìœ ì € ë¡œê·¸ì•„ì›ƒ
     public void LogOut()
     {
         _auth.SignOut();
-        Debug.Log("À¯Àú ·Î±×¾Æ¿ô");
+        Debug.Log("ìœ ì € ë¡œê·¸ì•„ì›ƒ");
     }
 }

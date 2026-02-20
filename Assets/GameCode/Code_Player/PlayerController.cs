@@ -1,4 +1,4 @@
-//using System.Collections;
+ï»¿//using System.Collections;
 //using System.Collections.Generic;
 //using UnityEngine;
 //using Photon.Pun;
@@ -7,7 +7,7 @@
 
 //public class PlayerController : MonoBehaviour, IPunObservable
 //{
-//    // ÀÔ·Â °ü·Ã
+//    // ì…ë ¥ ê´€ë ¨
 //    private float _horizontalAxis;
 //    private float _verticalAxis;
 
@@ -17,7 +17,7 @@
 //    [SerializeField] private bool _isDive;
 //    [SerializeField] private float _jumpPower = 20f;
 
-//    // ÄÄÆ÷³ÍÆ®
+//    // ì»´í¬ë„ŒíŠ¸
 //    private Vector3 _moveVec;
 //    private Vector3 _diveVec;
 //    private Rigidbody _playerRigidbody;
@@ -43,14 +43,14 @@
 //    {
 //        _joyStick = GameObject.Find("BackGround_JoyStick")?.GetComponent<_controller>();
 
-//        // ¿ÉÀú¹ö ÆĞÅÏ µî·Ï
+//        // ì˜µì €ë²„ íŒ¨í„´ ë“±ë¡
 //        if (GameManager.Instance != null)
 //            GameManager.Instance.OnGameStateChangeEvent += OnGameStateChange;
 //    }
 
 //    private void OnDisable()
 //    {
-//        // ¿ÉÀú¹ö ÇØÁ¦ (PhotonNetwork.Destroy µî¿¡¼­µµ ¾ÈÀü)
+//        // ì˜µì €ë²„ í•´ì œ (PhotonNetwork.Destroy ë“±ì—ì„œë„ ì•ˆì „)
 //        if (GameManager.Instance != null)
 //            GameManager.Instance.OnGameStateChangeEvent -= OnGameStateChange;
 //    }
@@ -67,7 +67,7 @@
 //        PlayerDash();
 //    }
 
-//    // ÀÔ·Â Ã³¸®
+//    // ì…ë ¥ ì²˜ë¦¬
 //    private void HandleInput()
 //    {
 //        _horizontalAxis = Input.GetAxisRaw("Horizontal");
@@ -164,7 +164,7 @@
 //        }
 //    }
 
-//    // ¿ÉÀú¹ö ÀÌº¥Æ®: GameManager »óÅÂ º¯°æ Ã³¸®
+//    // ì˜µì €ë²„ ì´ë²¤íŠ¸: GameManager ìƒíƒœ ë³€ê²½ ì²˜ë¦¬
 //    private void OnGameStateChange(GameState newGameState)
 //    {
 //        switch (newGameState)

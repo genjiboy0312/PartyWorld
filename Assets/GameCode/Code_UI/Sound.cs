@@ -1,8 +1,8 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//  »ç¿îµå ÀÌ¸§°ú ¿Àµğ¿À Å¬¸³¸¸ À¯Áö
+//  ì‚¬ìš´ë“œ ì´ë¦„ê³¼ ì˜¤ë””ì˜¤ í´ë¦½ë§Œ ìœ ì§€
 [System.Serializable]
 public class Sound 
 {

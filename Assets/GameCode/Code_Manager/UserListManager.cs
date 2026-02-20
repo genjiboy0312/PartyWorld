@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
@@ -7,17 +7,17 @@ using Photon.Realtime;
 public class UserListManager : MonoBehaviourPunCallbacks
 {
     [Header("UI Elements")]
-    [SerializeField] private Text[] _userName;               // ÇÃ·¹ÀÌ¾î ÀÌ¸§ Ç¥½Ã UI
-    [SerializeField] private List<string> _userEmails = new List<string>(); // Á¢¼ÓÇÑ ÇÃ·¹ÀÌ¾î ´Ğ³×ÀÓ ¸®½ºÆ®
+    [SerializeField] private Text[] _userName;               // í”Œë ˆì´ì–´ ì´ë¦„ í‘œì‹œ UI
+    [SerializeField] private List<string> _userEmails = new List<string>(); // ì ‘ì†í•œ í”Œë ˆì´ì–´ ë‹‰ë„¤ì„ ë¦¬ìŠ¤íŠ¸
 
     private void Start()
     {
         PhotonNetwork.IsMessageQueueRunning = true;
         if (_userName == null || _userName.Length == 0)
-            Debug.LogWarning("UserListManager: _userNameÀÌ ÇÒ´çµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            Debug.LogWarning("UserListManager: _userNameì´ í• ë‹¹ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
     }
 
-    #region Photon Äİ¹é Ã³¸®
+    #region Photon ì½œë°± ì²˜ë¦¬
 
     public override void OnJoinedRoom()
     {
@@ -38,30 +38,30 @@ public class UserListManager : MonoBehaviourPunCallbacks
     #endregion
 
     /// <summary>
-    /// ÇöÀç ¹æ¿¡ ÀÖ´Â ÇÃ·¹ÀÌ¾î Á¤º¸¸¦ ±â¹İÀ¸·Î UI ¹× ¸®½ºÆ® °»½Å
+    /// í˜„ì¬ ë°©ì— ìˆëŠ” í”Œë ˆì´ì–´ ì •ë³´ë¥¼ ê¸°ë°˜ìœ¼ë¡œ UI ë° ë¦¬ìŠ¤íŠ¸ ê°±ì‹ 
     /// </summary>
     private void UpdateUserList()
     {
         if (_userName == null) return;
 
-        // ±âÁ¸ ¸®½ºÆ® ÃÊ±âÈ­
+        // ê¸°ì¡´ ë¦¬ìŠ¤íŠ¸ ì´ˆê¸°í™”
         _userEmails.Clear();
 
         foreach (Player p in PhotonNetwork.PlayerList)
         {
-            if (p.NickName != PhotonNetwork.NickName) // ÀÚ±â ÀÚ½Å Á¦¿Ü
+            if (p.NickName != PhotonNetwork.NickName) // ìê¸° ìì‹  ì œì™¸
             {
-                _userEmails.Add(p.NickName); // ´Ğ³×ÀÓ Ãß°¡
+                _userEmails.Add(p.NickName); // ë‹‰ë„¤ì„ ì¶”ê°€
             }
         }
 
-        // UI ¾÷µ¥ÀÌÆ®
+        // UI ì—…ë°ì´íŠ¸
         for (int i = 0; i < _userName.Length; i++)
         {
             if (i < _userEmails.Count)
                 _userName[i].text = _userEmails[i];
             else
-                _userName[i].text = ""; // ³²´Â Ä­ ÃÊ±âÈ­
+                _userName[i].text = ""; // ë‚¨ëŠ” ì¹¸ ì´ˆê¸°í™”
         }
     }
 }

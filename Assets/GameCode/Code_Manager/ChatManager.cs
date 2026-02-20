@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
@@ -26,10 +26,10 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
         if (_pv == null)
         {
-            Debug.LogError("[ChatManager] PhotonView ÄÄÆ÷³ÍÆ®°¡ ¾ø½À´Ï´Ù!");
+            Debug.LogError("[ChatManager] PhotonView ì»´í¬ë„ŒíŠ¸ê°€ ì—†ìŠµë‹ˆë‹¤!");
         }
 
-        // GameManager Ä³½Ì ¹× ±¸µ¶
+        // GameManager ìºì‹± ë° êµ¬ë…
         _gameManager = GameManager.Instance;
         if (_gameManager != null)
         {
@@ -37,40 +37,40 @@ public class ChatManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            Debug.LogError("[ChatManager] GameManager.Instance°¡ nullÀÔ´Ï´Ù!");
+            Debug.LogError("[ChatManager] GameManager.Instanceê°€ nullì…ë‹ˆë‹¤!");
         }
 
-        // FirebaseAuthManager Ä³½Ì
+        // FirebaseAuthManager ìºì‹±
         _authManager = FirebaseAuthManager.Instance;
         if (_authManager == null)
         {
-            Debug.LogError("[ChatManager] FirebaseAuthManager.Instance°¡ nullÀÔ´Ï´Ù!");
+            Debug.LogError("[ChatManager] FirebaseAuthManager.Instanceê°€ nullì…ë‹ˆë‹¤!");
         }
     }
 
     private void Start()
     {
-        // Photon NickName ¼³Á¤
+        // Photon NickName ì„¤ì •
         if (_authManager != null)
         {
             PhotonNetwork.NickName = _authManager._userEmail;
         }
 
-        // Photon ¼­¹ö ¿¬°á
+        // Photon ì„œë²„ ì—°ê²°
         PhotonNetwork.ConnectUsingSettings();
         PhotonNetwork.IsMessageQueueRunning = true;
 
-        // Send ¹öÆ° ÀÌº¥Æ® ¿¬°á
+        // Send ë²„íŠ¼ ì´ë²¤íŠ¸ ì—°ê²°
         if (_sendBtn != null)
         {
             _sendBtn.onClick.AddListener(Send);
         }
         else
         {
-            Debug.LogWarning("[ChatManager] Send ¹öÆ°ÀÌ ÇÒ´çµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            Debug.LogWarning("[ChatManager] Send ë²„íŠ¼ì´ í• ë‹¹ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
         }
 
-        // InputField Enter Å° Ã³¸®
+        // InputField Enter í‚¤ ì²˜ë¦¬
         if (_chatInput != null)
         {
             _chatInput.onEndEdit.AddListener(OnInputEndEdit);
@@ -79,19 +79,19 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        // ¼­¹ö »óÅÂ Ç¥½Ã
+        // ì„œë²„ ìƒíƒœ í‘œì‹œ
         if (_statusText != null)
         {
             _statusText.text = PhotonNetwork.NetworkClientState.ToString();
         }
 
-        // UI ¿Ü ¿µ¿ª Å¬¸¯ ½Ã È°¼ºÈ­
+        // UI ì™¸ ì˜ì—­ í´ë¦­ ì‹œ í™œì„±í™”
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
         {
             SetTextActive(true);
         }
 
-        // ESC Å°·Î Ã¤ÆÃ ¼û±â±â
+        // ESC í‚¤ë¡œ ì±„íŒ… ìˆ¨ê¸°ê¸°
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             SetTextActive(false);
@@ -107,7 +107,7 @@ public class ChatManager : MonoBehaviourPunCallbacks
     {
         UnsubscribeEvents();
 
-        // UI ÀÌº¥Æ® Á¤¸®
+        // UI ì´ë²¤íŠ¸ ì •ë¦¬
         if (_sendBtn != null)
         {
             _sendBtn.onClick.RemoveListener(Send);
@@ -127,7 +127,7 @@ public class ChatManager : MonoBehaviourPunCallbacks
         }
     }
 
-    #region Photon ¼­¹ö ¿¬°á
+    #region Photon ì„œë²„ ì—°ê²°
 
     public void Connect()
     {
@@ -139,9 +139,9 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("[ChatManager] Photon ¸¶½ºÅÍ ¼­¹ö ¿¬°á ¼º°ø");
+        Debug.Log("[ChatManager] Photon ë§ˆìŠ¤í„° ì„œë²„ ì—°ê²° ì„±ê³µ");
 
-        // Room1¿¡ ÀÔÀå ¶Ç´Â »ı¼º
+        // Room1ì— ì…ì¥ ë˜ëŠ” ìƒì„±
         RoomOptions roomOptions = new RoomOptions
         {
             MaxPlayers = 4,
@@ -154,38 +154,38 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        Debug.Log($"[ChatManager] ¹æ ÀÔÀå ¼º°ø: {PhotonNetwork.CurrentRoom.Name}");
+        Debug.Log($"[ChatManager] ë°© ì…ì¥ ì„±ê³µ: {PhotonNetwork.CurrentRoom.Name}");
 
-        string msg = $"<color=blue>*** {PhotonNetwork.NickName}´ÔÀÌ ÀÔÀåÇß½À´Ï´Ù. ***</color>";
+        string msg = $"<color=blue>*** {PhotonNetwork.NickName}ë‹˜ì´ ì…ì¥í–ˆìŠµë‹ˆë‹¤. ***</color>";
         AddChatMessage(msg);
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.LogWarning($"[ChatManager] Photon ¼­¹ö ¿¬°á ÇØÁ¦: {cause}");
+        Debug.LogWarning($"[ChatManager] Photon ì„œë²„ ì—°ê²° í•´ì œ: {cause}");
     }
 
     #endregion
 
-    #region ÇÃ·¹ÀÌ¾î ÀÔÀå/ÅğÀå
+    #region í”Œë ˆì´ì–´ ì…ì¥/í‡´ì¥
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        string msg = $"<color=green>[{newPlayer.NickName}]´ÔÀÌ ÀÔÀåÇÏ¼Ì½À´Ï´Ù.</color>";
+        string msg = $"<color=green>[{newPlayer.NickName}]ë‹˜ì´ ì…ì¥í•˜ì…¨ìŠµë‹ˆë‹¤.</color>";
         AddChatMessage(msg);
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        string msg = $"<color=red>[{otherPlayer.NickName}]´ÔÀÌ ÅğÀåÇÏ¼Ì½À´Ï´Ù.</color>";
+        string msg = $"<color=red>[{otherPlayer.NickName}]ë‹˜ì´ í‡´ì¥í•˜ì…¨ìŠµë‹ˆë‹¤.</color>";
         AddChatMessage(msg);
     }
 
     #endregion
 
-    #region Ã¤ÆÃ
+    #region ì±„íŒ…
 
-    // Enter Å°·Î Àü¼Û
+    // Enter í‚¤ë¡œ ì „ì†¡
     private void OnInputEndEdit(string text)
     {
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
@@ -194,7 +194,7 @@ public class ChatManager : MonoBehaviourPunCallbacks
         }
     }
 
-    // Send ¹öÆ° ¶Ç´Â Enter Å° È£Ãâ
+    // Send ë²„íŠ¼ ë˜ëŠ” Enter í‚¤ í˜¸ì¶œ
     public void Send()
     {
         if (_chatInput == null || string.IsNullOrWhiteSpace(_chatInput.text))
@@ -204,13 +204,13 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
         if (!PhotonNetwork.InRoom)
         {
-            Debug.LogError("[ChatManager] ¹æ¿¡ ÀÔÀåÇÏÁö ¾Ê¾Ò½À´Ï´Ù. ¸Ş½ÃÁö¸¦ Àü¼ÛÇÒ ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogError("[ChatManager] ë°©ì— ì…ì¥í•˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤. ë©”ì‹œì§€ë¥¼ ì „ì†¡í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
         if (_pv == null)
         {
-            Debug.LogError("[ChatManager] PhotonView°¡ nullÀÔ´Ï´Ù!");
+            Debug.LogError("[ChatManager] PhotonViewê°€ nullì…ë‹ˆë‹¤!");
             return;
         }
 
@@ -219,7 +219,7 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
         _pv.RPC(nameof(ChatRPC), RpcTarget.All, formattedMessage);
 
-        // ÀÔ·Â ÇÊµå ÃÊ±âÈ­ ¹× Æ÷Ä¿½º
+        // ì…ë ¥ í•„ë“œ ì´ˆê¸°í™” ë° í¬ì»¤ìŠ¤
         _chatInput.text = "";
         _chatInput.ActivateInputField();
     }
@@ -230,16 +230,16 @@ public class ChatManager : MonoBehaviourPunCallbacks
         AddChatMessage(msg);
     }
 
-    // ¸Ş½ÃÁö ¹Ğ±â ·ÎÁ÷ (ÃÖÀûÈ­)
+    // ë©”ì‹œì§€ ë°€ê¸° ë¡œì§ (ìµœì í™”)
     private void AddChatMessage(string msg)
     {
         if (_chatText == null || _chatText.Length == 0)
         {
-            Debug.LogWarning("[ChatManager] _chatText ¹è¿­ÀÌ ºñ¾îÀÖ½À´Ï´Ù.");
+            Debug.LogWarning("[ChatManager] _chatText ë°°ì—´ì´ ë¹„ì–´ìˆìŠµë‹ˆë‹¤.");
             return;
         }
 
-        // ¸Ş½ÃÁö¸¦ À§·Î ¹Ğ±â
+        // ë©”ì‹œì§€ë¥¼ ìœ„ë¡œ ë°€ê¸°
         for (int i = 0; i < _chatText.Length - 1; i++)
         {
             if (_chatText[i] != null && _chatText[i + 1] != null)
@@ -248,48 +248,48 @@ public class ChatManager : MonoBehaviourPunCallbacks
             }
         }
 
-        // ¸¶Áö¸· ÁÙ¿¡ »õ ¸Ş½ÃÁö Ãß°¡
+        // ë§ˆì§€ë§‰ ì¤„ì— ìƒˆ ë©”ì‹œì§€ ì¶”ê°€
         if (_chatText[_chatText.Length - 1] != null)
         {
             _chatText[_chatText.Length - 1].text = msg;
         }
 
-        Debug.Log($"[ChatManager] ¸Ş½ÃÁö Ãß°¡: {msg}");
+        Debug.Log($"[ChatManager] ë©”ì‹œì§€ ì¶”ê°€: {msg}");
     }
 
     #endregion
 
-    #region GameManager ¿¬µ¿ (¿ÉÀú¹ö ÆĞÅÏ)
+    #region GameManager ì—°ë™ (ì˜µì €ë²„ íŒ¨í„´)
 
-    // GameState º¯°æ ½Ã È£ÃâµÊ
+    // GameState ë³€ê²½ ì‹œ í˜¸ì¶œë¨
     public void OnGameStateChange(GameState newGameState)
     {
         if (_pv == null)
         {
-            Debug.LogWarning("[ChatManager] PhotonView°¡ nullÀÌ¾î¼­ ½Ã½ºÅÛ ¸Ş½ÃÁö¸¦ Àü¼ÛÇÒ ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogWarning("[ChatManager] PhotonViewê°€ nullì´ì–´ì„œ ì‹œìŠ¤í…œ ë©”ì‹œì§€ë¥¼ ì „ì†¡í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
         switch (newGameState)
         {
             case GameState.Title:
-                SendSystemMessage("*** °ÔÀÓ ´ë±â Áß ***");
+                SendSystemMessage("*** ê²Œì„ ëŒ€ê¸° ì¤‘ ***");
                 break;
 
             case GameState.Loading:
-                SendSystemMessage("*** ·Îµù Áß... ***");
+                SendSystemMessage("*** ë¡œë”© ì¤‘... ***");
                 break;
 
             case GameState.Playing:
-                SendSystemMessage("*** °ÔÀÓ ½ÃÀÛ! ***");
+                SendSystemMessage("*** ê²Œì„ ì‹œì‘! ***");
                 break;
 
             case GameState.GameOver:
-                SendSystemMessage("*** °ÔÀÓ Á¾·á ***");
+                SendSystemMessage("*** ê²Œì„ ì¢…ë£Œ ***");
                 break;
         }
 
-        Debug.Log($"[ChatManager] GameState º¯°æ: {newGameState}");
+        Debug.Log($"[ChatManager] GameState ë³€ê²½: {newGameState}");
     }
 
     private void SendSystemMessage(string message)
@@ -302,7 +302,7 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
     #endregion
 
-    #region UI È°¼ºÈ­/ºñÈ°¼ºÈ­
+    #region UI í™œì„±í™”/ë¹„í™œì„±í™”
 
     public void OnTextClick()
     {

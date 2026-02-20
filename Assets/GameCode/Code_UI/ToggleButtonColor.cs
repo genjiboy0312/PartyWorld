@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +11,7 @@ public class ToggleButtonColor : MonoBehaviour
     private Image _image;
     private bool _isToggled = false;
 
-    [SerializeField] private Color _toggledColor = Color.gray; // È¸»öÀ¸·Î Åä±ÛµÉ »ö
+    [SerializeField] private Color _toggledColor = Color.gray; // íšŒìƒ‰ìœ¼ë¡œ í† ê¸€ë  ìƒ‰
 
     void Start()
     {

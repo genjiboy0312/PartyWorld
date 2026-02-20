@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 
 public class LogInSystem : MonoBehaviour
@@ -10,30 +10,30 @@ public class LogInSystem : MonoBehaviour
     [SerializeField] private Button _logOutBtn;
     [SerializeField] private Button _createBtn;
 
-    // ·Î±×ÀÎ »óÅÂ ÀÌº¥Æ® ±¸µ¶
+    // ë¡œê·¸ì¸ ìƒíƒœ ì´ë²¤íŠ¸ êµ¬ë…
     private void OnEnable() => FirebaseAuthManager.Instance._loginState += OnChangedState;
 
     private void OnDisable() => FirebaseAuthManager.Instance._loginState -= OnChangedState;
 
     private void Start()
     {
-        // Firebase ÃÊ±âÈ­
+        // Firebase ì´ˆê¸°í™”
         FirebaseAuthManager.Instance.Init();
 
-        // ¹öÆ° Å¬¸¯ ÀÌº¥Æ® ÄÚµå¿¡¼­ µî·Ï
+        // ë²„íŠ¼ í´ë¦­ ì´ë²¤íŠ¸ ì½”ë“œì—ì„œ ë“±ë¡
         if (_logInBtn != null) _logInBtn.onClick.AddListener(OnLogInClicked);
         if (_logOutBtn != null) _logOutBtn.onClick.AddListener(OnLogOutClicked);
         if (_createBtn != null) _createBtn.onClick.AddListener(OnCreateClicked);
     }
 
-    // ·Î±×ÀÎ »óÅÂ º¯°æ ½Ã UI °»½Å
+    // ë¡œê·¸ì¸ ìƒíƒœ ë³€ê²½ ì‹œ UI ê°±ì‹ 
     private void OnChangedState(bool signedIn)
     {
-        _outputTxt.text = signedIn ? "·Î±×ÀÎ" : "·Î±×¾Æ¿ô";
+        _outputTxt.text = signedIn ? "ë¡œê·¸ì¸" : "ë¡œê·¸ì•„ì›ƒ";
         _outputTxt.text += "\nUserID: " + FirebaseAuthManager.Instance._userId;
     }
 
-    // ¹öÆ° ÀÌº¥Æ® Äİ¹é
+    // ë²„íŠ¼ ì´ë²¤íŠ¸ ì½œë°±
     private void OnLogInClicked()
     {
         string _email = _inputEmail.text;

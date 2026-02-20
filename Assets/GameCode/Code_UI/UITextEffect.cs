@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,8 +13,8 @@ public class UITextEffect : MonoBehaviour
     }
     void StartBlinking()
     {
-        // ÅØ½ºÆ® ¾ËÆÄ°ªÀ» 0À¸·Î ÁÙ¿´´Ù°¡ 1·Î µ¹¾Æ¿À´Â ¾Ö´Ï¸ŞÀÌ¼ÇÀ» ¹«ÇÑ ¹İº¹
+        // í…ìŠ¤íŠ¸ ì•ŒíŒŒê°’ì„ 0ìœ¼ë¡œ ì¤„ì˜€ë‹¤ê°€ 1ë¡œ ëŒì•„ì˜¤ëŠ” ì• ë‹ˆë©”ì´ì…˜ì„ ë¬´í•œ ë°˜ë³µ
         _txt.DOFade(0, 1f ).SetLoops(-1, _lootType) 
-            .SetEase(Ease.InOutQuad); // ºÎµå·´°Ô ½ÃÀÛÇÏ°í ³¡³ª´Â ÀÌÂ¡ ¼³Á¤
+            .SetEase(Ease.InOutQuad); // ë¶€ë“œëŸ½ê²Œ ì‹œì‘í•˜ê³  ëë‚˜ëŠ” ì´ì§• ì„¤ì •
     }
 }

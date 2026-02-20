@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,40 +10,40 @@ public class Tracker : MonoBehaviour
     [SerializeField] private Transform satellite;
     [SerializeField] private Transform satellite2;
 
-    [SerializeField] private float _elapsedTime = 0f;        //  °æ°ú ½Ã°£
+    [SerializeField] private float _elapsedTime = 0f;        //  ê²½ê³¼ ì‹œê°„
 
 
     void Update()
     {
-        //  1.Á¤ÇØÁø ½Ã°£ tweenTime µ¿¾È from -> to ¸¦ ¼±ÇüÀ¸·Î ÀÌµ¿ÇÏ´Â Tracker Å¬·¡½º¸¦ ±¸ÇöÇÏ¼¼¿ä.
+        //  1.ì •í•´ì§„ ì‹œê°„ tweenTime ë™ì•ˆ from -> to ë¥¼ ì„ í˜•ìœ¼ë¡œ ì´ë™í•˜ëŠ” Tracker í´ëž˜ìŠ¤ë¥¼ êµ¬í˜„í•˜ì„¸ìš”.
         if (_elapsedTime < tweenTime)
         {
             _elapsedTime += Time.deltaTime;
-            //  ½Ã°£ Á¤±ÔÈ­
+            //  ì‹œê°„ ì •ê·œí™”
             float _time = Mathf.Clamp01(_elapsedTime / tweenTime);
             transform.position = Vector3.Lerp(from.position, to.position, _time);
 
-            // 2. ÀÌµ¿ÇÏ´Â ¹æÇâÀ» ±âÁØÀ¸·Î ÁÂÃøÀ¸·Î ¼öÁ÷ÇÏ°Ô 1¸¸Å­ ¶³¾îÁø À§Ä¡¿¡ ÀÖ´Â satelliteÀÇ À§Ä¡¸¦ °»½Å
-            //  °Å¸® Á¤±ÔÈ­
+            // 2. ì´ë™í•˜ëŠ” ë°©í–¥ì„ ê¸°ì¤€ìœ¼ë¡œ ì¢Œì¸¡ìœ¼ë¡œ ìˆ˜ì§í•˜ê²Œ 1ë§Œí¼ ë–¨ì–´ì§„ ìœ„ì¹˜ì— ìžˆëŠ” satelliteì˜ ìœ„ì¹˜ë¥¼ ê°±ì‹ 
+            //  ê±°ë¦¬ ì •ê·œí™”
             Vector3 _dir = (to.position - from.position).normalized;
-            // ÀÌµ¿ ¹æÇâ¿¡ ¼öÁ÷ ÀÌµ¿ÇÑ À§Ä¡
-            Vector3 _sugic = new Vector3(_dir.y, -_dir.x - 1, 0f); //   ÀÌ ºÎºÐÀº Àß ¸øµÊ
-            //  ÀÌµ¿ÇÏ´Â À§Ä¡¿¡ ¼öÁ÷ ÀÌµ¿ÇÑ º¤ÅÍ ´õÇØÁÜ
+            // ì´ë™ ë°©í–¥ì— ìˆ˜ì§ ì´ë™í•œ ìœ„ì¹˜
+            Vector3 _sugic = new Vector3(_dir.y, -_dir.x - 1, 0f); //   ì´ ë¶€ë¶„ì€ ìž˜ ëª»ë¨
+            //  ì´ë™í•˜ëŠ” ìœ„ì¹˜ì— ìˆ˜ì§ ì´ë™í•œ ë²¡í„° ë”í•´ì¤Œ
             Vector3 _satellitePos = transform.position + _sugic;
-            //  À§Ä¡ ¾÷µ¥ÀÌÆ®
+            //  ìœ„ì¹˜ ì—…ë°ì´íŠ¸
             satellite.position = _satellitePos;
         }
-        // 3. satellite2°¡ È¸ÀüÇÏµµ·Ï ±¸Çö
+        // 3. satellite2ê°€ íšŒì „í•˜ë„ë¡ êµ¬í˜„
         if (_elapsedTime < tweenTime)
         {
-            // 5È¸ È¸Àü
+            // 5íšŒ íšŒì „
             float _angle = 360f * 5f * (_elapsedTime / tweenTime);
-            //  °Å¸® 3¸¸Å­ ¶³¾îÁü
+            //  ê±°ë¦¬ 3ë§Œí¼ ë–¨ì–´ì§
             satellite2.position = transform.position + new Vector3(Mathf.Cos(_angle * Mathf.Deg2Rad), Mathf.Sin(_angle * Mathf.Deg2Rad), 0f) * 3f;
         }
     }
 
-    //  ´ÙÀ½ ÇÔ¼ö´Â Ãß°¡ ±¸Çö ¾øÀÌ »ç¿ëÇÏ½Ç ¼ö ÀÖ½À´Ï´Ù
+    //  ë‹¤ìŒ í•¨ìˆ˜ëŠ” ì¶”ê°€ êµ¬í˜„ ì—†ì´ ì‚¬ìš©í•˜ì‹¤ ìˆ˜ ìžˆìŠµë‹ˆë‹¤
     Vector3 Cross(Vector3 lhs, Vector3 rhs)
     {
         return Vector3.Cross(lhs, rhs);

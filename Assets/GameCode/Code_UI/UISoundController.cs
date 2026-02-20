@@ -1,4 +1,4 @@
-using System.Collections;
+Ôªøusing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,7 +19,7 @@ public class UISoundController : MonoBehaviour
 
     private void Start()
     {
-        //  ¿Ã∫•∆Æ µÓ∑œ
+        //  Ïù¥Î≤§Ìä∏ Îì±Î°ù
         _musicBtn.onClick.AddListener(ToggleMusic);
         _sfxBtn.onClick.AddListener(ToggleSFX);
         _exitBtn.onClick.AddListener(Exit);

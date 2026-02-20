@@ -1,8 +1,8 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//  ¾ÆÀÌÅÛ Á¤º¸ ÀúÀå Script
+//  ì•„ì´í…œ ì •ë³´ ì €ì¥ Script
 public enum ItemType
 {
     None,

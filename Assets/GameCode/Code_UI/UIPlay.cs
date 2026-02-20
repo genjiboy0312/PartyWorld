@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,9 +19,9 @@ public class UIPlay : MonoBehaviour
         _noBtn.onClick.AddListener(NoButton);
     }
 
-    //  play btnÀ» ´©¸£¸é yes btnÀÌ ¶ä
+    //  play btnì„ ëˆ„ë¥´ë©´ yes btnì´ ëœ¸
     private void PlayButton() => _playSectUI.SetActive(true);
-    //  PlayButton. Loading Scene or Loading UI ¶ß°Ô ÇÔ (°í¹Î)
+    //  PlayButton. Loading Scene or Loading UI ëœ¨ê²Œ í•¨ (ê³ ë¯¼)
     private void YesButton() => SceneManager.LoadScene("Scene_Loading");
     private void NoButton() => _playSectUI.SetActive(false);
 }

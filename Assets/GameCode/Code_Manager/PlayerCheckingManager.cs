@@ -1,4 +1,4 @@
-using Photon.Pun;
+ï»¿using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,18 +9,18 @@ using UnityEditor;
 public class PlayerCheckingManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private List<Scene> _mapScnene;
-    [SerializeField] private List<int> _sceneIdx;                           // ¾À ÀÎµ¦½º¸¦ ´ã´Â ¸®½ºÆ®
-    [SerializeField] private string _sceneName;                             // ÇöÀç ¾À ÀÌ¸§
+    [SerializeField] private List<int> _sceneIdx;                           // ì”¬ ì¸ë±ìŠ¤ë¥¼ ë‹´ëŠ” ë¦¬ìŠ¤íŠ¸
+    [SerializeField] private string _sceneName;                             // í˜„ì¬ ì”¬ ì´ë¦„
 
     [SerializeField] private List<bool> _checkingPlayers;
-    [SerializeField] private int _playerCount;                              // ¹æ¿¡ Á¢¼ÓÇÑ ÇÃ·¹ÀÌ¾î ¼ö
-    [SerializeField] private int _readyCount;                               // ÁØºñ ¿Ï·áÇÑ ÇÃ·¹ÀÌ¾î ¼ö
+    [SerializeField] private int _playerCount;                              // ë°©ì— ì ‘ì†í•œ í”Œë ˆì´ì–´ ìˆ˜
+    [SerializeField] private int _readyCount;                               // ì¤€ë¹„ ì™„ë£Œí•œ í”Œë ˆì´ì–´ ìˆ˜
 
     [Header("Setting Loading")]
     [SerializeField] private bool _isLoadingStarted = false;
     [SerializeField] private float _loading;
-    [SerializeField] private float _loadingSpeed = 0.001f;                     // ·Îµù ¼Óµµ
-    [SerializeField] private float _loadingFinish = 100.0f;                    //  ·Îµù ³¡
+    [SerializeField] private float _loadingSpeed = 0.001f;                     // ë¡œë”© ì†ë„
+    [SerializeField] private float _loadingFinish = 100.0f;                    //  ë¡œë”© ë
     private void Awake()
     {
         PhotonNetwork.ConnectUsingSettings();
@@ -31,19 +31,19 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
         //if (PhotonNetwork.IsMasterClient)
         {
             _playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
-            //_checkingPlayers = new List<bool>(new bool[_playerCount]);          // ÇÃ·¹ÀÌ¾î ¼ö¸¸Å­ ¸®½ºÆ® ÃÊ±âÈ­
+            //_checkingPlayers = new List<bool>(new bool[_playerCount]);          // í”Œë ˆì´ì–´ ìˆ˜ë§Œí¼ ë¦¬ìŠ¤íŠ¸ ì´ˆê¸°í™”
             CheckingPlayersSize();
 
             if (!_isLoadingStarted)
             {
-                _isLoadingStarted = true; // Áßº¹ ½ÇÇà ¹æÁö
+                _isLoadingStarted = true; // ì¤‘ë³µ ì‹¤í–‰ ë°©ì§€
                 StartCoroutine(PlayerLoading());
             }
         }
-        //  ÇØ´ç ¾ÀÀ¸·Î ÇÃ·¹ÀÌ¾î°¡ µé¾î¿Ô´ÂÁö Ã¼Å©
+        //  í•´ë‹¹ ì”¬ìœ¼ë¡œ í”Œë ˆì´ì–´ê°€ ë“¤ì–´ì™”ëŠ”ì§€ ì²´í¬
         if (PhotonNetwork.IsMasterClient && _readyCount == _playerCount)
         {
-            //PlayStart(); // ¸ğµç ÇÃ·¹ÀÌ¾î°¡ ÁØºñµÇ¸é °ÔÀÓ ½ÃÀÛ
+            //PlayStart(); // ëª¨ë“  í”Œë ˆì´ì–´ê°€ ì¤€ë¹„ë˜ë©´ ê²Œì„ ì‹œì‘
             //GoToRandomScene();
 
             Debug.Log("**********************");
@@ -56,39 +56,39 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    //  ·Îºñ¿¡ ÀÖ´ø ÇÃ·¹ÀÌ¾î°¡ ´Ù Ã¼Å©µÇ¸é ´ÙÀ½ ¾ÀÀ¸·Î ³Ñ¾î°¨
+    //  ë¡œë¹„ì— ìˆë˜ í”Œë ˆì´ì–´ê°€ ë‹¤ ì²´í¬ë˜ë©´ ë‹¤ìŒ ì”¬ìœ¼ë¡œ ë„˜ì–´ê°
     private void PlayStart()
     {
         Debug.Log("All players are ready. Loading next scene...");
-        System.Console.WriteLine("checking : " + FirebaseAuthManager.Instance._userEmail);     //  Å×½ºÆ®¿ë µğ¹ö±×
+        System.Console.WriteLine("checking : " + FirebaseAuthManager.Instance._userEmail);     //  í…ŒìŠ¤íŠ¸ìš© ë””ë²„ê·¸
 
         if (PhotonNetwork.IsMasterClient)
         {
-            // ¿øÇÏ´Â ¸Ê ¾À ·Îµå (¿¹: Ã¹ ¹øÂ° ¸Ê)
+            // ì›í•˜ëŠ” ë§µ ì”¬ ë¡œë“œ (ì˜ˆ: ì²« ë²ˆì§¸ ë§µ)
             PhotonNetwork.LoadLevel("Scene_Map01");
         }
     }
 
     [PunRPC]
-    // ·Îµù  ÄÚ·çÆ¾
+    // ë¡œë”©  ì½”ë£¨í‹´
     private IEnumerator PlayerLoading()
     {
         while (_loading < _loadingFinish)
         {
-            _loading += _loadingSpeed; // ·Îµù ¼Óµµ¸¸Å­ Áõ°¡
-            //Debug.Log($"ÇöÀç ·Îµù »óÅÂ: {_loading}%");
+            _loading += _loadingSpeed; // ë¡œë”© ì†ë„ë§Œí¼ ì¦ê°€
+            //Debug.Log($"í˜„ì¬ ë¡œë”© ìƒíƒœ: {_loading}%");
 
-            // ÇÁ·¹ÀÓ¸¶´Ù ´ë±â
+            // í”„ë ˆì„ë§ˆë‹¤ ëŒ€ê¸°
             yield return null; 
         }
 
-        // ÀÚ½ÅÀÇ ÁØºñ »óÅÂ¸¦ true·Î ¼³Á¤
+        // ìì‹ ì˜ ì¤€ë¹„ ìƒíƒœë¥¼ trueë¡œ ì„¤ì •
         if (_loading >= _loadingFinish)
         {
             SetMyPlayerReady();
         }
     }
-    // _checkingPlayers Å©±â Á¶Á¤ ÇÔ¼ö
+    // _checkingPlayers í¬ê¸° ì¡°ì • í•¨ìˆ˜
     private void CheckingPlayersSize()
     {
         if (_checkingPlayers == null)
@@ -96,71 +96,71 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
             _checkingPlayers = new List<bool>();
         }
 
-        // ÇÃ·¹ÀÌ¾î ¼ö°¡ ¸®½ºÆ® Å©±âº¸´Ù Å©¸é false Ãß°¡
+        // í”Œë ˆì´ì–´ ìˆ˜ê°€ ë¦¬ìŠ¤íŠ¸ í¬ê¸°ë³´ë‹¤ í¬ë©´ false ì¶”ê°€
         while (_checkingPlayers.Count < _playerCount)
         {
             _checkingPlayers.Add(false);
         }
 
-        // ÇÃ·¹ÀÌ¾î ¼ö°¡ ¸®½ºÆ® Å©±âº¸´Ù ÀÛÀ¸¸é µÚ¿¡¼­ºÎÅÍ Á¦°Å
+        // í”Œë ˆì´ì–´ ìˆ˜ê°€ ë¦¬ìŠ¤íŠ¸ í¬ê¸°ë³´ë‹¤ ì‘ìœ¼ë©´ ë’¤ì—ì„œë¶€í„° ì œê±°
         while (_checkingPlayers.Count > _playerCount)
         {
             _checkingPlayers.RemoveAt(_checkingPlayers.Count - 1);
         }
-        Debug.Log($"_checkingPlayers »óÅÂ: {string.Join(", ", _checkingPlayers)}");
+        Debug.Log($"_checkingPlayers ìƒíƒœ: {string.Join(", ", _checkingPlayers)}");
     }
     [PunRPC]
-    // ÀÚ½ÅÀÇ ÁØºñ »óÅÂ¸¦ ¼³Á¤ÇÏ´Â ¸Ş¼Òµå
+    // ìì‹ ì˜ ì¤€ë¹„ ìƒíƒœë¥¼ ì„¤ì •í•˜ëŠ” ë©”ì†Œë“œ
     private void SetMyPlayerReady()
     {
         if (_checkingPlayers == null || _checkingPlayers.Count == 0)
         {
-            Debug.LogError("CheckingPlayers ¸®½ºÆ®°¡ ÃÊ±âÈ­µÇÁö ¾Ê¾Ò½À´Ï´Ù!");
+            Debug.LogError("CheckingPlayers ë¦¬ìŠ¤íŠ¸ê°€ ì´ˆê¸°í™”ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤!");
             return;
         }
 
-        int _playerIdx = PhotonNetwork.LocalPlayer.ActorNumber - 1; // ÀÚ½ÅÀÇ ÀÎµ¦½º °è»ê
+        int _playerIdx = PhotonNetwork.LocalPlayer.ActorNumber - 1; // ìì‹ ì˜ ì¸ë±ìŠ¤ ê³„ì‚°
         if (_playerIdx >= 0 && _playerIdx < _checkingPlayers.Count)
         {
-            _checkingPlayers[_playerIdx] = true; // ÀÚ½ÅÀÇ »óÅÂ¸¦ true·Î ¼³Á¤
+            _checkingPlayers[_playerIdx] = true; // ìì‹ ì˜ ìƒíƒœë¥¼ trueë¡œ ì„¤ì •
             Debug.Log($"SetMyPlayerReady called by {PhotonNetwork.LocalPlayer.NickName}");
-            Debug.Log($"ÇöÀç CheckingPlayers »óÅÂ: {_playerIdx} {string.Join(", ", _checkingPlayers)}");
+            Debug.Log($"í˜„ì¬ CheckingPlayers ìƒíƒœ: {_playerIdx} {string.Join(", ", _checkingPlayers)}");
 
             _readyCount++;
         }
         else
         {
-            Debug.LogError("À¯È¿ÇÏÁö ¾ÊÀº ÇÃ·¹ÀÌ¾î ÀÎµ¦½ºÀÔ´Ï´Ù!");
+            Debug.LogError("ìœ íš¨í•˜ì§€ ì•Šì€ í”Œë ˆì´ì–´ ì¸ë±ìŠ¤ì…ë‹ˆë‹¤!");
         }
     }
 
-    //  ·£´ı ¾ÀÀ¸·Î º¸³»´Â ÇÔ¼ö
+    //  ëœë¤ ì”¬ìœ¼ë¡œ ë³´ë‚´ëŠ” í•¨ìˆ˜
     public void GoToRandomScene()
     {
-        //  Scene Null ÀÌ¸é Return
+        //  Scene Null ì´ë©´ Return
         if (_sceneIdx.Count == 0)
         {
             Debug.LogError(" *** Scene Null !! *** ");
             return;
         }
 
-        // ·£´ıÀ¸·Î ¾À ÀÎµ¦½º¸¦ ¼±ÅÃ
+        // ëœë¤ìœ¼ë¡œ ì”¬ ì¸ë±ìŠ¤ë¥¼ ì„ íƒ
         int _randIdx = Random.Range(0, _sceneIdx.Count);
         int _selectedSceneIdx = _sceneIdx[_randIdx];
 
-        // ¼±ÅÃµÈ ¾ÀÀÇ ÀÌ¸§À» °¡Á®¿È
+        // ì„ íƒëœ ì”¬ì˜ ì´ë¦„ì„ ê°€ì ¸ì˜´
         _sceneName = SceneUtility.GetScenePathByBuildIndex(_selectedSceneIdx);
 
-        // ¼±ÅÃµÈ ¾À ·Îµå
+        // ì„ íƒëœ ì”¬ ë¡œë“œ
         SceneManager.LoadScene(_selectedSceneIdx);
 
-        // ¾À ÀÌ¸§À» ÄÜ¼Ö¿¡ Ãâ·Â
+        // ì”¬ ì´ë¦„ì„ ì½˜ì†”ì— ì¶œë ¥
         Debug.Log(" Scene Name : " + _sceneName);
     }
 
 
-    #region Photon µ¿±âÈ­ ÄÚµå
-    // »õ·Î¿î ÇÃ·¹ÀÌ¾î°¡ ¹æ¿¡ µé¾î¿ÔÀ» ¶§
+    #region Photon ë™ê¸°í™” ì½”ë“œ
+    // ìƒˆë¡œìš´ í”Œë ˆì´ì–´ê°€ ë°©ì— ë“¤ì–´ì™”ì„ ë•Œ
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         _playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
@@ -169,11 +169,11 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            _checkingPlayers.Add(false); // »õ ÇÃ·¹ÀÌ¾î Ãß°¡ (ÁØºñ »óÅÂ´Â false)
+            _checkingPlayers.Add(false); // ìƒˆ í”Œë ˆì´ì–´ ì¶”ê°€ (ì¤€ë¹„ ìƒíƒœëŠ” false)
         }
     }
 
-    // ÇÃ·¹ÀÌ¾î°¡ ¹æ¿¡¼­ ³ª°¬À» ¶§
+    // í”Œë ˆì´ì–´ê°€ ë°©ì—ì„œ ë‚˜ê°”ì„ ë•Œ
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         _playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
@@ -181,7 +181,7 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            _checkingPlayers.RemoveAt(otherPlayer.ActorNumber - 1); // ¶°³­ ÇÃ·¹ÀÌ¾î Á¦°Å
+            _checkingPlayers.RemoveAt(otherPlayer.ActorNumber - 1); // ë– ë‚œ í”Œë ˆì´ì–´ ì œê±°
         }
     }
     #endregion

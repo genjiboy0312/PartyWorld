@@ -1,11 +1,11 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class IgnoreCollision : MonoBehaviour
 {
-    [SerializeField] private Collider _collider;                //  ÃÖ»ó´Ü Ä³¸¯ÅÍ ¿ÀºêÁ§Æ® ³Ö±â
-    [SerializeField] private Collider[] _ignoreCollider;        //  ¹«½ÃÇÒ Äİ¶óÀÌ´õ ¿ÀºêÁ§Æ®
+    [SerializeField] private Collider _collider;                //  ìµœìƒë‹¨ ìºë¦­í„° ì˜¤ë¸Œì íŠ¸ ë„£ê¸°
+    [SerializeField] private Collider[] _ignoreCollider;        //  ë¬´ì‹œí•  ì½œë¼ì´ë” ì˜¤ë¸Œì íŠ¸
     void Start()
     {
         foreach (Collider collider in _ignoreCollider)

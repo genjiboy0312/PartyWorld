@@ -1,21 +1,21 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class FollowCamera : MonoBehaviour
 {
-    [SerializeField] private string _playerTag = "Player"; // ÇÃ·¹ÀÌ¾î¸¦ ½Äº°ÇÏ±â À§ÇÑ ÅÂ±×
+    [SerializeField] private string _playerTag = "Player"; // í”Œë ˆì´ì–´ë¥¼ ì‹ë³„í•˜ê¸° ìœ„í•œ íƒœê·¸
     [SerializeField] private Transform _playerTransform;
     [SerializeField] private Vector3 _offset;
 
     void Update()
     {
         GameObject _playerObj = GameObject.FindGameObjectWithTag(_playerTag);
-        // ÇÃ·¹ÀÌ¾î ¿ÀºêÁ§Æ®¸¦ Ã£¾Ò´Ù¸é ÇØ´ç Æ®·£½ºÆûÀ» ÀúÀå
+        // í”Œë ˆì´ì–´ ì˜¤ë¸Œì íŠ¸ë¥¼ ì°¾ì•˜ë‹¤ë©´ í•´ë‹¹ íŠ¸ëœìŠ¤í¼ì„ ì €ì¥
         if (_playerObj != null)
             _playerTransform = _playerObj.transform;
 
-        // ÇÃ·¹ÀÌ¾î¸¦ Ã£¾Ò´Ù¸é À§Ä¡¸¦ ¾÷µ¥ÀÌÆ®
+        // í”Œë ˆì´ì–´ë¥¼ ì°¾ì•˜ë‹¤ë©´ ìœ„ì¹˜ë¥¼ ì—…ë°ì´íŠ¸
         if (_playerTransform != null)
             transform.position = _playerTransform.position + _offset;
     }

@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
@@ -6,77 +6,77 @@ using Photon.Realtime;
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
-    private readonly string _version = "1.0f";                                      //  ¹öÀü ÀÔ·Â
-    [SerializeField] private string _userId = "GenJiBoy";                           //  »ç¿ëÀÚ ¾ÆÀÌµğ ÀÔ·Â
+    private readonly string _version = "1.0f";                                      //  ë²„ì „ ì…ë ¥
+    [SerializeField] private string _userId = "GenJiBoy";                           //  ì‚¬ìš©ì ì•„ì´ë”” ì…ë ¥
 
     private void Awake()
     {
-        PhotonNetwork.AutomaticallySyncScene = true;                                //  °°Àº ·ëÀÇ À¯Àúµé¿¡°Ô ÀÚµ¿À¸·Î ¾ÀÀ» ·Îµù
-        PhotonNetwork.GameVersion = _version;                                       //  °°Àº ¹öÀüÀÇ À¯Àú³¢¸® Á¢¼Ó Çã¿ë
-        PhotonNetwork.NickName = _userId;                                           //  À¯Àú ¾ÆÀÌµğ ÇÒ´ç
+        PhotonNetwork.AutomaticallySyncScene = true;                                //  ê°™ì€ ë£¸ì˜ ìœ ì €ë“¤ì—ê²Œ ìë™ìœ¼ë¡œ ì”¬ì„ ë¡œë”©
+        PhotonNetwork.GameVersion = _version;                                       //  ê°™ì€ ë²„ì „ì˜ ìœ ì €ë¼ë¦¬ ì ‘ì† í—ˆìš©
+        PhotonNetwork.NickName = _userId;                                           //  ìœ ì € ì•„ì´ë”” í• ë‹¹
 
-        // SendRate ¹× SerializationRate ¼³Á¤
-        PhotonNetwork.SendRate = 60; // ÃÊ´ç Àü¼ÛµÇ´Â ³×Æ®¿öÅ© ÆĞÅ¶ÀÇ ¼ö
-        PhotonNetwork.SerializationRate = 60; // ÃÊ´ç Àü¼ÛµÇ´Â ½Ã¸®¾ó¶óÀÌÁîµÈ ÆĞÅ¶ÀÇ ¼ö
-        Debug.Log("SendRate : " + PhotonNetwork.SendRate);                                          //  Åë½Å È½¼ö ¼³Á¤
+        // SendRate ë° SerializationRate ì„¤ì •
+        PhotonNetwork.SendRate = 60; // ì´ˆë‹¹ ì „ì†¡ë˜ëŠ” ë„¤íŠ¸ì›Œí¬ íŒ¨í‚·ì˜ ìˆ˜
+        PhotonNetwork.SerializationRate = 60; // ì´ˆë‹¹ ì „ì†¡ë˜ëŠ” ì‹œë¦¬ì–¼ë¼ì´ì¦ˆëœ íŒ¨í‚·ì˜ ìˆ˜
+        Debug.Log("SendRate : " + PhotonNetwork.SendRate);                                          //  í†µì‹  íšŸìˆ˜ ì„¤ì •
 
-        PhotonNetwork.ConnectUsingSettings();                                       //  ¼­¹ö Á¢¼Ó
+        PhotonNetwork.ConnectUsingSettings();                                       //  ì„œë²„ ì ‘ì†
     }
 
-    //  Æ÷Åæ ¼­¹ö¿¡ Á¢¼Ó ÈÄ È£ÃâµÇ´Â CallBack Method
+    //  í¬í†¤ ì„œë²„ì— ì ‘ì† í›„ í˜¸ì¶œë˜ëŠ” CallBack Method
     public override void OnConnectedToMaster()
     {
         //PhotonNetwork.JoinOrCreateRoom("Joint Or CreateRoom", new RoomOptions { IsOpen = true }, TypedLobby.Default);
         Debug.Log($"PhotonNetwork.InLobby = {PhotonNetwork.InLobby}");
-        PhotonNetwork.JoinLobby();                              //  ·Îºñ ÀÔÀå
+        PhotonNetwork.JoinLobby();                              //  ë¡œë¹„ ì…ì¥
     }
 
-    //  ·Îºñ¿¡ Á¢¼Ó ÈÄ È£Ãâ µÇ´Â Callback Method
+    //  ë¡œë¹„ì— ì ‘ì† í›„ í˜¸ì¶œ ë˜ëŠ” Callback Method
     public override void OnJoinedLobby()
     {
         Debug.Log($"PhotonNetwork.InLobby = {PhotonNetwork.InLobby}");
-        PhotonNetwork.JoinRandomRoom();                         //  ·£´ı ¸ÅÄ¡ ¸ŞÀÌÅ· ±â´É Á¦°ø
+        PhotonNetwork.JoinRandomRoom();                         //  ëœë¤ ë§¤ì¹˜ ë©”ì´í‚¹ ê¸°ëŠ¥ ì œê³µ
     }
 
-    //  ·£´ıÇÑ ·ë ÀÔÀåÀÌ ½ÇÆĞÇßÀ» °æ¿ì È£ÃâµÇ´Â Callback Method
+    //  ëœë¤í•œ ë£¸ ì…ì¥ì´ ì‹¤íŒ¨í–ˆì„ ê²½ìš° í˜¸ì¶œë˜ëŠ” Callback Method
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        // ½ÇÆĞ½Ã ¶ç¿ì´Â µğ¹ö±×
+        // ì‹¤íŒ¨ì‹œ ë„ìš°ëŠ” ë””ë²„ê·¸
         Debug.Log($"JoinRandom Filed => {returnCode} : {message}");
 
-        // ·ëÀÇ ¼Ó¼º Á¤ÀÇ
+        // ë£¸ì˜ ì†ì„± ì •ì˜
         RoomOptions _roomOps = new RoomOptions();
-        _roomOps.MaxPlayers = 10;                       //  ¹«·á´Â ÃÖ´ë 20
-        _roomOps.IsOpen = true;                         //  ·ëÀÇ ¿ÀÇÂ ¿©ºÎ
-        _roomOps.IsVisible = true;                      //  ·Îºñ¿¡¼­ ·ë ¸ñ·Ï¿¡ ³ëÃâ ½ÃÅ³Áö ¿©ºÎ
+        _roomOps.MaxPlayers = 10;                       //  ë¬´ë£ŒëŠ” ìµœëŒ€ 20
+        _roomOps.IsOpen = true;                         //  ë£¸ì˜ ì˜¤í”ˆ ì—¬ë¶€
+        _roomOps.IsVisible = true;                      //  ë¡œë¹„ì—ì„œ ë£¸ ëª©ë¡ì— ë…¸ì¶œ ì‹œí‚¬ì§€ ì—¬ë¶€
 
-        // ·ë »ı¼º
+        // ë£¸ ìƒì„±
         PhotonNetwork.CreateRoom("My Room", _roomOps);
     }
 
-    // ·ë »ı¼ºÀÌ ¿Ï·áµÈ ÈÄ È£ÃâµÇ´Â Callback Method
+    // ë£¸ ìƒì„±ì´ ì™„ë£Œëœ í›„ í˜¸ì¶œë˜ëŠ” Callback Method
     public override void OnCreatedRoom()
     {
         Debug.Log("*** Created Room! ***");
         Debug.Log($"Room Name = {PhotonNetwork.CurrentRoom.Name}");
     }
-    // ·ë¿¡ ÀÔÀåÇÑ ÈÄ È£ÃâµÇ´Â Callback Method
+    // ë£¸ì— ì…ì¥í•œ í›„ í˜¸ì¶œë˜ëŠ” Callback Method
     public override void OnJoinedRoom()
     {
         Debug.Log($"PhotonNetwork.InRoom : {PhotonNetwork.InRoom}");
         Debug.Log($"Player Count : {PhotonNetwork.CurrentRoom.PlayerCount}");
 
-        //  ·ë¿¡ Á¢¼ÓÇÑ »ç¿ëÀÚ Á¤º¸ È®ÀÎ
+        //  ë£¸ì— ì ‘ì†í•œ ì‚¬ìš©ì ì •ë³´ í™•ì¸
         foreach (var _player in PhotonNetwork.CurrentRoom.Players)
         {
             Debug.Log($"{_player.Value.NickName}, {_player.Value.ActorNumber}");
         }
 
-        // Player ¼ÒÈ¯
+        // Player ì†Œí™˜
         Spawn();
     }
 
-    // Player ¼ÒÈ¯ÇÏ´Â ÇÔ¼ö
+    // Player ì†Œí™˜í•˜ëŠ” í•¨ìˆ˜
     public void Spawn()
     {
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
@@ -89,13 +89,13 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     //}
     public void StartGame()
     {
-        Debug.Log("PhotonManager¿¡¼­ °ÔÀÓ ½ÃÀÛ Ã³¸®");
-        // °ÔÀÓ ½ÃÀÛ ½Ã Ã³¸®ÇÒ ·ÎÁ÷ Ãß°¡
+        Debug.Log("PhotonManagerì—ì„œ ê²Œì„ ì‹œì‘ ì²˜ë¦¬");
+        // ê²Œì„ ì‹œì‘ ì‹œ ì²˜ë¦¬í•  ë¡œì§ ì¶”ê°€
     }
 
     public void EndGame()
     {
-        Debug.Log("PhotonManager¿¡¼­ °ÔÀÓ ¿À¹ö Ã³¸®");
-        // °ÔÀÓ ¿À¹ö ½Ã Ã³¸®ÇÒ ·ÎÁ÷ Ãß°¡
+        Debug.Log("PhotonManagerì—ì„œ ê²Œì„ ì˜¤ë²„ ì²˜ë¦¬");
+        // ê²Œì„ ì˜¤ë²„ ì‹œ ì²˜ë¦¬í•  ë¡œì§ ì¶”ê°€
     }
 }

@@ -1,12 +1,12 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 
-// ´Ù¸¥ ½ºÅ©¸³Æ®¿¡¼­ AudioManager.Instance.ÇÔ¼ö¸í À¸·Î È£Ãâ °¡´É
+// ë‹¤ë¥¸ ìŠ¤í¬ë¦½íŠ¸ì—ì„œ AudioManager.Instance.í•¨ìˆ˜ëª… ìœ¼ë¡œ í˜¸ì¶œ ê°€ëŠ¥
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
 
-    [Header("Sound ¼³Á¤")]
+    [Header("Sound ì„¤ì •")]
     [SerializeField] private Sound[] _musicSounds;
     [SerializeField] private Sound[] _sfxSounds;
 
@@ -28,17 +28,17 @@ public class AudioManager : MonoBehaviour
         }
 
         if (_musicSource == null || _sfxSource == null)
-            Debug.LogWarning("AudioManager: AudioSource°¡ ÇÒ´çµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            Debug.LogWarning("AudioManager: AudioSourceê°€ í• ë‹¹ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
     }
 
     private void Start()
     {
-        // ±âº» BGM Àç»ı
+        // ê¸°ë³¸ BGM ì¬ìƒ
         PlayMusic("BGM_01");
     }
 
     /// <summary>
-    /// ¹è°æÀ½¾Ç Àç»ı
+    /// ë°°ê²½ìŒì•… ì¬ìƒ
     /// </summary>
     public void PlayMusic(string name)
     {
@@ -47,20 +47,20 @@ public class AudioManager : MonoBehaviour
         Sound sound = Array.Find(_musicSounds, x => x._name == name);
         if (sound == null)
         {
-            Debug.LogWarning("AudioManager: ¿äÃ»ÇÑ À½¾ÇÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù. ÀÌ¸§: " + name);
+            Debug.LogWarning("AudioManager: ìš”ì²­í•œ ìŒì•…ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì´ë¦„: " + name);
             return;
         }
 
-        // ÀÌ¹Ì Àç»ı ÁßÀÎ À½¾ÇÀÌ¸é Àç»ıÇÏÁö ¾ÊÀ½
+        // ì´ë¯¸ ì¬ìƒ ì¤‘ì¸ ìŒì•…ì´ë©´ ì¬ìƒí•˜ì§€ ì•ŠìŒ
         if (_musicSource.clip == sound._clip && _musicSource.isPlaying) return;
 
         _musicSource.clip = sound._clip;
-        _musicSource.loop = true; // ±âº» ·çÇÁ ¼³Á¤
+        _musicSource.loop = true; // ê¸°ë³¸ ë£¨í”„ ì„¤ì •
         _musicSource.Play();
     }
 
     /// <summary>
-    /// È¿°úÀ½ Àç»ı
+    /// íš¨ê³¼ìŒ ì¬ìƒ
     /// </summary>
     public void PlaySFX(string name)
     {
@@ -69,7 +69,7 @@ public class AudioManager : MonoBehaviour
         Sound sound = Array.Find(_sfxSounds, x => x._name == name);
         if (sound == null)
         {
-            Debug.LogWarning("AudioManager: ¿äÃ»ÇÑ SFX¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù. ÀÌ¸§: " + name);
+            Debug.LogWarning("AudioManager: ìš”ì²­í•œ SFXë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ì´ë¦„: " + name);
             return;
         }
 
@@ -77,13 +77,13 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
-    /// ¹è°æÀ½/È¿°úÀ½ À½¼Ò°Å Åä±Û
+    /// ë°°ê²½ìŒ/íš¨ê³¼ìŒ ìŒì†Œê±° í† ê¸€
     /// </summary>
     public void ToggleMusic() => _musicSource.mute = !_musicSource.mute;
     public void ToggleSFX() => _sfxSource.mute = !_sfxSource.mute;
 
     /// <summary>
-    /// º¼·ı Á¶Àı
+    /// ë³¼ë¥¨ ì¡°ì ˆ
     /// </summary>
     public void MusicVolume(float volume)
     {

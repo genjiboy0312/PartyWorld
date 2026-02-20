@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +13,7 @@ public class UICoolTime : MonoBehaviour
 
     private UIManager _uiManager;
 
-    [SerializeField] private KeyCode activationKey;             // È°¼ºÈ­ÇÒ Æ¯Á¤ Å° ¼³Á¤
+    [SerializeField] private KeyCode activationKey;             // í™œì„±í™”í•  íŠ¹ì • í‚¤ ì„¤ì •
 
     #region Property
     public Image SelectedImage
@@ -35,7 +35,7 @@ public class UICoolTime : MonoBehaviour
         {
             UpdateFillAmount();
         }
-        // Æ¯Á¤ Å°°¡ ´­·ÈÀ» ¶§¸¸ ÄğÅ¸ÀÓ ¾÷µ¥ÀÌÆ®¸¦ ¼öÇà
+        // íŠ¹ì • í‚¤ê°€ ëˆŒë ¸ì„ ë•Œë§Œ ì¿¨íƒ€ì„ ì—…ë°ì´íŠ¸ë¥¼ ìˆ˜í–‰
         if (Input.GetKeyDown(activationKey))
         {
             if (!_isButtonPressed)

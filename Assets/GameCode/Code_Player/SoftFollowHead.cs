@@ -1,11 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 public class SoftFollowHead : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Transform _target;        // ¸ñ(Neck) ¶Ç´Â Chest
-    [SerializeField] private Rigidbody _rootRb;        // Ä³¸¯ÅÍÀÇ Áß½É ¸®Áöµå¹Ùµğ
+    [SerializeField] private Transform _target;        // ëª©(Neck) ë˜ëŠ” Chest
+    [SerializeField] private Rigidbody _rootRb;        // ìºë¦­í„°ì˜ ì¤‘ì‹¬ ë¦¬ì§€ë“œë°”ë””
 
     [Header("Settings")]
     [SerializeField] private float _torqueForce = 400f;
@@ -28,7 +28,7 @@ public class SoftFollowHead : MonoBehaviour
             return;
 
         // ------------------------------
-        // [1] ±âº» ÀÚ¼¼ º¹¿ø È¸Àü
+        // [1] ê¸°ë³¸ ìì„¸ ë³µì› íšŒì „
         // ------------------------------
         Quaternion delta = _rb.rotation * Quaternion.Inverse(_target.rotation);
         delta.ToAngleAxis(out float angle, out Vector3 axis);
@@ -43,27 +43,27 @@ public class SoftFollowHead : MonoBehaviour
         }
 
         // ------------------------------
-        // [2] °ü¼º ±â¹İ µÚ·Î Á¥Èû
+        // [2] ê´€ì„± ê¸°ë°˜ ë’¤ë¡œ ì –í˜
         // ------------------------------
         Vector3 acceleration = (_rootRb.velocity - _prevVelocity) / Time.fixedDeltaTime;
         _prevVelocity = _rootRb.velocity;
 
         float accelMag = acceleration.magnitude;
 
-        // Á¤Áö ½Ã °ü¼º Á¦°Å
+        // ì •ì§€ ì‹œ ê´€ì„± ì œê±°
         if (accelMag < 0.05f)
             return;
 
-        // ÀüÁø ¹æÇâ °¡¼Óµµ¸¸ ¿µÇâ¹Ş°Ô (ÁÂ/¿ì/ÈÄÁø ¹«½Ã)
+        // ì „ì§„ ë°©í–¥ ê°€ì†ë„ë§Œ ì˜í–¥ë°›ê²Œ (ì¢Œ/ìš°/í›„ì§„ ë¬´ì‹œ)
         float forwardDot = Vector3.Dot(_rootRb.transform.forward, acceleration.normalized);
-        forwardDot = Mathf.Clamp(forwardDot, 0f, 1f); // ÀüÁøÇÒ ¶§¸¸ ¸Ó¸® µÚ·Î
+        forwardDot = Mathf.Clamp(forwardDot, 0f, 1f); // ì „ì§„í•  ë•Œë§Œ ë¨¸ë¦¬ ë’¤ë¡œ
 
-        // µÚ·Î Á¥Èú ÃÖ´ë °¢µµ Á¦ÇÑ
+        // ë’¤ë¡œ ì –í ìµœëŒ€ ê°ë„ ì œí•œ
         float currentLocalX = NormalizeAngle(transform.localEulerAngles.x);
         if (currentLocalX < -_maxBackAngle)
             return;
 
-        // µÚ·Î Á¥È÷´Â Èû = ·ÎÄÃ XÃà ±âÁØ ÅäÅ©
+        // ë’¤ë¡œ ì –íˆëŠ” í˜ = ë¡œì»¬ Xì¶• ê¸°ì¤€ í† í¬
         float tilt = forwardDot * _inertiaFactor;
         Vector3 inertialTorque = -transform.right * tilt;
 
@@ -76,7 +76,7 @@ public class SoftFollowHead : MonoBehaviour
 #endif
     }
 
-    // Unity LocalEulerAngles º¸Á¤
+    // Unity LocalEulerAngles ë³´ì •
     private float NormalizeAngle(float angle)
     {
         if (angle > 180f) angle -= 360f;
