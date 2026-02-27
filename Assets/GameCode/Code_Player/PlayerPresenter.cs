@@ -51,8 +51,14 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         if (_btnGrap != null)
             _btnGrap.onClick.AddListener(Grap);
 
-        // View에 Model 참조 전달
-        // _view.SetModel(_model);
+        // PlayerModel 이벤트 구독 (옵저버 패턴)
+        if (_model != null)
+        {
+            _model.OnJumpStateChanged += OnJumpStateChanged;
+            _model.OnDiveStateChanged += OnDiveStateChanged;
+            _model.OnGrapStateChanged += OnGrapStateChanged;
+            _model.OnSpeedChanged += OnSpeedChanged;
+        }
 
         // GameManager 구독 
         _gameManager = GameManager.Instance;
@@ -103,6 +109,48 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         {
             _gameManager.OnGameStateChangeEvent -= OnGameStateChange;
         }
+
+        if (_model != null)
+        {
+            _model.OnJumpStateChanged -= OnJumpStateChanged;
+            _model.OnDiveStateChanged -= OnDiveStateChanged;
+            _model.OnGrapStateChanged -= OnGrapStateChanged;
+            _model.OnSpeedChanged -= OnSpeedChanged;
+        }
+    }
+
+    // --- PlayerModel 이벤트 핸들러 ---
+
+    private void OnJumpStateChanged(bool isJump)
+    {
+        if (isJump)
+        {
+            Debug.Log("[Presenter] Jump 상태 시작");
+            JumpWithJoint();
+            // _view.PlayJumpAnimation(); // 필요시 구현
+        }
+    }
+
+    private void OnDiveStateChanged(bool isDive)
+    {
+        Debug.Log($"[Presenter] Dive 상태 변경: {isDive}");
+        if (isDive)
+        {
+            // 다이빙 물리 효과 등
+            // Vector3 dashDirection = transform.forward;
+            // _view.Dive(dashDirection, _model.DiveForce);
+        }
+    }
+
+    private void OnGrapStateChanged(bool isGrap)
+    {
+        Debug.Log($"[Presenter] Grap 상태 변경: {isGrap}");
+        // 잡기 관련 애니메이션 또는 물리 로직 처리
+    }
+
+    private void OnSpeedChanged(float newSpeed)
+    {
+        _moveSpeed = newSpeed;
     }
 
     private void Update()
