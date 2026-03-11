@@ -29,7 +29,7 @@ public class MovementHandler : MonoBehaviour
         if (_playerRb != null)
         {
             _playerRb.useGravity = false; // 중력 비활성화
-            _playerRb.velocity = Vector3.zero; // 현재 속도 초기화
+            _playerRb.linearVelocity = Vector3.zero; // 현재 속도 초기화
         }
 
         _isMoving = true; // 이동 중 상태 설정

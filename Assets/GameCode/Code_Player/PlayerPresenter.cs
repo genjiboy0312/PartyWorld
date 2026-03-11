@@ -262,11 +262,11 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         Vector3 moveForce = moveDir * _moveSpeed;
 
         // Y축 속도는 유지 (점프/낙하 방해하지 않음)
-        Vector3 currentVelocity = _rigidbody3D.velocity;
+        Vector3 currentVelocity = _rigidbody3D.linearVelocity;
         Vector3 targetVelocity = new Vector3(moveForce.x, currentVelocity.y, moveForce.z);
 
         // 부드러운 이동을 위해 velocity 직접 조정
-        _rigidbody3D.velocity = Vector3.Lerp(currentVelocity, targetVelocity, Time.fixedDeltaTime * 10f);
+        _rigidbody3D.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, Time.fixedDeltaTime * 10f);
     }
 
     // ConfigurableJoint용 점프

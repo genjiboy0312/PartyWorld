@@ -32,7 +32,7 @@ public class PlayerView : MonoBehaviour
         if (Animator != null) Animator.applyRootMotion = false;
 
         Rigidbody.useGravity = true;
-        Rigidbody.drag = 0f;
+        Rigidbody.linearDamping = 0f;
         Rigidbody.mass = 1f;
         Rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
         Rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
@@ -50,10 +50,10 @@ public class PlayerView : MonoBehaviour
     {
         if (!_isDiving && _targetVelocity.sqrMagnitude > 0.01f)
         {
-            var velocity = Rigidbody.velocity;
+            var velocity = Rigidbody.linearVelocity;
             velocity.x = _targetVelocity.x;
             velocity.z = _targetVelocity.z;
-            Rigidbody.velocity = velocity;
+            Rigidbody.linearVelocity = velocity;
         }
 
         Animator.SetBool("isWalk", _targetVelocity.sqrMagnitude > 0.01f);
@@ -79,9 +79,9 @@ public class PlayerView : MonoBehaviour
 
     public void Jump(float jumpPower)
     {
-        var _velocity = Rigidbody.velocity;
+        var _velocity = Rigidbody.linearVelocity;
         _velocity.y = jumpPower * 10f;
-        Rigidbody.velocity = _velocity;
+        Rigidbody.linearVelocity = _velocity;
 
         Animator.SetTrigger("doJump");
     }
@@ -97,7 +97,7 @@ public class PlayerView : MonoBehaviour
         Rigidbody.useGravity = false;
 
         Vector3 _horizontalDirection = new Vector3(direction.x, 0f, direction.z).normalized;
-        Rigidbody.velocity = Vector3.zero;
+        Rigidbody.linearVelocity = Vector3.zero;
         Rigidbody.AddForce(_horizontalDirection * force * 10f, ForceMode.VelocityChange);
 
         _targetVelocity = Vector3.zero;
@@ -118,11 +118,11 @@ public class PlayerView : MonoBehaviour
 
         while (_elapsed < _duration)
         {
-            var _velocity = Rigidbody.velocity;
+            var _velocity = Rigidbody.linearVelocity;
             _velocity.x *= 0.95f;
             _velocity.z *= 0.95f;
             _velocity.y = 0f;
-            Rigidbody.velocity = _velocity;
+            Rigidbody.linearVelocity = _velocity;
 
             _elapsed += Time.fixedDeltaTime;
             yield return _waitForFixedUpdate;
@@ -142,7 +142,7 @@ public class PlayerView : MonoBehaviour
     public void StopMovement()
     {
         _targetVelocity = Vector3.zero;
-        Rigidbody.velocity = Vector3.zero;
+        Rigidbody.linearVelocity = Vector3.zero;
         Animator.SetBool("isMove", false);
 
         if (_currentDiveCoroutine != null)

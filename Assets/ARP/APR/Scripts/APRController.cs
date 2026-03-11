@@ -238,7 +238,7 @@ namespace ARP.APR.Scripts
 
             if (Physics.Raycast(ray, out hit, balanceHeight, 1 << LayerMask.NameToLayer("Ground")) && !inAir && !isJumping && !reachRightAxisUsed && !reachLeftAxisUsed)
             {
-                if (!balanced && APR_Parts[0].GetComponent<Rigidbody>().velocity.magnitude < 1f)
+                if (!balanced && APR_Parts[0].GetComponent<Rigidbody>().linearVelocity.magnitude < 1f)
                 {
                     if (autoGetUpWhenPossible)
                     {
@@ -321,7 +321,7 @@ namespace ARP.APR.Scripts
             {
                 Direction = APR_Parts[0].transform.rotation * new Vector3(Input.GetAxisRaw(leftRight), 0.0f, Input.GetAxisRaw(forwardBackward));
                 Direction.y = 0f;
-                APR_Parts[0].transform.GetComponent<Rigidbody>().velocity = Vector3.Lerp(APR_Parts[0].transform.GetComponent<Rigidbody>().velocity, (Direction * moveSpeed) + new Vector3(0, APR_Parts[0].transform.GetComponent<Rigidbody>().velocity.y, 0), 0.8f);
+                APR_Parts[0].transform.GetComponent<Rigidbody>().linearVelocity = Vector3.Lerp(APR_Parts[0].transform.GetComponent<Rigidbody>().linearVelocity, (Direction * moveSpeed) + new Vector3(0, APR_Parts[0].transform.GetComponent<Rigidbody>().linearVelocity.y, 0), 0.8f);
 
                 if (Input.GetAxisRaw(leftRight) != 0 || Input.GetAxisRaw(forwardBackward) != 0 && balanced)
                 {
@@ -348,8 +348,8 @@ namespace ARP.APR.Scripts
                 if (Input.GetAxisRaw(forwardBackward) != 0)
                 {
                     var v3 = APR_Parts[0].GetComponent<Rigidbody>().transform.forward * (Input.GetAxisRaw(forwardBackward) * moveSpeed);
-                    v3.y = APR_Parts[0].GetComponent<Rigidbody>().velocity.y;
-                    APR_Parts[0].GetComponent<Rigidbody>().velocity = v3;
+                    v3.y = APR_Parts[0].GetComponent<Rigidbody>().linearVelocity.y;
+                    APR_Parts[0].GetComponent<Rigidbody>().linearVelocity = v3;
                 }
                 if (Input.GetAxisRaw(forwardBackward) > 0)
                 {
@@ -491,9 +491,9 @@ namespace ARP.APR.Scripts
                 isJumping = true;
 
                 var v3 = APR_Parts[0].GetComponent<Rigidbody>().transform.up * jumpForce;
-                v3.x = APR_Parts[0].GetComponent<Rigidbody>().velocity.x;
-                v3.z = APR_Parts[0].GetComponent<Rigidbody>().velocity.z;
-                APR_Parts[0].GetComponent<Rigidbody>().velocity = v3;
+                v3.x = APR_Parts[0].GetComponent<Rigidbody>().linearVelocity.x;
+                v3.z = APR_Parts[0].GetComponent<Rigidbody>().linearVelocity.z;
+                APR_Parts[0].GetComponent<Rigidbody>().linearVelocity = v3;
             }
             if (isJumping)
             {

@@ -65,7 +65,7 @@ namespace ARP.Examples.Dependancies.Scripts
                         //Deactivate physics and store velocity
                         foreach (Rigidbody physics in PlayerPhysics)
                         {
-                            storedVelocity = physics.velocity;
+                            storedVelocity = physics.linearVelocity;
                             physics.isKinematic = true;
                         }
                     
@@ -81,7 +81,7 @@ namespace ARP.Examples.Dependancies.Scripts
                         foreach (Rigidbody physics in PlayerPhysics)
                         {
                             physics.isKinematic = false;
-                            physics.velocity = storedVelocity;
+                            physics.linearVelocity = storedVelocity;
                         }
                     
                     

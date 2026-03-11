@@ -19,7 +19,7 @@ public class SoftFollowHead : MonoBehaviour
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
-        _prevVelocity = _rootRb ? _rootRb.velocity : Vector3.zero;
+        _prevVelocity = _rootRb ? _rootRb.linearVelocity : Vector3.zero;
     }
 
     void FixedUpdate()
@@ -45,8 +45,8 @@ public class SoftFollowHead : MonoBehaviour
         // ------------------------------
         // [2] 관성 기반 뒤로 젖힘
         // ------------------------------
-        Vector3 acceleration = (_rootRb.velocity - _prevVelocity) / Time.fixedDeltaTime;
-        _prevVelocity = _rootRb.velocity;
+        Vector3 acceleration = (_rootRb.linearVelocity - _prevVelocity) / Time.fixedDeltaTime;
+        _prevVelocity = _rootRb.linearVelocity;
 
         float accelMag = acceleration.magnitude;
 
