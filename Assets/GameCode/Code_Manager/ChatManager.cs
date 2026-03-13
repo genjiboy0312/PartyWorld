@@ -56,10 +56,6 @@ public class ChatManager : MonoBehaviourPunCallbacks
             PhotonNetwork.NickName = _authManager._userEmail;
         }
 
-        // Photon 서버 연결
-        PhotonNetwork.ConnectUsingSettings();
-        PhotonNetwork.IsMessageQueueRunning = true;
-
         // Send 버튼 이벤트 연결
         if (_sendBtn != null)
         {
@@ -131,25 +127,12 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
     public void Connect()
     {
-        if (!PhotonNetwork.IsConnected)
-        {
-            PhotonNetwork.ConnectUsingSettings();
-        }
+        NetworkAuthorityManager.Instance?.ConnectIfNeeded();
     }
 
     public override void OnConnectedToMaster()
     {
         Debug.Log("[ChatManager] Photon 마스터 서버 연결 성공");
-
-        // Room1에 입장 또는 생성
-        RoomOptions roomOptions = new RoomOptions
-        {
-            MaxPlayers = 4,
-            IsVisible = true,
-            IsOpen = true
-        };
-
-        PhotonNetwork.JoinOrCreateRoom("Room1", roomOptions, TypedLobby.Default);
     }
 
     public override void OnJoinedRoom()

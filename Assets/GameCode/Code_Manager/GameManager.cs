@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour
         remove => _onGameStateChange -= value;
     }
 
-    private PhotonManager _photonMgr;
     private ChatManager _chatMgr;
 
     public GameState CurrentGameState => _currentGameState;
@@ -49,17 +48,7 @@ public class GameManager : MonoBehaviour
 
         _stage = 1;
 
-        // PhotonManager 참조
-        _photonMgr = FindObjectOfType<PhotonManager>();
-        if (_photonMgr == null)
-            Debug.LogError("PhotonManager를 찾을 수 없습니다!");
-
         InitializeChatManager();
-    }
-
-    private void Start()
-    {
-        StartGame();
     }
 
     private void OnDestroy()
@@ -88,17 +77,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void SetGameState(GameState newGameState)
+    public void SetGameState(GameState newGameState)
     {
         // 중복 상태 변경 방지
         if (_currentGameState == newGameState)
             return;
-
-        // PhotonManager 호출
-        if (newGameState == GameState.Playing)
-            _photonMgr?.StartGame();
-        else if (newGameState == GameState.GameOver)
-            _photonMgr?.EndGame();
 
         _currentGameState = newGameState;
 

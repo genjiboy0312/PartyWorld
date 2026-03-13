@@ -12,6 +12,10 @@ public class UIInventory : MonoBehaviour
     private bool _isCamChecking;
 
     private void Start() => _exitBtn.onClick.AddListener(Exit);
-    public void OnOff() => _camInventory.SetActive(_isCamChecking = !_isCamChecking);
+    public void OnOff()
+    {
+        _camInventory.SetActive(_isCamChecking = !_isCamChecking);
+        _inventoryBoard.SetActive(_isCamChecking);
+    }
     private void Exit() => _inventoryBoard.SetActive(false);
 }

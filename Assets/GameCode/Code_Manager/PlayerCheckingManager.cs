@@ -4,10 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEditor;
 
 public class PlayerCheckingManager : MonoBehaviourPunCallbacks
 {
+    [Header("Legacy")]
+    [SerializeField] private bool _useLegacyFlow = false;
+
     [SerializeField] private List<Scene> _mapScnene;
     [SerializeField] private List<int> _sceneIdx;                           // 씬 인덱스를 담는 리스트
     [SerializeField] private string _sceneName;                             // 현재 씬 이름
@@ -23,11 +25,18 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
     [SerializeField] private float _loadingFinish = 100.0f;                    //  로딩 끝
     private void Awake()
     {
-        PhotonNetwork.ConnectUsingSettings();
+        if (!_useLegacyFlow)
+            return;
     }
 
     void Update()
     {
+        if (!_useLegacyFlow)
+            return;
+
+        if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
+            return;
+
         //if (PhotonNetwork.IsMasterClient)
         {
             _playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
@@ -163,6 +172,9 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
     // 새로운 플레이어가 방에 들어왔을 때
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        if (!_useLegacyFlow)
+            return;
+
         _playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
         Debug.Log($"{newPlayer.NickName} has joined. Total players: {_playerCount}");
         Debug.Log($"{FirebaseAuthManager.Instance._userEmail} has joined. Total players: {FirebaseAuthManager.Instance._userEmail.Length}");
@@ -176,6 +188,9 @@ public class PlayerCheckingManager : MonoBehaviourPunCallbacks
     // 플레이어가 방에서 나갔을 때
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
+        if (!_useLegacyFlow)
+            return;
+
         _playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
         Debug.Log($"{otherPlayer.NickName} has left. Total players: {_playerCount}");
 

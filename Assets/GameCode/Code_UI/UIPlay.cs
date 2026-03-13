@@ -21,7 +21,16 @@ public class UIPlay : MonoBehaviour
 
     //  play btn을 누르면 yes btn이 뜸
     private void PlayButton() => _playSectUI.SetActive(true);
-    //  PlayButton. Loading Scene or Loading UI 뜨게 함 (고민)
-    private void YesButton() => SceneManager.LoadScene("Scene_Loading");
+    //  멀티 룸 안이면 마스터에게 시작을 요청, 아니면 로컬로 로딩 씬 진입
+    private void YesButton()
+    {
+        if (NetworkAuthorityManager.Instance != null && Photon.Pun.PhotonNetwork.InRoom)
+        {
+            NetworkAuthorityManager.Instance.RequestStartMatch();
+            return;
+        }
+
+        SceneManager.LoadScene("Scene_Loading");
+    }
     private void NoButton() => _playSectUI.SetActive(false);
 }

@@ -6,11 +6,17 @@ using Photon.Realtime;
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
+    [Header("Legacy")]
+    [SerializeField] private bool _useLegacyFlow = false;
+
     private readonly string _version = "1.0f";                                      //  버전 입력
     [SerializeField] private string _userId = "GenJiBoy";                           //  사용자 아이디 입력
 
     private void Awake()
     {
+        if (!_useLegacyFlow)
+            return;
+
         PhotonNetwork.AutomaticallySyncScene = true;                                //  같은 룸의 유저들에게 자동으로 씬을 로딩
         PhotonNetwork.GameVersion = _version;                                       //  같은 버전의 유저끼리 접속 허용
         PhotonNetwork.NickName = _userId;                                           //  유저 아이디 할당
@@ -26,6 +32,9 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     //  포톤 서버에 접속 후 호출되는 CallBack Method
     public override void OnConnectedToMaster()
     {
+        if (!_useLegacyFlow)
+            return;
+
         //PhotonNetwork.JoinOrCreateRoom("Joint Or CreateRoom", new RoomOptions { IsOpen = true }, TypedLobby.Default);
         Debug.Log($"PhotonNetwork.InLobby = {PhotonNetwork.InLobby}");
         PhotonNetwork.JoinLobby();                              //  로비 입장
@@ -34,6 +43,9 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     //  로비에 접속 후 호출 되는 Callback Method
     public override void OnJoinedLobby()
     {
+        if (!_useLegacyFlow)
+            return;
+
         Debug.Log($"PhotonNetwork.InLobby = {PhotonNetwork.InLobby}");
         PhotonNetwork.JoinRandomRoom();                         //  랜덤 매치 메이킹 기능 제공
     }
@@ -41,6 +53,9 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     //  랜덤한 룸 입장이 실패했을 경우 호출되는 Callback Method
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
+        if (!_useLegacyFlow)
+            return;
+
         // 실패시 띄우는 디버그
         Debug.Log($"JoinRandom Filed => {returnCode} : {message}");
 
@@ -57,12 +72,18 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     // 룸 생성이 완료된 후 호출되는 Callback Method
     public override void OnCreatedRoom()
     {
+        if (!_useLegacyFlow)
+            return;
+
         Debug.Log("*** Created Room! ***");
         Debug.Log($"Room Name = {PhotonNetwork.CurrentRoom.Name}");
     }
     // 룸에 입장한 후 호출되는 Callback Method
     public override void OnJoinedRoom()
     {
+        if (!_useLegacyFlow)
+            return;
+
         Debug.Log($"PhotonNetwork.InRoom : {PhotonNetwork.InRoom}");
         Debug.Log($"Player Count : {PhotonNetwork.CurrentRoom.PlayerCount}");
 
@@ -79,6 +100,9 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     // Player 소환하는 함수
     public void Spawn()
     {
+        if (!_useLegacyFlow)
+            return;
+
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
     }
 
@@ -89,12 +113,18 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     //}
     public void StartGame()
     {
+        if (!_useLegacyFlow)
+            return;
+
         Debug.Log("PhotonManager에서 게임 시작 처리");
         // 게임 시작 시 처리할 로직 추가
     }
 
     public void EndGame()
     {
+        if (!_useLegacyFlow)
+            return;
+
         Debug.Log("PhotonManager에서 게임 오버 처리");
         // 게임 오버 시 처리할 로직 추가
     }
