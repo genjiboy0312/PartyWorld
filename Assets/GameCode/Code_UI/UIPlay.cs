@@ -21,16 +21,15 @@ public class UIPlay : MonoBehaviour
 
     //  play btn을 누르면 yes btn이 뜸
     private void PlayButton() => _playSectUI.SetActive(true);
-    //  멀티 룸 안이면 마스터에게 시작을 요청, 아니면 로컬로 로딩 씬 진입
+    //  WaitingRoom에서 QuickPlay를 시작(룸 매칭 진입)
     private void YesButton()
     {
-        if (NetworkAuthorityManager.Instance != null && Photon.Pun.PhotonNetwork.InRoom)
+        if (NetworkAuthorityManager.Instance != null)
         {
-            NetworkAuthorityManager.Instance.RequestStartMatch();
+            NetworkAuthorityManager.Instance.StartQuickPlay();
+            _playSectUI.SetActive(false);
             return;
         }
-
-        SceneManager.LoadScene("Scene_Loading");
     }
     private void NoButton() => _playSectUI.SetActive(false);
 }

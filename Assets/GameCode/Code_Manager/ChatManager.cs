@@ -37,7 +37,7 @@ public class ChatManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            Debug.LogError("[ChatManager] GameManager.Instance가 null입니다!");
+            Debug.LogWarning("[ChatManager] GameManager.Instance가 null입니다!");
         }
 
         // FirebaseAuthManager 캐싱
@@ -53,7 +53,8 @@ public class ChatManager : MonoBehaviourPunCallbacks
         // Photon NickName 설정
         if (_authManager != null)
         {
-            PhotonNetwork.NickName = _authManager._userEmail;
+            if (!string.IsNullOrWhiteSpace(_authManager._userEmail) && _authManager._userEmail != "None")
+                PhotonNetwork.NickName = _authManager._userEmail;
         }
 
         // Send 버튼 이벤트 연결
@@ -94,9 +95,10 @@ public class ChatManager : MonoBehaviourPunCallbacks
         }
     }
 
-    private void OnDisable()
+    public override void OnDisable()
     {
         UnsubscribeEvents();
+        base.OnDisable();
     }
 
     private void OnDestroy()

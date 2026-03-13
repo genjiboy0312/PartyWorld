@@ -19,6 +19,11 @@ public class AudioManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+
+            // DontDestroyOnLoad는 루트 오브젝트에만 적용 가능하므로, 필요하면 루트로 분리
+            if (transform.parent != null)
+                transform.SetParent(null, true);
+
             DontDestroyOnLoad(gameObject);
         }
         else

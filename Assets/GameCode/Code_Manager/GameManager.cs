@@ -13,6 +13,20 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Bootstrap()
+    {
+        // 씬에 배치되지 않아도 GameManager 인스턴스를 1개 보장
+        if (Instance != null)
+            return;
+
+        if (FindAnyObjectByType<GameManager>() != null)
+            return;
+
+        GameObject go = new GameObject(nameof(GameManager));
+        go.AddComponent<GameManager>();
+    }
+
     [SerializeField] private GameState _currentGameState = GameState.Title;
     [SerializeField] private static int _stage;
 

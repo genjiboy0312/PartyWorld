@@ -13,13 +13,19 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 {
     public static NetworkAuthorityManager Instance { get; private set; }
 
+    private const string DEBUG_PREF_AUTO_QUICKPLAY = "PW_DEBUG_AUTO_QUICKPLAY";
+    private const string DEBUG_PREF_FORCE_NICKNAME = "PW_DEBUG_FORCE_NICKNAME";
+
     private const string PLAYER_PROP_READY = "ready";
     private const string PLAYER_PROP_SCENE = "scene";
     private const string ROOM_PROP_SELECTED_MAP = "selectedMap";
+    private const string ROOM_PROP_COUNTDOWN_ACTIVE = "lobbyCountdownActive";
+    private const string ROOM_PROP_COUNTDOWN_START_TIME = "lobbyCountdownStartTime";
+    private const string ROOM_PROP_COUNTDOWN_DURATION = "lobbyCountdownDuration";
 
     [Header("Connection")]
-    [SerializeField] private bool _autoConnect = true;
-    [SerializeField] private bool _autoMatchmake = true;
+    [SerializeField] private bool _autoConnect = false;
+    [SerializeField] private bool _autoMatchmake = false;
     [SerializeField] private string _gameVersion = "1.0f";
 
     [Header("Room Options")]
@@ -29,7 +35,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     [Header("Scenes")]
     [SerializeField] private string _titleSceneName = "Scene_Title&Login";
-    [SerializeField] private string _lobbySceneName = "Scene_Lobby";
+    [SerializeField] private string _waitingRoomSceneName = "Scene_WaitingRoom";
+    [SerializeField] private string _roomLobbySceneName = "Scene_Lobby";
     [SerializeField] private string _loadingSceneName = "Scene_Loading";
     [SerializeField] private string _mapSceneName = "Scene_Map01";
     [SerializeField] private List<string> _mapSceneNames = new List<string>();
@@ -39,7 +46,17 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [SerializeField] private int _serializationRate = 60;
     [SerializeField] private float _loadingGateDelaySeconds = 0.25f;
 
+    [Header("Lobby Countdown")]
+    [SerializeField] private float _lobbyCountdownSeconds = 3f;
+
+    [Header("Debug/Retry")]
+    [SerializeField] private float _joinTimeoutSeconds = 10f;
+    [SerializeField] private float _retryDelaySeconds = 1.5f;
+
     private Coroutine _loadingGateCoroutine;
+    private bool _quickPlayRequested;
+    private bool _issuedLoadingForThisCountdown;
+    private Coroutine _quickPlayWatchCoroutine;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -72,14 +89,22 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             PhotonNetwork.SerializationRate = _serializationRate;
     }
 
-    private void OnEnable()
+    public override void OnEnable()
     {
+        // PUN 콜백 등록(필수)
+        base.OnEnable();
+
+        // 씬 로드 이벤트 구독
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    private void OnDisable()
+    public override void OnDisable()
     {
+        // 씬 로드 이벤트 구독 해제
         SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        // PUN 콜백 해제
+        base.OnDisable();
     }
 
     private void Start()
@@ -87,6 +112,29 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         // 자동 연결 옵션이면 시작 시점에만 연결 시도(중복 호출 방지)
         if (_autoConnect)
             ConnectIfNeeded();
+
+        // 디버그 옵션이면 파이어베이스 플로우 없이도 매칭을 시작
+        TryStartDebugQuickPlay(SceneManager.GetActiveScene().name);
+    }
+
+    public void StartQuickPlay()
+    {
+        // 사용자가 명시적으로 QuickPlay를 눌렀을 때만 매칭을 시작
+        if (_quickPlayRequested)
+            return;
+
+        _quickPlayRequested = true;
+
+        ConnectIfNeeded();
+
+        if (PhotonNetwork.IsConnectedAndReady)
+            TryJoinRandomOrCreateRoom();
+
+        Debug.Log($"[NetworkAuthorityManager] StartQuickPlay (state={PhotonNetwork.NetworkClientState}, inRoom={PhotonNetwork.InRoom}, inLobby={PhotonNetwork.InLobby})");
+
+        // 매칭이 멈추는 케이스를 대비해 타임아웃 감시
+        if (_quickPlayWatchCoroutine == null)
+            _quickPlayWatchCoroutine = StartCoroutine(WatchQuickPlay());
     }
 
     public void ConnectIfNeeded()
@@ -95,6 +143,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsConnected)
             return;
 
+        EnsureNickName();
         PhotonNetwork.ConnectUsingSettings();
     }
 
@@ -128,6 +177,44 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         return true;
     }
 
+    public bool TryGetLobbyCountdownRemaining(out float remainingSeconds, out bool isActive)
+    {
+        remainingSeconds = 0f;
+        isActive = false;
+
+        if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
+            return false;
+
+        PhotonHashtable props = PhotonNetwork.CurrentRoom.CustomProperties as PhotonHashtable;
+        if (props == null)
+            return false;
+
+        if (!props.TryGetValue(ROOM_PROP_COUNTDOWN_ACTIVE, out object activeRaw) || activeRaw is not bool active)
+            return false;
+
+        if (!props.TryGetValue(ROOM_PROP_COUNTDOWN_START_TIME, out object startRaw) || startRaw is not double startTime)
+            return false;
+
+        if (!props.TryGetValue(ROOM_PROP_COUNTDOWN_DURATION, out object durRaw))
+            return false;
+
+        float durationSeconds = durRaw switch
+        {
+            float f => f,
+            double d => (float)d,
+            int i => i,
+            _ => 0f
+        };
+
+        isActive = active;
+        if (!isActive)
+            return true;
+
+        double now = PhotonNetwork.Time;
+        remainingSeconds = Mathf.Max(0f, durationSeconds - (float)(now - startTime));
+        return true;
+    }
+
     public void RequestStartMatch()
     {
         // 마스터만 로딩/맵 전환을 트리거(권위 단일화)
@@ -147,31 +234,22 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         // 자동 매칭 옵션이면 로비 진입 후 랜덤 매칭 시도
-        if (!_autoMatchmake)
+        if (!_autoMatchmake && !_quickPlayRequested)
             return;
 
-        if (PhotonNetwork.InLobby)
-        {
-            PhotonNetwork.JoinRandomRoom();
-            return;
-        }
-
-        PhotonNetwork.JoinLobby();
+        TryJoinRandomOrCreateRoom();
+        Debug.Log($"[NetworkAuthorityManager] OnConnectedToMaster (state={PhotonNetwork.NetworkClientState}, inRoom={PhotonNetwork.InRoom}, inLobby={PhotonNetwork.InLobby})");
     }
 
     public override void OnJoinedLobby()
     {
-        // 로비 입장 완료 시 랜덤 룸 조인 시도
-        if (!_autoMatchmake)
-            return;
-
-        PhotonNetwork.JoinRandomRoom();
+        // 로비 기반 플로우는 사용하지 않음(JoinRandomOrCreateRoom 사용)
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
         // 랜덤 조인 실패 시 룸 생성으로 폴백(빠른 매칭)
-        if (!_autoMatchmake)
+        if (!_autoMatchmake && !_quickPlayRequested)
             return;
 
         RoomOptions options = new RoomOptions
@@ -182,13 +260,141 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         };
 
         PhotonNetwork.CreateRoom(null, options);
+        Debug.Log($"[NetworkAuthorityManager] OnJoinRandomFailed -> CreateRoom (code={returnCode}, msg={message})");
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        // 조인 실패 시 상태를 로그로 남기고 재시도 대기
+        Debug.LogWarning($"[NetworkAuthorityManager] OnJoinRoomFailed (code={returnCode}, msg={message}, state={PhotonNetwork.NetworkClientState})");
+    }
+
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        // 생성 실패 시 상태를 로그로 남기고 재시도 대기
+        Debug.LogWarning($"[NetworkAuthorityManager] OnCreateRoomFailed (code={returnCode}, msg={message}, state={PhotonNetwork.NetworkClientState})");
     }
 
     public override void OnJoinedRoom()
     {
         // 룸 입장 직후: Ready/Scene 프로퍼티를 초기화(동기화 게이트 기반)
-        SetLocalPlayerProperty(PLAYER_PROP_READY, true);
+        SetLocalPlayerProperty(PLAYER_PROP_READY, false);
         SetLocalPlayerProperty(PLAYER_PROP_SCENE, SceneManager.GetActiveScene().name);
+
+        // 룸에 들어오면 “룸 로비” 씬으로 통일(전원 같은 공간에서 Ready/미니게임)
+        if (SceneManager.GetActiveScene().name != _roomLobbySceneName)
+            PhotonNetwork.LoadLevel(_roomLobbySceneName);
+
+        // 매칭 요청은 1회성으로 처리
+        _quickPlayRequested = false;
+
+        Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_roomLobbySceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
+
+        // 매칭 감시 코루틴 정리
+        StopQuickPlayWatch();
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        // 끊김 원인을 로그로 남김(디버그에 중요)
+        Debug.LogWarning($"[NetworkAuthorityManager] OnDisconnected (cause={cause}, state={PhotonNetwork.NetworkClientState})");
+    }
+
+    private void TryJoinRandomOrCreateRoom()
+    {
+        // ConnectedToMaster 상태에서 랜덤 룸 조인, 실패 시 생성까지 한번에 처리
+        ClientState state = PhotonNetwork.NetworkClientState;
+
+        // 이미 조인/생성 관련 오퍼레이션이 진행 중이면 중복 호출하지 않음
+        if (state == ClientState.Joining || state == ClientState.ConnectingToGameServer || state == ClientState.Leaving)
+            return;
+
+        if (state != ClientState.ConnectedToMasterServer && state != ClientState.ConnectedToMaster)
+            return;
+
+        RoomOptions options = new RoomOptions
+        {
+            MaxPlayers = _maxPlayers,
+            IsOpen = _isRoomOpen,
+            IsVisible = _isRoomVisible
+        };
+
+        PhotonNetwork.JoinRandomOrCreateRoom(roomOptions: options);
+    }
+
+    private IEnumerator WatchQuickPlay()
+    {
+        // 일정 시간 내에 룸에 못 들어가면 끊고 재시도(디버그용 안정화)
+        float startTime = Time.realtimeSinceStartup;
+
+        while (_quickPlayRequested && !PhotonNetwork.InRoom)
+        {
+            if (Time.realtimeSinceStartup - startTime > _joinTimeoutSeconds)
+            {
+                Debug.LogWarning($"[NetworkAuthorityManager] QuickPlay timeout -> retry (state={PhotonNetwork.NetworkClientState})");
+
+                PhotonNetwork.Disconnect();
+                yield return new WaitForSeconds(_retryDelaySeconds);
+
+                _quickPlayWatchCoroutine = null;
+                if (_quickPlayRequested)
+                    StartQuickPlay();
+
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        StopQuickPlayWatch();
+    }
+
+    private void StopQuickPlayWatch()
+    {
+        // 중복 감시를 막기 위해 코루틴 1개만 유지
+        if (_quickPlayWatchCoroutine == null)
+            return;
+
+        StopCoroutine(_quickPlayWatchCoroutine);
+        _quickPlayWatchCoroutine = null;
+    }
+
+    private void EnsureNickName()
+    {
+        // 닉네임이 없으면 개발용 기본 닉네임을 세팅(채팅/유저리스트 안정화)
+        if (!string.IsNullOrWhiteSpace(PhotonNetwork.NickName))
+            return;
+
+        PhotonNetwork.NickName = $"Dev_{Random.Range(1000, 9999)}";
+    }
+
+    private void TryStartDebugQuickPlay(string sceneName)
+    {
+        // 에디터/개발 빌드에서만 디버그 매칭을 허용
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // 이미 QuickPlay가 진행 중이면 중복 시작하지 않음
+        if (_quickPlayRequested || _quickPlayWatchCoroutine != null)
+            return;
+
+        bool autoQuickPlay = PlayerPrefs.GetInt(DEBUG_PREF_AUTO_QUICKPLAY, 0) == 1;
+        if (!autoQuickPlay)
+            return;
+
+        // WaitingRoom/룸 로비에서만 자동 매칭(맵/로딩에서의 재매칭 방지)
+        if (sceneName != _waitingRoomSceneName && sceneName != _roomLobbySceneName)
+            return;
+
+        // 이미 룸이 있으면 아무것도 하지 않음
+        if (PhotonNetwork.InRoom)
+            return;
+
+        // 디버그 닉네임 강제 옵션
+        if (PlayerPrefs.GetInt(DEBUG_PREF_FORCE_NICKNAME, 0) == 1)
+            PhotonNetwork.NickName = $"Dev_{System.Environment.UserName}";
+
+        Debug.Log($"[NetworkAuthorityManager] Debug Auto QuickPlay -> StartQuickPlay (scene={sceneName})");
+        StartQuickPlay();
+#endif
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
@@ -199,17 +405,23 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, PhotonHashtable changedProps)
     {
-        // 로딩 씬에서: 모든 플레이어가 로딩 씬에 도착하면 맵으로 전환(마스터만)
+        // 로비 씬에서: Ready 변화에 따라 카운트다운 시작/취소(마스터만)
         if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
             return;
 
-        if (SceneManager.GetActiveScene().name != _loadingSceneName)
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        if (sceneName == _roomLobbySceneName)
+        {
+            EvaluateLobbyCountdown();
+            return;
+        }
+
+        // 로딩 씬에서: 모든 플레이어가 로딩 씬에 도착하면 맵으로 전환(마스터만)
+        if (sceneName != _loadingSceneName)
             return;
 
-        if (_loadingGateCoroutine != null)
-            return;
-
-        if (AreAllPlayersInScene(_loadingSceneName))
+        if (_loadingGateCoroutine == null && AreAllPlayersInScene(_loadingSceneName))
             _loadingGateCoroutine = StartCoroutine(LoadingGateToMap());
     }
 
@@ -222,7 +434,17 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         SyncGameManagerState(scene.name);
 
         if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
+        {
+            // 디버그 옵션이면 룸이 없어도 로비 씬에서 자동 매칭을 시작
+            TryStartDebugQuickPlay(scene.name);
             return;
+        }
+
+        if (scene.name == _roomLobbySceneName)
+        {
+            EvaluateLobbyCountdown();
+            return;
+        }
 
         if (scene.name == _loadingSceneName)
         {
@@ -250,6 +472,102 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         PhotonNetwork.LoadLevel(GetSelectedMapSceneName());
         _loadingGateCoroutine = null;
+    }
+
+    private void EvaluateLobbyCountdown()
+    {
+        // 룸 로비에서 전원 Ready면 카운트다운을 시작하고, 깨지면 즉시 취소
+        if (!PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
+            return;
+
+        bool allReady = AreAllPlayersReady();
+
+        if (!allReady)
+        {
+            StopLobbyCountdown();
+            return;
+        }
+
+        StartLobbyCountdownIfNeeded();
+    }
+
+    private void StartLobbyCountdownIfNeeded()
+    {
+        // 이미 카운트다운이 켜져 있으면 중복 시작하지 않음
+        if (IsLobbyCountdownActive())
+            return;
+
+        _issuedLoadingForThisCountdown = false;
+
+        PhotonHashtable props = new PhotonHashtable
+        {
+            { ROOM_PROP_COUNTDOWN_ACTIVE, true },
+            { ROOM_PROP_COUNTDOWN_START_TIME, PhotonNetwork.Time },
+            { ROOM_PROP_COUNTDOWN_DURATION, _lobbyCountdownSeconds }
+        };
+
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+    }
+
+    private void StopLobbyCountdown()
+    {
+        // 카운트다운을 끄고, 다음 Ready 조합에서 다시 시작 가능하게 리셋
+        if (!IsLobbyCountdownActive())
+            return;
+
+        _issuedLoadingForThisCountdown = false;
+
+        PhotonHashtable props = new PhotonHashtable
+        {
+            { ROOM_PROP_COUNTDOWN_ACTIVE, false }
+        };
+
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+    }
+
+    private bool IsLobbyCountdownActive()
+    {
+        if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
+            return false;
+
+        PhotonHashtable props = PhotonNetwork.CurrentRoom.CustomProperties as PhotonHashtable;
+        if (props == null)
+            return false;
+
+        return props.TryGetValue(ROOM_PROP_COUNTDOWN_ACTIVE, out object raw) && raw is bool active && active;
+    }
+
+    private void Update()
+    {
+        // 마스터는 카운트다운 만료 시 로딩 씬으로 전환(한 번만)
+        if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
+            return;
+
+        if (SceneManager.GetActiveScene().name != _roomLobbySceneName)
+            return;
+
+        if (_issuedLoadingForThisCountdown)
+            return;
+
+        if (!TryGetLobbyCountdownRemaining(out float remaining, out bool active))
+            return;
+
+        if (!active)
+            return;
+
+        if (remaining > 0f)
+            return;
+
+        if (!AreAllPlayersReady())
+        {
+            StopLobbyCountdown();
+            return;
+        }
+
+        _issuedLoadingForThisCountdown = true;
+        SelectAndStoreRandomMap();
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.LoadLevel(_loadingSceneName);
     }
 
     private void SelectAndStoreRandomMap()
@@ -381,7 +699,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             gm.SetGameState(GameState.Loading);
         else if (sceneName == _mapSceneName)
             gm.SetGameState(GameState.Playing);
-        else if (sceneName == _titleSceneName || sceneName == _lobbySceneName)
+        else if (sceneName == _titleSceneName || sceneName == _waitingRoomSceneName || sceneName == _roomLobbySceneName)
             gm.SetGameState(GameState.Title);
     }
 }

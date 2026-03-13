@@ -12,7 +12,7 @@ public class RagdollAnalyser
         return Regex.Replace(name, @"[^a-zA-Z0-9_]", "_", RegexOptions.Compiled);
     }
 
-    [MenuItem("PartyWorld Tools/Analyze Player_Test02")]
+    [MenuItem("Tools/PartyWorld/Character/Analyze Player_Test02")]
     public static void AnalyzeRagdoll()
     {
         GameObject templateObject = GameObject.Find("Player_Test02");
@@ -72,8 +72,8 @@ public class RagdollAnalyser
         {
             sb.AppendLine($"        var {sanitizedName}_rb = {gameObjectNameInCode}.AddComponent<Rigidbody>();");
             sb.AppendLine($"        {sanitizedName}_rb.mass = {rb.mass}f;");
-            sb.AppendLine($"        {sanitizedName}_rb.drag = {rb.linearDamping}f;");
-            sb.AppendLine($"        {sanitizedName}_rb.angularDrag = {rb.angularDamping}f;");
+            sb.AppendLine($"        {sanitizedName}_rb.linearDamping = {rb.linearDamping}f;");
+            sb.AppendLine($"        {sanitizedName}_rb.angularDamping = {rb.angularDamping}f;");
             sb.AppendLine($"        {sanitizedName}_rb.useGravity = {rb.useGravity.ToString().ToLower()};");
             sb.AppendLine($"        {sanitizedName}_rb.isKinematic = {rb.isKinematic.ToString().ToLower()};");
             sb.AppendLine($"        {sanitizedName}_rb.interpolation = RigidbodyInterpolation.{rb.interpolation};");
@@ -110,6 +110,9 @@ public class RagdollAnalyser
             }
             sb.AppendLine($"        {sanitizedName}_joint.anchor = new Vector3({joint.anchor.x}f, {joint.anchor.y}f, {joint.anchor.z}f);");
             sb.AppendLine($"        {sanitizedName}_joint.axis = new Vector3({joint.axis.x}f, {joint.axis.y}f, {joint.axis.z}f);");
+            sb.AppendLine($"        {sanitizedName}_joint.secondaryAxis = new Vector3({joint.secondaryAxis.x}f, {joint.secondaryAxis.y}f, {joint.secondaryAxis.z}f);");
+            sb.AppendLine($"        {sanitizedName}_joint.autoConfigureConnectedAnchor = {joint.autoConfigureConnectedAnchor.ToString().ToLower()};");
+            sb.AppendLine($"        {sanitizedName}_joint.connectedAnchor = new Vector3({joint.connectedAnchor.x}f, {joint.connectedAnchor.y}f, {joint.connectedAnchor.z}f);");
             sb.AppendLine($"        {sanitizedName}_joint.xMotion = ConfigurableJointMotion.{joint.xMotion};");
             sb.AppendLine($"        {sanitizedName}_joint.yMotion = ConfigurableJointMotion.{joint.yMotion};");
             sb.AppendLine($"        {sanitizedName}_joint.zMotion = ConfigurableJointMotion.{joint.zMotion};");
@@ -120,8 +123,16 @@ public class RagdollAnalyser
             sb.AppendLine($"        var {sanitizedName}_limit = new SoftJointLimit();");
             sb.AppendLine($"        {sanitizedName}_limit.limit = {joint.linearLimit.limit}f;");
             sb.AppendLine($"        {sanitizedName}_joint.linearLimit = {sanitizedName}_limit;");
+            sb.AppendLine($"        {sanitizedName}_joint.linearLimitSpring = joint.linearLimitSpring;");
+            sb.AppendLine($"        {sanitizedName}_joint.lowAngularXLimit = joint.lowAngularXLimit;");
+            sb.AppendLine($"        {sanitizedName}_joint.highAngularXLimit = joint.highAngularXLimit;");
+            sb.AppendLine($"        {sanitizedName}_joint.angularYLimit = joint.angularYLimit;");
+            sb.AppendLine($"        {sanitizedName}_joint.angularZLimit = joint.angularZLimit;");
 
             sb.AppendLine($"        {sanitizedName}_joint.rotationDriveMode = RotationDriveMode.{joint.rotationDriveMode};");
+            sb.AppendLine($"        {sanitizedName}_joint.xDrive = joint.xDrive;");
+            sb.AppendLine($"        {sanitizedName}_joint.yDrive = joint.yDrive;");
+            sb.AppendLine($"        {sanitizedName}_joint.zDrive = joint.zDrive;");
             sb.AppendLine($"        var {sanitizedName}_xDrive = new JointDrive();");
             sb.AppendLine($"        {sanitizedName}_xDrive.positionSpring = {joint.angularXDrive.positionSpring}f;");
             sb.AppendLine($"        {sanitizedName}_xDrive.maximumForce = {joint.angularXDrive.maximumForce}f;");
@@ -131,6 +142,16 @@ public class RagdollAnalyser
             sb.AppendLine($"        {sanitizedName}_yzDrive.positionSpring = {joint.angularYZDrive.positionSpring}f;");
             sb.AppendLine($"        {sanitizedName}_yzDrive.maximumForce = {joint.angularYZDrive.maximumForce}f;");
             sb.AppendLine($"        {sanitizedName}_joint.angularYZDrive = {sanitizedName}_yzDrive;");
+            sb.AppendLine($"        {sanitizedName}_joint.slerpDrive = joint.slerpDrive;");
+            sb.AppendLine($"        {sanitizedName}_joint.projectionMode = JointProjectionMode.{joint.projectionMode};");
+            sb.AppendLine($"        {sanitizedName}_joint.projectionDistance = {joint.projectionDistance}f;");
+            sb.AppendLine($"        {sanitizedName}_joint.projectionAngle = {joint.projectionAngle}f;");
+            sb.AppendLine($"        {sanitizedName}_joint.breakForce = {joint.breakForce}f;");
+            sb.AppendLine($"        {sanitizedName}_joint.breakTorque = {joint.breakTorque}f;");
+            sb.AppendLine($"        {sanitizedName}_joint.enableCollision = {joint.enableCollision.ToString().ToLower()};");
+            sb.AppendLine($"        {sanitizedName}_joint.enablePreprocessing = {joint.enablePreprocessing.ToString().ToLower()};");
+            sb.AppendLine($"        {sanitizedName}_joint.massScale = {joint.massScale}f;");
+            sb.AppendLine($"        {sanitizedName}_joint.connectedMassScale = {joint.connectedMassScale}f;");
         }
         sb.AppendLine();
     }

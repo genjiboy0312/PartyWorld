@@ -1,13 +1,25 @@
-using UnityEngine;
-using UnityEditor;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using Photon.Pun; // PhotonView를 위해 추가
+using Photon.Pun;
+using UnityEditor;
+using UnityEngine;
 
 public class CharacterSetupEditor : EditorWindow
 {
-    private GameObject characterModel;
+    private const string TEMPLATE_NAME = "Player_Test02";
 
-    [MenuItem("PartyWorld Tools/Setup Character From Player_Test02")]
+    [SerializeField] private GameObject _templateRoot;
+    [SerializeField] private GameObject _characterModel;
+    [SerializeField] private bool _copyGameCodeScripts = true;
+    [SerializeField] private bool _copyPhysicsSettings = true;
+    [SerializeField] private bool _copyPresenterSettings = true;
+    [SerializeField] private bool _copyIgnoreCollisionSettings = true;
+    [SerializeField] private bool _copySoftFollowHeadSettings = true;
+    [SerializeField] private bool _setupPhotonViewObserved = true;
+    [SerializeField] private bool _disableAnimatorComponent = false;
+
+    [MenuItem("Tools/PartyWorld/Character/Setup From Player_Test02")]
     public static void ShowWindow()
     {
         GetWindow<CharacterSetupEditor>("Setup From Player_Test02");
@@ -16,57 +28,125 @@ public class CharacterSetupEditor : EditorWindow
     private void OnGUI()
     {
         GUILayout.Label("Setup Character from Player_Test02", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("새로운 캐릭터 모델(Humanoid)을 할당하고 버튼을 누르면, 'Player_Test02'와 동일한 구조의 프리팹을 생성합니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("새로운 캐릭터 모델(Humanoid)을 선택하면, 'Player_Test02'의 설정을 기준으로 프리팹을 생성합니다. (프로토타입용)", MessageType.Info);
 
-        characterModel = (GameObject)EditorGUILayout.ObjectField("New Character Model", characterModel, typeof(GameObject), false);
-
-        if (GUILayout.Button("Create Character"))
+        _templateRoot = (GameObject)EditorGUILayout.ObjectField("Template Root", _templateRoot, typeof(GameObject), true);
+        if (_templateRoot == null)
         {
-            if (characterModel == null)
-            {
-                EditorUtility.DisplayDialog("오류", "새로운 캐릭터 모델을 먼저 할당해주세요.", "확인");
-                return;
-            }
+            _templateRoot = FindSceneObjectIncludingInactive(TEMPLATE_NAME);
+        }
 
-            Animator animator = characterModel.GetComponent<Animator>();
-            if (animator == null || !animator.isHuman)
-            {
-                EditorUtility.DisplayDialog("오류", "할당된 모델에 Humanoid 설정이 된 Animator 컴포넌트가 없습니다.", "확인");
+        _characterModel = (GameObject)EditorGUILayout.ObjectField("New Character Model", _characterModel, typeof(GameObject), false);
+
+        GUILayout.Space(8);
+        GUILayout.Label("Copy Options", EditorStyles.boldLabel);
+        _copyGameCodeScripts = EditorGUILayout.ToggleLeft("Copy GameCode scripts (allowlist)", _copyGameCodeScripts);
+        _copyPhysicsSettings = EditorGUILayout.ToggleLeft("Copy physics (RB/Collider/ConfigurableJoint)", _copyPhysicsSettings);
+        _copyPresenterSettings = EditorGUILayout.ToggleLeft("Copy PlayerPresenter settings", _copyPresenterSettings);
+        _copyIgnoreCollisionSettings = EditorGUILayout.ToggleLeft("Copy IgnoreCollision settings", _copyIgnoreCollisionSettings);
+        _copySoftFollowHeadSettings = EditorGUILayout.ToggleLeft("Copy SoftFollowHead settings", _copySoftFollowHeadSettings);
+        _setupPhotonViewObserved = EditorGUILayout.ToggleLeft("Setup PhotonView ObservedComponents", _setupPhotonViewObserved);
+        _disableAnimatorComponent = EditorGUILayout.ToggleLeft("Disable Animator component on output", _disableAnimatorComponent);
+
+        if (GUILayout.Button("Create Character Prefab"))
+        {
+            if (!ValidateInputs(out Animator templateAnimator, out Animator newAnimator))
                 return;
-            }
-            
-            CreateRagdollCharacter(animator);
+
+            CreateCharacterPrefab(_templateRoot, templateAnimator, newAnimator);
         }
     }
 
-    private void CreateRagdollCharacter(Animator animator)
+    private bool ValidateInputs(out Animator templateAnimator, out Animator newAnimator)
     {
-        GameObject instance = Instantiate(animator.gameObject);
-        instance.name = animator.gameObject.name + "_Setup";
+        templateAnimator = null;
+        newAnimator = null;
 
-        // 기존의 물리 컴포넌트를 모두 제거하여 충돌을 방지합니다.
-        foreach(var joint in instance.GetComponentsInChildren<Joint>()) DestroyImmediate(joint);
-        foreach(var rb in instance.GetComponentsInChildren<Rigidbody>()) DestroyImmediate(rb);
-        foreach(var col in instance.GetComponentsInChildren<Collider>()) DestroyImmediate(col);
-        
-        // Player_Test02와 동일한 루트 컴포넌트들을 추가합니다.
-        instance.AddComponent<PlayerPresenter>();
-        instance.AddComponent<IgnoreCollision>();
-        instance.AddComponent<PhotonView>();
-
-        // 분석된 코드를 바탕으로 물리 설정을 적용합니다.
-        ApplyRagdollSettings(animator, instance);
-
-        // 프리팹으로 저장
-        string directoryPath = "Assets/GameData/Prefabs/character";
-        if (!Directory.Exists(directoryPath))
+        if (_templateRoot == null)
         {
-            Directory.CreateDirectory(directoryPath);
+            EditorUtility.DisplayDialog("오류", $"씬에서 '{TEMPLATE_NAME}' 오브젝트를 찾지 못했습니다. Template Root를 수동으로 할당해주세요.", "확인");
+            return false;
         }
 
-        string prefabPath = Path.Combine(directoryPath, instance.name + ".prefab");
-        prefabPath = AssetDatabase.GenerateUniqueAssetPath(prefabPath);
+        if (_characterModel == null)
+        {
+            EditorUtility.DisplayDialog("오류", "새로운 캐릭터 모델을 먼저 할당해주세요.", "확인");
+            return false;
+        }
 
+        templateAnimator = _templateRoot.GetComponentInChildren<Animator>();
+        if (templateAnimator == null || !templateAnimator.isHuman)
+        {
+            EditorUtility.DisplayDialog("오류", $"'{TEMPLATE_NAME}'에서 Humanoid Animator를 찾을 수 없습니다.", "확인");
+            return false;
+        }
+
+        newAnimator = _characterModel.GetComponent<Animator>();
+        if (newAnimator == null || !newAnimator.isHuman)
+        {
+            EditorUtility.DisplayDialog("오류", "할당된 모델에 Humanoid 설정이 된 Animator 컴포넌트가 없습니다.", "확인");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void CreateCharacterPrefab(GameObject templateRoot, Animator templateAnimator, Animator newAnimator)
+    {
+        // 새 모델을 인스턴스화해서 프리팹으로 저장
+        GameObject instance = Instantiate(newAnimator.gameObject);
+        instance.name = newAnimator.gameObject.name + "_Setup";
+
+        // 기존 컴포넌트를 정리(충돌/중복 방지)
+        if (_copyPhysicsSettings)
+        {
+            foreach (var joint in instance.GetComponentsInChildren<Joint>(true)) DestroyImmediate(joint);
+            foreach (var rb in instance.GetComponentsInChildren<Rigidbody>(true)) DestroyImmediate(rb);
+            foreach (var col in instance.GetComponentsInChildren<Collider>(true)) DestroyImmediate(col);
+        }
+
+        // 루트 스크립트는 기본 추가(프로젝트 런타임과 호환)
+        PlayerPresenter presenter = instance.GetComponent<PlayerPresenter>();
+        if (presenter == null) presenter = instance.AddComponent<PlayerPresenter>();
+
+        IgnoreCollision ignoreCollision = instance.GetComponent<IgnoreCollision>();
+        if (ignoreCollision == null) ignoreCollision = instance.AddComponent<IgnoreCollision>();
+
+        PhotonView photonView = instance.GetComponent<PhotonView>();
+        if (photonView == null) photonView = instance.AddComponent<PhotonView>();
+
+        Animator instanceAnimator = instance.GetComponentInChildren<Animator>();
+        if (_disableAnimatorComponent && instanceAnimator != null)
+            instanceAnimator.enabled = false;
+        Dictionary<Transform, Transform> transformMap = BuildTransformMap(templateRoot.transform, templateAnimator, instance.transform, instanceAnimator);
+
+        if (_copyPhysicsSettings)
+            CopyPhysicsFromTemplate(templateRoot, templateAnimator, instance, instanceAnimator, transformMap);
+
+        if (_copyGameCodeScripts)
+            CopyGameCodeScriptsAllowList(templateRoot, instance, transformMap);
+
+        FixupRootComponents(templateRoot, instance, transformMap);
+
+        if (_copyPresenterSettings)
+            CopyAndFixupPresenter(templateRoot, instance);
+
+        CopyAndFixupPlayerView(templateRoot, instance);
+
+        if (_copyIgnoreCollisionSettings)
+            CopyAndFixupIgnoreCollision(templateRoot, instance, transformMap);
+
+        if (_copySoftFollowHeadSettings)
+            CopyAndFixupSoftFollowHead(templateRoot, instance, transformMap);
+
+        if (_setupPhotonViewObserved)
+            SetupPhotonViewObserved(photonView, presenter);
+
+        string directoryPath = "Assets/GameData/Prefabs/character";
+        if (!Directory.Exists(directoryPath))
+            Directory.CreateDirectory(directoryPath);
+
+        string prefabPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(directoryPath, instance.name + ".prefab"));
         GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(instance, prefabPath);
         DestroyImmediate(instance);
 
@@ -74,286 +154,455 @@ public class CharacterSetupEditor : EditorWindow
         Selection.activeObject = savedPrefab;
     }
 
-    // 사용자가 제공한 분석 코드를 여기에 붙여넣습니다.
-    private void ApplyRagdollSettings(Animator animator, GameObject rootObject)
+    private static void CopyPhysicsFromTemplate(GameObject templateRoot, Animator templateAnimator, GameObject newRoot, Animator newAnimator, Dictionary<Transform, Transform> transformMap)
     {
-        var Player_Test02_rb = rootObject.AddComponent<Rigidbody>();
-        Player_Test02_rb.mass = 1f;
-        Player_Test02_rb.linearDamping = 0f;
-        Player_Test02_rb.angularDamping = 0.05f;
-        Player_Test02_rb.useGravity = true;
-        Player_Test02_rb.isKinematic = false;
-        Player_Test02_rb.interpolation = RigidbodyInterpolation.None;
-        Player_Test02_rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-        Player_Test02_rb.constraints = (RigidbodyConstraints)0;
-        var Player_Test02_sphere = rootObject.AddComponent<SphereCollider>();
-        Player_Test02_sphere.radius = 0.05f;
-        Player_Test02_sphere.center = new Vector3(0f, 0.05f, 0f);
-        var Player_Test02_joint = rootObject.AddComponent<ConfigurableJoint>();
-        Player_Test02_joint.anchor = new Vector3(0f, 0f, 0f);
-        Player_Test02_joint.axis = new Vector3(1f, 0f, 0f);
-        Player_Test02_joint.xMotion = ConfigurableJointMotion.Free;
-        Player_Test02_joint.yMotion = ConfigurableJointMotion.Free;
-        Player_Test02_joint.zMotion = ConfigurableJointMotion.Free;
-        Player_Test02_joint.angularXMotion = ConfigurableJointMotion.Locked;
-        Player_Test02_joint.angularYMotion = ConfigurableJointMotion.Locked;
-        Player_Test02_joint.angularZMotion = ConfigurableJointMotion.Locked;
-        var Player_Test02_limit = new SoftJointLimit();
-        Player_Test02_limit.limit = 0f;
-        Player_Test02_joint.linearLimit = Player_Test02_limit;
-        Player_Test02_joint.rotationDriveMode = RotationDriveMode.Slerp;
-        var Player_Test02_xDrive = new JointDrive();
-        Player_Test02_xDrive.positionSpring = 100f;
-        Player_Test02_xDrive.maximumForce = 3.402823E+38f;
-        Player_Test02_joint.angularXDrive = Player_Test02_xDrive;
-        var Player_Test02_yzDrive = new JointDrive();
-        Player_Test02_yzDrive.positionSpring = 0f;
-        Player_Test02_yzDrive.maximumForce = 3.402823E+38f;
-        Player_Test02_joint.angularYZDrive = Player_Test02_yzDrive;
+        // 1) Rigidbody 복사
+        foreach (Rigidbody srcRb in templateRoot.GetComponentsInChildren<Rigidbody>(true))
+        {
+            Transform targetTransform = ResolveTargetTransform(srcRb.transform, templateRoot.transform, newRoot.transform, transformMap);
+            if (targetTransform == null)
+                continue;
 
-        // --- Settings for bone: Spine1_M ---
-        var Spine1_M_go = rootObject.transform.Find("Character/Root_M/Spine1_M")?.gameObject;
-        if (Spine1_M_go != null)
-        {
-            var Spine1_M_rb = Spine1_M_go.AddComponent<Rigidbody>();
-            Spine1_M_rb.mass = 1f;
-            Spine1_M_rb.linearDamping = 0f;
-            Spine1_M_rb.angularDamping = 0.05f;
-            Spine1_M_rb.useGravity = true;
-            Spine1_M_rb.isKinematic = false;
-            Spine1_M_rb.interpolation = RigidbodyInterpolation.None;
-            Spine1_M_rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            Spine1_M_rb.constraints = (RigidbodyConstraints)0;
-            var Spine1_M_cap = Spine1_M_go.AddComponent<CapsuleCollider>();
-            Spine1_M_cap.radius = 0.05f;
-            Spine1_M_cap.height = 0.18f;
-            Spine1_M_cap.center = new Vector3(0f, 0f, 0f);
-            Spine1_M_cap.direction = 0;
-            var Spine1_M_joint = Spine1_M_go.AddComponent<ConfigurableJoint>();
-            Spine1_M_joint.connectedBody = rootObject.transform.Find("")?.GetComponent<Rigidbody>();
-            Spine1_M_joint.anchor = new Vector3(0f, 0f, 0f);
-            Spine1_M_joint.axis = new Vector3(1f, 0f, 0f);
-            Spine1_M_joint.xMotion = ConfigurableJointMotion.Locked;
-            Spine1_M_joint.yMotion = ConfigurableJointMotion.Locked;
-            Spine1_M_joint.zMotion = ConfigurableJointMotion.Locked;
-            Spine1_M_joint.angularXMotion = ConfigurableJointMotion.Free;
-            Spine1_M_joint.angularYMotion = ConfigurableJointMotion.Free;
-            Spine1_M_joint.angularZMotion = ConfigurableJointMotion.Free;
-            var Spine1_M_limit = new SoftJointLimit();
-            Spine1_M_limit.limit = 0f;
-            Spine1_M_joint.linearLimit = Spine1_M_limit;
-            Spine1_M_joint.rotationDriveMode = RotationDriveMode.Slerp;
-            var Spine1_M_xDrive = new JointDrive();
-            Spine1_M_xDrive.positionSpring = 0f;
-            Spine1_M_xDrive.maximumForce = 3.402823E+38f;
-            Spine1_M_joint.angularXDrive = Spine1_M_xDrive;
-            var Spine1_M_yzDrive = new JointDrive();
-            Spine1_M_yzDrive.positionSpring = 0f;
-            Spine1_M_yzDrive.maximumForce = 3.402823E+38f;
-            Spine1_M_joint.angularYZDrive = Spine1_M_yzDrive;
+            CopyRigidbody(srcRb, targetTransform.gameObject);
+            targetTransform.gameObject.layer = srcRb.gameObject.layer;
         }
-        // --- Settings for bone: Head_M ---
-        var Head_M_go = rootObject.transform.Find("Character/Root_M/Spine1_M/Chest_M/Neck_M/Head_M")?.gameObject;
-        if (Head_M_go != null)
+
+        // 2) Collider 복사
+        foreach (Collider srcCol in templateRoot.GetComponentsInChildren<Collider>(true))
         {
-            var Head_M_rb = Head_M_go.AddComponent<Rigidbody>();
-            Head_M_rb.mass = 0.1f;
-            Head_M_rb.linearDamping = 0f;
-            Head_M_rb.angularDamping = 0.05f;
-            Head_M_rb.useGravity = true;
-            Head_M_rb.isKinematic = false;
-            Head_M_rb.interpolation = RigidbodyInterpolation.None;
-            Head_M_rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            Head_M_rb.constraints = (RigidbodyConstraints)0;
-            var Head_M_sphere = Head_M_go.AddComponent<SphereCollider>();
-            Head_M_sphere.radius = 0.175f;
-            Head_M_sphere.center = new Vector3(-0.15f, -0.05f, 0f);
-            var Head_M_joint = Head_M_go.AddComponent<ConfigurableJoint>();
-            Head_M_joint.connectedBody = rootObject.transform.Find("Character/Root_M/Spine1_M")?.GetComponent<Rigidbody>();
-            Head_M_joint.anchor = new Vector3(0f, 0f, 0f);
-            Head_M_joint.axis = new Vector3(1f, 0f, 0f);
-            Head_M_joint.xMotion = ConfigurableJointMotion.Locked;
-            Head_M_joint.yMotion = ConfigurableJointMotion.Locked;
-            Head_M_joint.zMotion = ConfigurableJointMotion.Locked;
-            Head_M_joint.angularXMotion = ConfigurableJointMotion.Locked;
-            Head_M_joint.angularYMotion = ConfigurableJointMotion.Locked;
-            Head_M_joint.angularZMotion = ConfigurableJointMotion.Limited;
-            var Head_M_limit = new SoftJointLimit();
-            Head_M_limit.limit = 0f;
-            Head_M_joint.linearLimit = Head_M_limit;
-            Head_M_joint.rotationDriveMode = RotationDriveMode.Slerp;
-            var Head_M_xDrive = new JointDrive();
-            Head_M_xDrive.positionSpring = 50f;
-            Head_M_xDrive.maximumForce = 3.402823E+38f;
-            Head_M_joint.angularXDrive = Head_M_xDrive;
-            var Head_M_yzDrive = new JointDrive();
-            Head_M_yzDrive.positionSpring = 0f;
-            Head_M_yzDrive.maximumForce = 3.402823E+38f;
-            Head_M_joint.angularYZDrive = Head_M_yzDrive;
+            Transform targetTransform = ResolveTargetTransform(srcCol.transform, templateRoot.transform, newRoot.transform, transformMap);
+            if (targetTransform == null)
+                continue;
+
+            CopyCollider(srcCol, targetTransform.gameObject);
+            targetTransform.gameObject.layer = srcCol.gameObject.layer;
         }
-        // --- Settings for bone: Scapula_L ---
-        var Scapula_L_go = rootObject.transform.Find("Character/Root_M/Spine1_M/Chest_M/Scapula_L")?.gameObject;
-        if (Scapula_L_go != null)
+
+        // 3) ConfigurableJoint 복사(connectedBody 포함)
+        foreach (ConfigurableJoint srcJoint in templateRoot.GetComponentsInChildren<ConfigurableJoint>(true))
         {
-            var Scapula_L_rb = Scapula_L_go.AddComponent<Rigidbody>();
-            Scapula_L_rb.mass = 0.1f;
-            Scapula_L_rb.linearDamping = 0f;
-            Scapula_L_rb.angularDamping = 0.05f;
-            Scapula_L_rb.useGravity = true;
-            Scapula_L_rb.isKinematic = false;
-            Scapula_L_rb.interpolation = RigidbodyInterpolation.None;
-            Scapula_L_rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            Scapula_L_rb.constraints = (RigidbodyConstraints)0;
-            var Scapula_L_cap = Scapula_L_go.AddComponent<CapsuleCollider>();
-            Scapula_L_cap.radius = 0.03f;
-            Scapula_L_cap.height = 0.16f;
-            Scapula_L_cap.center = new Vector3(0.075f, 0f, 0f);
-            Scapula_L_cap.direction = 0;
-            var Scapula_L_joint = Scapula_L_go.AddComponent<ConfigurableJoint>();
-            Scapula_L_joint.connectedBody = rootObject.transform.Find("Character/Root_M/Spine1_M")?.GetComponent<Rigidbody>();
-            Scapula_L_joint.anchor = new Vector3(0f, 0f, 0f);
-            Scapula_L_joint.axis = new Vector3(1f, 0f, 0f);
-            Scapula_L_joint.xMotion = ConfigurableJointMotion.Locked;
-            Scapula_L_joint.yMotion = ConfigurableJointMotion.Locked;
-            Scapula_L_joint.zMotion = ConfigurableJointMotion.Locked;
-            Scapula_L_joint.angularXMotion = ConfigurableJointMotion.Free;
-            Scapula_L_joint.angularYMotion = ConfigurableJointMotion.Free;
-            Scapula_L_joint.angularZMotion = ConfigurableJointMotion.Free;
-            var Scapula_L_limit = new SoftJointLimit();
-            Scapula_L_limit.limit = 0f;
-            Scapula_L_joint.linearLimit = Scapula_L_limit;
-            Scapula_L_joint.rotationDriveMode = RotationDriveMode.Slerp;
-            var Scapula_L_xDrive = new JointDrive();
-            Scapula_L_xDrive.positionSpring = 1f;
-            Scapula_L_xDrive.maximumForce = 3.402823E+38f;
-            Scapula_L_joint.angularXDrive = Scapula_L_xDrive;
-            var Scapula_L_yzDrive = new JointDrive();
-            Scapula_L_yzDrive.positionSpring = 0f;
-            Scapula_L_yzDrive.maximumForce = 3.402823E+38f;
-            Scapula_L_joint.angularYZDrive = Scapula_L_yzDrive;
+            Transform targetTransform = ResolveTargetTransform(srcJoint.transform, templateRoot.transform, newRoot.transform, transformMap);
+            if (targetTransform == null)
+                continue;
+
+            Rigidbody connectedTargetBody = null;
+            if (srcJoint.connectedBody != null)
+            {
+                Transform connectedTargetTransform = ResolveTargetTransform(srcJoint.connectedBody.transform, templateRoot.transform, newRoot.transform, transformMap);
+                if (connectedTargetTransform != null)
+                    connectedTargetBody = connectedTargetTransform.GetComponent<Rigidbody>();
+            }
+
+            CopyConfigurableJoint(srcJoint, targetTransform.gameObject, connectedTargetBody);
+            targetTransform.gameObject.layer = srcJoint.gameObject.layer;
         }
-        // --- Settings for bone: Scapula_R ---
-        var Scapula_R_go = rootObject.transform.Find("Character/Root_M/Spine1_M/Chest_M/Scapula_R")?.gameObject;
-        if (Scapula_R_go != null)
+    }
+
+    private static void CopyGameCodeScriptsAllowList(GameObject templateRoot, GameObject newRoot, Dictionary<Transform, Transform> transformMap)
+    {
+        // 템플릿에 붙은 GameCode 스크립트 중 일부만 복사(씬 참조가 많은 스크립트는 별도 Fixup)
+        HashSet<Type> allowList = new HashSet<Type>
         {
-            var Scapula_R_rb = Scapula_R_go.AddComponent<Rigidbody>();
-            Scapula_R_rb.mass = 0.1f;
-            Scapula_R_rb.linearDamping = 0f;
-            Scapula_R_rb.angularDamping = 0.05f;
-            Scapula_R_rb.useGravity = true;
-            Scapula_R_rb.isKinematic = false;
-            Scapula_R_rb.interpolation = RigidbodyInterpolation.None;
-            Scapula_R_rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            Scapula_R_rb.constraints = (RigidbodyConstraints)0;
-            var Scapula_R_cap = Scapula_R_go.AddComponent<CapsuleCollider>();
-            Scapula_R_cap.radius = 0.03f;
-            Scapula_R_cap.height = 0.16f;
-            Scapula_R_cap.center = new Vector3(-0.075f, 0f, 0f);
-            Scapula_R_cap.direction = 0;
-            var Scapula_R_joint = Scapula_R_go.AddComponent<ConfigurableJoint>();
-            Scapula_R_joint.connectedBody = rootObject.transform.Find("Character/Root_M/Spine1_M")?.GetComponent<Rigidbody>();
-            Scapula_R_joint.anchor = new Vector3(0f, 0f, 0f);
-            Scapula_R_joint.axis = new Vector3(1f, 0f, 0f);
-            Scapula_R_joint.xMotion = ConfigurableJointMotion.Locked;
-            Scapula_R_joint.yMotion = ConfigurableJointMotion.Locked;
-            Scapula_R_joint.zMotion = ConfigurableJointMotion.Locked;
-            Scapula_R_joint.angularXMotion = ConfigurableJointMotion.Free;
-            Scapula_R_joint.angularYMotion = ConfigurableJointMotion.Free;
-            Scapula_R_joint.angularZMotion = ConfigurableJointMotion.Free;
-            var Scapula_R_limit = new SoftJointLimit();
-            Scapula_R_limit.limit = 0f;
-            Scapula_R_joint.linearLimit = Scapula_R_limit;
-            Scapula_R_joint.rotationDriveMode = RotationDriveMode.Slerp;
-            var Scapula_R_xDrive = new JointDrive();
-            Scapula_R_xDrive.positionSpring = 1f;
-            Scapula_R_xDrive.maximumForce = 3.402823E+38f;
-            Scapula_R_joint.angularXDrive = Scapula_R_xDrive;
-            var Scapula_R_yzDrive = new JointDrive();
-            Scapula_R_yzDrive.positionSpring = 0f;
-            Scapula_R_yzDrive.maximumForce = 3.402823E+38f;
-            Scapula_R_joint.angularYZDrive = Scapula_R_yzDrive;
-        }
-        // --- Settings for bone: Hip_L ---
-        var Hip_L_go = rootObject.transform.Find("Character/Root_M/Hip_L")?.gameObject;
-        if (Hip_L_go != null)
+            typeof(SoftFollowHead)
+        };
+
+        foreach (Transform templateTr in templateRoot.GetComponentsInChildren<Transform>(true))
         {
-            var Hip_L_rb = Hip_L_go.AddComponent<Rigidbody>();
-            Hip_L_rb.mass = 0.1f;
-            Hip_L_rb.linearDamping = 0f;
-            Hip_L_rb.angularDamping = 0.05f;
-            Hip_L_rb.useGravity = true;
-            Hip_L_rb.isKinematic = false;
-            Hip_L_rb.interpolation = RigidbodyInterpolation.None;
-            Hip_L_rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            Hip_L_rb.constraints = (RigidbodyConstraints)0;
-            var Hip_L_cap = Hip_L_go.AddComponent<CapsuleCollider>();
-            Hip_L_cap.radius = 0.04f;
-            Hip_L_cap.height = 0.09f;
-            Hip_L_cap.center = new Vector3(0.05f, 0f, 0f);
-            Hip_L_cap.direction = 0;
-            var Hip_L_joint = Hip_L_go.AddComponent<ConfigurableJoint>();
-            Hip_L_joint.connectedBody = rootObject.transform.Find("Character/Root_M/Spine1_M")?.GetComponent<Rigidbody>();
-            Hip_L_joint.anchor = new Vector3(0f, 0f, 0f);
-            Hip_L_joint.axis = new Vector3(1f, 0f, 0f);
-            Hip_L_joint.xMotion = ConfigurableJointMotion.Locked;
-            Hip_L_joint.yMotion = ConfigurableJointMotion.Locked;
-            Hip_L_joint.zMotion = ConfigurableJointMotion.Locked;
-            Hip_L_joint.angularXMotion = ConfigurableJointMotion.Free;
-            Hip_L_joint.angularYMotion = ConfigurableJointMotion.Free;
-            Hip_L_joint.angularZMotion = ConfigurableJointMotion.Free;
-            var Hip_L_limit = new SoftJointLimit();
-            Hip_L_limit.limit = 0f;
-            Hip_L_joint.linearLimit = Hip_L_limit;
-            Hip_L_joint.rotationDriveMode = RotationDriveMode.Slerp;
-            var Hip_L_xDrive = new JointDrive();
-            Hip_L_xDrive.positionSpring = 0f;
-            Hip_L_xDrive.maximumForce = 3.402823E+38f;
-            Hip_L_joint.angularXDrive = Hip_L_xDrive;
-            var Hip_L_yzDrive = new JointDrive();
-            Hip_L_yzDrive.positionSpring = 0f;
-            Hip_L_yzDrive.maximumForce = 3.402823E+38f;
-            Hip_L_joint.angularYZDrive = Hip_L_yzDrive;
+            Transform targetTr = ResolveTargetTransform(templateTr, templateRoot.transform, newRoot.transform, transformMap);
+            if (targetTr == null)
+                continue;
+
+            foreach (MonoBehaviour src in templateTr.GetComponents<MonoBehaviour>())
+            {
+                if (src == null)
+                    continue;
+
+                Type t = src.GetType();
+                if (!allowList.Contains(t))
+                    continue;
+
+                MonoBehaviour dst = targetTr.GetComponent(t) as MonoBehaviour;
+                if (dst == null)
+                    dst = targetTr.gameObject.AddComponent(t) as MonoBehaviour;
+
+                if (dst == null)
+                    continue;
+
+                EditorUtility.CopySerialized(src, dst);
+            }
         }
-        // --- Settings for bone: Hip_R ---
-        var Hip_R_go = rootObject.transform.Find("Character/Root_M/Hip_R")?.gameObject;
-        if (Hip_R_go != null)
+    }
+
+    private static void FixupRootComponents(GameObject templateRoot, GameObject newRoot, Dictionary<Transform, Transform> transformMap)
+    {
+        // 루트 Rigidbody/Joint가 필요한 스크립트들이 있으므로 존재만 보장
+        Rigidbody rootRb = newRoot.GetComponent<Rigidbody>();
+        if (rootRb == null)
+            rootRb = newRoot.AddComponent<Rigidbody>();
+
+        ConfigurableJoint mainJoint = newRoot.GetComponent<ConfigurableJoint>();
+        if (mainJoint == null)
+            mainJoint = newRoot.AddComponent<ConfigurableJoint>();
+
+        // IgnoreCollision이 사용하는 루트 collider 보장
+        SphereCollider rootSphere = newRoot.GetComponent<SphereCollider>();
+        if (rootSphere == null)
+            rootSphere = newRoot.AddComponent<SphereCollider>();
+    }
+
+    private static void CopyAndFixupPresenter(GameObject templateRoot, GameObject newRoot)
+    {
+        PlayerPresenter src = templateRoot.GetComponent<PlayerPresenter>();
+        PlayerPresenter dst = newRoot.GetComponent<PlayerPresenter>();
+        if (src == null || dst == null)
+            return;
+
+        // 숫자/설정 값 복사(씬 참조는 복사하지 않음)
+        SerializedObject soSrc = new SerializedObject(src);
+        SerializedObject soDst = new SerializedObject(dst);
+
+        CopyIfExists(soSrc, soDst, "_moveSpeed");
+        CopyIfExists(soSrc, soDst, "_jumpForce");
+        CopyIfExists(soSrc, soDst, "_groundCheckDistance");
+        CopyIfExists(soSrc, soDst, "_groundCheckRadius");
+        CopyIfExists(soSrc, soDst, "_groundStickForce");
+
+        SerializedProperty modelSrc = soSrc.FindProperty("_model");
+        SerializedProperty modelDst = soDst.FindProperty("_model");
+        if (modelSrc != null && modelDst != null)
+            modelDst.CopyFromSerializedProperty(modelSrc);
+
+        // 필수 레퍼런스는 새 프리팹 기준으로 재연결
+        soDst.FindProperty("_pv").objectReferenceValue = newRoot.GetComponent<PhotonView>();
+        soDst.FindProperty("_view").objectReferenceValue = newRoot.GetComponent<PlayerView>();
+        soDst.FindProperty("_rigidbody3D").objectReferenceValue = newRoot.GetComponent<Rigidbody>();
+        soDst.FindProperty("_mainJoint").objectReferenceValue = newRoot.GetComponent<ConfigurableJoint>();
+
+        // 씬 전용 UI 참조는 비움
+        soDst.FindProperty("_controller").objectReferenceValue = null;
+        soDst.FindProperty("_btnJump").objectReferenceValue = null;
+        soDst.FindProperty("_btnDive").objectReferenceValue = null;
+        soDst.FindProperty("_btnGrap").objectReferenceValue = null;
+
+        soDst.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void CopyAndFixupPlayerView(GameObject templateRoot, GameObject newRoot)
+    {
+        PlayerView src = templateRoot.GetComponent<PlayerView>();
+        PlayerView dst = newRoot.GetComponent<PlayerView>();
+        if (src == null || dst == null)
+            return;
+
+        // PlayerView는 물리/애니메이션 파라미터 관련 값을 복사
+        EditorUtility.CopySerialized(src, dst);
+    }
+
+    private static void CopyAndFixupIgnoreCollision(GameObject templateRoot, GameObject newRoot, Dictionary<Transform, Transform> transformMap)
+    {
+        IgnoreCollision src = templateRoot.GetComponent<IgnoreCollision>();
+        IgnoreCollision dst = newRoot.GetComponent<IgnoreCollision>();
+        if (src == null || dst == null)
+            return;
+
+        // 기본 값 복사 후, 콜라이더 레퍼런스는 새 프리팹 기준으로 재연결
+        EditorUtility.CopySerialized(src, dst);
+
+        SerializedObject so = new SerializedObject(dst);
+
+        SerializedProperty colliderProp = so.FindProperty("_collider");
+        if (colliderProp != null)
+            colliderProp.objectReferenceValue = newRoot.GetComponent<Collider>();
+
+        SerializedProperty ignoreListProp = so.FindProperty("_ignoreCollider");
+        if (ignoreListProp != null && ignoreListProp.isArray)
         {
-            var Hip_R_rb = Hip_R_go.AddComponent<Rigidbody>();
-            Hip_R_rb.mass = 0.1f;
-            Hip_R_rb.linearDamping = 0f;
-            Hip_R_rb.angularDamping = 0.05f;
-            Hip_R_rb.useGravity = true;
-            Hip_R_rb.isKinematic = false;
-            Hip_R_rb.interpolation = RigidbodyInterpolation.None;
-            Hip_R_rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            Hip_R_rb.constraints = (RigidbodyConstraints)0;
-            var Hip_R_cap = Hip_R_go.AddComponent<CapsuleCollider>();
-            Hip_R_cap.radius = 0.04f;
-            Hip_R_cap.height = 0.09f;
-            Hip_R_cap.center = new Vector3(-0.05f, 0f, 0f);
-            Hip_R_cap.direction = 0;
-            var Hip_R_joint = Hip_R_go.AddComponent<ConfigurableJoint>();
-            Hip_R_joint.connectedBody = rootObject.transform.Find("Character/Root_M/Spine1_M")?.GetComponent<Rigidbody>();
-            Hip_R_joint.anchor = new Vector3(0f, 0f, 0f);
-            Hip_R_joint.axis = new Vector3(1f, 0f, 0f);
-            Hip_R_joint.xMotion = ConfigurableJointMotion.Locked;
-            Hip_R_joint.yMotion = ConfigurableJointMotion.Locked;
-            Hip_R_joint.zMotion = ConfigurableJointMotion.Locked;
-            Hip_R_joint.angularXMotion = ConfigurableJointMotion.Free;
-            Hip_R_joint.angularYMotion = ConfigurableJointMotion.Free;
-            Hip_R_joint.angularZMotion = ConfigurableJointMotion.Free;
-            var Hip_R_limit = new SoftJointLimit();
-            Hip_R_limit.limit = 0f;
-            Hip_R_joint.linearLimit = Hip_R_limit;
-            Hip_R_joint.rotationDriveMode = RotationDriveMode.Slerp;
-            var Hip_R_xDrive = new JointDrive();
-            Hip_R_xDrive.positionSpring = 0f;
-            Hip_R_xDrive.maximumForce = 3.402823E+38f;
-            Hip_R_joint.angularXDrive = Hip_R_xDrive;
-            var Hip_R_yzDrive = new JointDrive();
-            Hip_R_yzDrive.positionSpring = 0f;
-            Hip_R_yzDrive.maximumForce = 3.402823E+38f;
-            Hip_R_joint.angularYZDrive = Hip_R_yzDrive;
+            List<Collider> mapped = new List<Collider>();
+
+            SerializedObject soSrc = new SerializedObject(src);
+            SerializedProperty srcList = soSrc.FindProperty("_ignoreCollider");
+
+            if (srcList != null && srcList.isArray)
+            {
+                for (int i = 0; i < srcList.arraySize; i++)
+                {
+                    Collider srcCol = srcList.GetArrayElementAtIndex(i).objectReferenceValue as Collider;
+                    if (srcCol == null)
+                        continue;
+
+                    Transform targetTr = ResolveTargetTransform(srcCol.transform, templateRoot.transform, newRoot.transform, transformMap);
+                    if (targetTr == null)
+                        continue;
+
+                    Collider dstCol = targetTr.GetComponent<Collider>();
+                    if (dstCol != null)
+                        mapped.Add(dstCol);
+                }
+            }
+
+            ignoreListProp.arraySize = mapped.Count;
+            for (int i = 0; i < mapped.Count; i++)
+                ignoreListProp.GetArrayElementAtIndex(i).objectReferenceValue = mapped[i];
         }
+
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void CopyAndFixupSoftFollowHead(GameObject templateRoot, GameObject newRoot, Dictionary<Transform, Transform> transformMap)
+    {
+        SoftFollowHead[] srcHeads = templateRoot.GetComponentsInChildren<SoftFollowHead>(true);
+        if (srcHeads == null || srcHeads.Length == 0)
+            return;
+
+        Rigidbody rootRb = newRoot.GetComponent<Rigidbody>();
+
+        foreach (SoftFollowHead src in srcHeads)
+        {
+            Transform targetTr = ResolveTargetTransform(src.transform, templateRoot.transform, newRoot.transform, transformMap);
+            if (targetTr == null)
+                continue;
+
+            SoftFollowHead dst = targetTr.GetComponent<SoftFollowHead>();
+            if (dst == null)
+                dst = targetTr.gameObject.AddComponent<SoftFollowHead>();
+
+            EditorUtility.CopySerialized(src, dst);
+
+            SerializedObject so = new SerializedObject(dst);
+
+            // 루트 RB는 항상 새 캐릭터 루트로
+            SerializedProperty rootProp = so.FindProperty("_rootRb");
+            if (rootProp != null)
+                rootProp.objectReferenceValue = rootRb;
+
+            // 타겟은 템플릿의 타겟을 맵핑해서 연결
+            SerializedObject soSrc = new SerializedObject(src);
+            SerializedProperty srcTargetProp = soSrc.FindProperty("_target");
+            if (srcTargetProp != null)
+            {
+                Transform srcTarget = srcTargetProp.objectReferenceValue as Transform;
+                if (srcTarget != null)
+                {
+                    Transform mappedTarget = ResolveTargetTransform(srcTarget, templateRoot.transform, newRoot.transform, transformMap);
+                    SerializedProperty dstTargetProp = so.FindProperty("_target");
+                    if (dstTargetProp != null)
+                        dstTargetProp.objectReferenceValue = mappedTarget;
+                }
+            }
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            // SoftFollowHead는 Rigidbody가 필요
+            if (targetTr.GetComponent<Rigidbody>() == null)
+                targetTr.gameObject.AddComponent<Rigidbody>();
+        }
+    }
+
+    private static void SetupPhotonViewObserved(PhotonView photonView, PlayerPresenter presenter)
+    {
+        if (photonView == null || presenter == null)
+            return;
+
+        // 관측 대상에 PlayerPresenter를 넣어 동기화가 끊기지 않게 보장
+        if (photonView.ObservedComponents == null)
+            photonView.ObservedComponents = new List<Component>();
+
+        if (!photonView.ObservedComponents.Contains(presenter))
+            photonView.ObservedComponents.Add(presenter);
+    }
+
+    private static void CopyIfExists(SerializedObject soSrc, SerializedObject soDst, string propName)
+    {
+        SerializedProperty src = soSrc.FindProperty(propName);
+        SerializedProperty dst = soDst.FindProperty(propName);
+        if (src == null || dst == null)
+            return;
+
+        dst.CopyFromSerializedProperty(src);
+    }
+
+    private static GameObject FindSceneObjectIncludingInactive(string name)
+    {
+        // 비활성 오브젝트도 포함해서 현재 로드된 씬에서 탐색
+        GameObject[] all = Resources.FindObjectsOfTypeAll<GameObject>();
+        foreach (GameObject go in all)
+        {
+            if (go == null)
+                continue;
+
+            if (EditorUtility.IsPersistent(go))
+                continue;
+
+            if (!go.scene.IsValid() || !go.scene.isLoaded)
+                continue;
+
+            if (go.name == name)
+                return go;
+        }
+
+        return null;
+    }
+
+    private static Dictionary<Transform, Transform> BuildTransformMap(Transform templateRoot, Animator templateAnimator, Transform newRoot, Animator newAnimator)
+    {
+        Dictionary<Transform, Transform> map = new Dictionary<Transform, Transform>();
+
+        if (templateAnimator != null && newAnimator != null && templateAnimator.isHuman && newAnimator.isHuman)
+        {
+            foreach (HumanBodyBones bone in Enum.GetValues(typeof(HumanBodyBones)))
+            {
+                if (bone == HumanBodyBones.LastBone)
+                    continue;
+
+                Transform templateBone = templateAnimator.GetBoneTransform(bone);
+                Transform newBone = newAnimator.GetBoneTransform(bone);
+                if (templateBone == null || newBone == null)
+                    continue;
+
+                if (!map.ContainsKey(templateBone))
+                    map.Add(templateBone, newBone);
+            }
+        }
+
+        if (!map.ContainsKey(templateRoot))
+            map.Add(templateRoot, newRoot);
+
+        return map;
+    }
+
+    private static Transform ResolveTargetTransform(Transform templateTransform, Transform templateRoot, Transform newRoot, Dictionary<Transform, Transform> map)
+    {
+        if (templateTransform == null)
+            return null;
+
+        if (map != null && map.TryGetValue(templateTransform, out Transform mapped))
+            return mapped;
+
+        string path = AnimationUtility.CalculateTransformPath(templateTransform, templateRoot);
+        if (string.IsNullOrWhiteSpace(path))
+            return newRoot;
+
+        return newRoot.Find(path);
+    }
+
+    private static void CopyRigidbody(Rigidbody src, GameObject target)
+    {
+        if (src == null || target == null)
+            return;
+
+        Rigidbody dst = target.GetComponent<Rigidbody>();
+        if (dst == null)
+            dst = target.AddComponent<Rigidbody>();
+
+        dst.mass = src.mass;
+        dst.linearDamping = src.linearDamping;
+        dst.angularDamping = src.angularDamping;
+        dst.useGravity = src.useGravity;
+        dst.isKinematic = src.isKinematic;
+        dst.interpolation = src.interpolation;
+        dst.collisionDetectionMode = src.collisionDetectionMode;
+        dst.constraints = src.constraints;
+    }
+
+    private static void CopyCollider(Collider src, GameObject target)
+    {
+        if (src == null || target == null)
+            return;
+
+        // 지원 범위 외 콜라이더는 필요 시 추가 구현
+        if (src is CapsuleCollider srcCapsule)
+        {
+            CapsuleCollider dst = target.AddComponent<CapsuleCollider>();
+            dst.enabled = srcCapsule.enabled;
+            dst.radius = srcCapsule.radius;
+            dst.height = srcCapsule.height;
+            dst.center = srcCapsule.center;
+            dst.direction = srcCapsule.direction;
+            dst.isTrigger = srcCapsule.isTrigger;
+            dst.material = srcCapsule.material;
+            dst.contactOffset = srcCapsule.contactOffset;
+            return;
+        }
+
+        if (src is SphereCollider srcSphere)
+        {
+            SphereCollider dst = target.AddComponent<SphereCollider>();
+            dst.enabled = srcSphere.enabled;
+            dst.radius = srcSphere.radius;
+            dst.center = srcSphere.center;
+            dst.isTrigger = srcSphere.isTrigger;
+            dst.material = srcSphere.material;
+            dst.contactOffset = srcSphere.contactOffset;
+            return;
+        }
+
+        if (src is BoxCollider srcBox)
+        {
+            BoxCollider dst = target.AddComponent<BoxCollider>();
+            dst.enabled = srcBox.enabled;
+            dst.size = srcBox.size;
+            dst.center = srcBox.center;
+            dst.isTrigger = srcBox.isTrigger;
+            dst.material = srcBox.material;
+            dst.contactOffset = srcBox.contactOffset;
+            return;
+        }
+    }
+
+    private static void CopyConfigurableJoint(ConfigurableJoint src, GameObject target, Rigidbody connectedBody)
+    {
+        if (src == null || target == null)
+            return;
+
+        ConfigurableJoint dst = target.AddComponent<ConfigurableJoint>();
+        dst.connectedBody = connectedBody;
+
+        dst.anchor = src.anchor;
+        dst.axis = src.axis;
+        dst.secondaryAxis = src.secondaryAxis;
+        dst.autoConfigureConnectedAnchor = src.autoConfigureConnectedAnchor;
+        dst.connectedAnchor = src.connectedAnchor;
+
+        dst.xMotion = src.xMotion;
+        dst.yMotion = src.yMotion;
+        dst.zMotion = src.zMotion;
+        dst.angularXMotion = src.angularXMotion;
+        dst.angularYMotion = src.angularYMotion;
+        dst.angularZMotion = src.angularZMotion;
+
+        dst.linearLimit = src.linearLimit;
+        dst.linearLimitSpring = src.linearLimitSpring;
+
+        dst.lowAngularXLimit = src.lowAngularXLimit;
+        dst.highAngularXLimit = src.highAngularXLimit;
+        dst.angularYLimit = src.angularYLimit;
+        dst.angularZLimit = src.angularZLimit;
+
+        dst.targetPosition = src.targetPosition;
+        dst.targetVelocity = src.targetVelocity;
+        dst.targetRotation = src.targetRotation;
+        dst.targetAngularVelocity = src.targetAngularVelocity;
+
+        dst.rotationDriveMode = src.rotationDriveMode;
+        dst.xDrive = src.xDrive;
+        dst.yDrive = src.yDrive;
+        dst.zDrive = src.zDrive;
+        dst.angularXDrive = src.angularXDrive;
+        dst.angularYZDrive = src.angularYZDrive;
+        dst.slerpDrive = src.slerpDrive;
+
+        dst.projectionMode = src.projectionMode;
+        dst.projectionDistance = src.projectionDistance;
+        dst.projectionAngle = src.projectionAngle;
+
+        dst.breakForce = src.breakForce;
+        dst.breakTorque = src.breakTorque;
+        dst.enableCollision = src.enableCollision;
+        dst.enablePreprocessing = src.enablePreprocessing;
+        dst.massScale = src.massScale;
+        dst.connectedMassScale = src.connectedMassScale;
+
+        dst.configuredInWorldSpace = src.configuredInWorldSpace;
+        dst.swapBodies = src.swapBodies;
     }
 }

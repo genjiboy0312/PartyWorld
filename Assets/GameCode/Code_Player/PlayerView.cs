@@ -17,6 +17,11 @@ public class PlayerView : MonoBehaviour
     // Model 참조 추가
     private PlayerModel _model;
 
+    private static readonly int IsWalkParam = Animator.StringToHash("isWalk");
+    private static readonly int MoveSpeedParam = Animator.StringToHash("moveSpeed");
+    private bool _hasIsWalkParam;
+    private bool _hasMoveSpeedParam;
+
     public bool IsDiving => _isDiving;
 
     private void Awake()
@@ -29,7 +34,11 @@ public class PlayerView : MonoBehaviour
         if (_agent != null) 
             Destroy(_agent);
 
-        if (Animator != null) Animator.applyRootMotion = false;
+        if (Animator != null)
+        {
+            Animator.applyRootMotion = false;
+            CacheAnimatorParams();
+        }
 
         Rigidbody.useGravity = true;
         Rigidbody.linearDamping = 0f;
@@ -56,7 +65,7 @@ public class PlayerView : MonoBehaviour
             Rigidbody.linearVelocity = velocity;
         }
 
-        Animator.SetBool("isWalk", _targetVelocity.sqrMagnitude > 0.01f);
+        UpdateLocomotionAnimator();
     }
 
     public void Move(Vector3 velocity)
@@ -182,5 +191,38 @@ public class PlayerView : MonoBehaviour
         {
             StopCoroutine(_currentDiveCoroutine);
         }
+    }
+
+    private void CacheAnimatorParams()
+    {
+        // Animator 파라미터 존재 여부를 캐싱(없는 파라미터 Set 시 경고 방지)
+        if (Animator == null)
+            return;
+
+        foreach (AnimatorControllerParameter p in Animator.parameters)
+        {
+            if (p.nameHash == IsWalkParam)
+                _hasIsWalkParam = true;
+            else if (p.nameHash == MoveSpeedParam)
+                _hasMoveSpeedParam = true;
+        }
+    }
+
+    private void UpdateLocomotionAnimator()
+    {
+        // 조인트/물리 이동을 사용해도 애니메이션이 따라가도록 실제 속도로 판단
+        if (Animator == null || Rigidbody == null)
+            return;
+
+        Vector3 v = Rigidbody.linearVelocity;
+        Vector3 planar = new Vector3(v.x, 0f, v.z);
+        float speed = planar.magnitude;
+        bool isMoving = speed > 0.05f;
+
+        if (_hasIsWalkParam)
+            Animator.SetBool(IsWalkParam, isMoving);
+
+        if (_hasMoveSpeedParam)
+            Animator.SetFloat(MoveSpeedParam, speed);
     }
 }
