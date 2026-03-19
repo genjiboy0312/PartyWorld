@@ -3669,7 +3669,7 @@ GameObject:
   m_Component:
   - component: {fileID: 707678981}
   m_Layer: 0
-  m_Name: '******************** T E S T ********************'
+  m_Name: ---------- TEST ----------
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4219,8 +4219,6 @@ MonoBehaviour:
   - _name: BGM_01
     _clip: {fileID: 8300000, guid: 475f4837af487ce4a9e68bb227455e4c, type: 3}
   _sfxSounds: []
-  _musicSource: {fileID: 378362840}
-  _sfxSource: {fileID: 1736718015}
 --- !u!1 &791807778
 GameObject:
   m_ObjectHideFlags: 0
@@ -7481,7 +7479,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1451184689}
   m_Layer: 0
-  m_Name: '*************************************'
+  m_Name: ---------- SETTING ----------
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

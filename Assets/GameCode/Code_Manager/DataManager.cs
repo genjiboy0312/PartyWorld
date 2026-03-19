@@ -3,44 +3,50 @@ using UnityEngine;
 // 유저 데이터를 전역적으로 관리하는 싱글톤 매니저
 public class DataManager : MonoBehaviour
 {
-    private static DataManager _instance = null;
+    public static DataManager Instance { get; private set; }
 
-    public static DataManager Instance
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Bootstrap()
     {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindObjectOfType<DataManager>();
-                if (_instance == null)
-                {
-                    GameObject go = new GameObject("DataManager");
-                    _instance = go.AddComponent<DataManager>();
-                }
-            }
-            return _instance;
-        }
+        // 씬에 배치되지 않아도 인스턴스를 1개 보장
+        if (Instance != null)
+            return;
+
+        if (FindAnyObjectByType<DataManager>() != null)
+            return;
+
+        GameObject go = new GameObject(nameof(DataManager));
+        go.AddComponent<DataManager>();
     }
 
     [Header("User Data")]
     [SerializeField] private UserData _currentUserData = new UserData();
 
-    public UserData CurrentUserData 
-    { 
-        get => _currentUserData; 
-        set => _currentUserData = value; 
+    public UserData CurrentUserData
+    {
+        get => _currentUserData;
+        set => _currentUserData = value;
     }
 
     private void Awake()
     {
-        if (_instance == null)
-        {
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else if (_instance != this)
+        // 싱글톤 처리
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+    
+    private void OnDestroy()
+    {
+        // 싱글톤 정리
+        if (Instance == this)
+        {
+            Instance = null;
         }
     }
 
@@ -57,7 +63,7 @@ public class DataManager : MonoBehaviour
     {
         string json = _currentUserData.ToJson();
         Debug.Log($"[DataManager] 데이터 저장 시도 (JSON): {json}");
-        
+
         // TODO: Firebase Realtime Database 또는 Firestore에 저장 로직 추가
     }
 

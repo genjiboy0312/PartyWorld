@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +7,8 @@ public class UIManager : MonoBehaviour
 {
     [Header("Cool Time Check")]
     [SerializeField] private List<Image> _imageCoolTime;
-    [SerializeField] private List<bool> _coolTimeCheck;
+
+    private List<bool> _coolTimeCheck;
     private List<UICoolTime> _coolTimeScripts;
 
     void Start()
@@ -31,15 +32,4 @@ public class UIManager : MonoBehaviour
             _coolTimeCheck[index] = value;
         }
     }
-    //public int GetButtonIndex(UICoolTime button)
-    //{
-    //    for (int i = 0; i < _coolTimeScripts.Count; i++)
-    //    {
-    //        if (_coolTimeScripts[i] == button)
-    //        {
-    //            return i;
-    //        }
-    //    }
-    //    return -1;
-    //}
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class CharacterSetupEditor : EditorWindow
 {
-    private const string TEMPLATE_NAME = "Player_Test02";
+    private const string TEMPLATE_NAME = "Player_CreateTemplate";
 
     [SerializeField] private GameObject _templateRoot;
     [SerializeField] private GameObject _characterModel;
@@ -19,16 +19,16 @@ public class CharacterSetupEditor : EditorWindow
     [SerializeField] private bool _setupPhotonViewObserved = true;
     [SerializeField] private bool _disableAnimatorComponent = false;
 
-    [MenuItem("Tools/PartyWorld/Character/Setup From Player_Test02")]
+    [MenuItem("Tools/PartyWorld/Character/Setup From Player_CreateTemplate")]
     public static void ShowWindow()
     {
-        GetWindow<CharacterSetupEditor>("Setup From Player_Test02");
+        GetWindow<CharacterSetupEditor>("Setup From Player_CreateTemplate");
     }
 
     private void OnGUI()
     {
-        GUILayout.Label("Setup Character from Player_Test02", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("새로운 캐릭터 모델(Humanoid)을 선택하면, 'Player_Test02'의 설정을 기준으로 프리팹을 생성합니다. (프로토타입용)", MessageType.Info);
+        GUILayout.Label("Setup Character from Player_CreateTemplate", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("새로운 캐릭터 모델(Humanoid)을 선택하면, 'Player_CreateTemplate'의 설정을 기준으로 프리팹을 생성합니다. (프로토타입용)", MessageType.Info);
 
         _templateRoot = (GameObject)EditorGUILayout.ObjectField("Template Root", _templateRoot, typeof(GameObject), true);
         if (_templateRoot == null)
@@ -270,19 +270,19 @@ public class CharacterSetupEditor : EditorWindow
         SerializedProperty modelSrc = soSrc.FindProperty("_model");
         SerializedProperty modelDst = soDst.FindProperty("_model");
         if (modelSrc != null && modelDst != null)
-            modelDst.CopyFromSerializedProperty(modelSrc);
+            CopySerializedPropertyValue(modelSrc, modelDst);
 
         // 필수 레퍼런스는 새 프리팹 기준으로 재연결
-        soDst.FindProperty("_pv").objectReferenceValue = newRoot.GetComponent<PhotonView>();
-        soDst.FindProperty("_view").objectReferenceValue = newRoot.GetComponent<PlayerView>();
-        soDst.FindProperty("_rigidbody3D").objectReferenceValue = newRoot.GetComponent<Rigidbody>();
-        soDst.FindProperty("_mainJoint").objectReferenceValue = newRoot.GetComponent<ConfigurableJoint>();
+        SetObjectReferenceIfExists(soDst, "_pv", newRoot.GetComponent<PhotonView>());
+        SetObjectReferenceIfExists(soDst, "_view", newRoot.GetComponent<PlayerView>());
+        SetObjectReferenceIfExists(soDst, "_rigidbody3D", newRoot.GetComponent<Rigidbody>());
+        SetObjectReferenceIfExists(soDst, "_mainJoint", newRoot.GetComponent<ConfigurableJoint>());
 
         // 씬 전용 UI 참조는 비움
-        soDst.FindProperty("_controller").objectReferenceValue = null;
-        soDst.FindProperty("_btnJump").objectReferenceValue = null;
-        soDst.FindProperty("_btnDive").objectReferenceValue = null;
-        soDst.FindProperty("_btnGrap").objectReferenceValue = null;
+        SetObjectReferenceIfExists(soDst, "_controller", null);
+        SetObjectReferenceIfExists(soDst, "_btnJump", null);
+        SetObjectReferenceIfExists(soDst, "_btnDive", null);
+        SetObjectReferenceIfExists(soDst, "_btnGrap", null);
 
         soDst.ApplyModifiedPropertiesWithoutUndo();
     }
@@ -307,7 +307,6 @@ public class CharacterSetupEditor : EditorWindow
 
         // 기본 값 복사 후, 콜라이더 레퍼런스는 새 프리팹 기준으로 재연결
         EditorUtility.CopySerialized(src, dst);
-
         SerializedObject so = new SerializedObject(dst);
 
         SerializedProperty colliderProp = so.FindProperty("_collider");
@@ -418,7 +417,98 @@ public class CharacterSetupEditor : EditorWindow
         if (src == null || dst == null)
             return;
 
-        dst.CopyFromSerializedProperty(src);
+        CopySerializedPropertyValue(src, dst);
+    }
+
+    private static bool CopySerializedPropertyValue(SerializedProperty src, SerializedProperty dst)
+    {
+        if (src == null || dst == null)
+            return false;
+
+        if (src.propertyType != dst.propertyType)
+            return false;
+
+        switch (src.propertyType)
+        {
+            case SerializedPropertyType.Integer:
+                dst.intValue = src.intValue;
+                return true;
+            case SerializedPropertyType.Boolean:
+                dst.boolValue = src.boolValue;
+                return true;
+            case SerializedPropertyType.Float:
+                dst.floatValue = src.floatValue;
+                return true;
+            case SerializedPropertyType.String:
+                dst.stringValue = src.stringValue;
+                return true;
+            case SerializedPropertyType.Color:
+                dst.colorValue = src.colorValue;
+                return true;
+            case SerializedPropertyType.ObjectReference:
+                dst.objectReferenceValue = src.objectReferenceValue;
+                return true;
+            case SerializedPropertyType.LayerMask:
+                dst.intValue = src.intValue;
+                return true;
+            case SerializedPropertyType.Enum:
+                dst.enumValueIndex = src.enumValueIndex;
+                return true;
+            case SerializedPropertyType.Vector2:
+                dst.vector2Value = src.vector2Value;
+                return true;
+            case SerializedPropertyType.Vector3:
+                dst.vector3Value = src.vector3Value;
+                return true;
+            case SerializedPropertyType.Vector4:
+                dst.vector4Value = src.vector4Value;
+                return true;
+            case SerializedPropertyType.Rect:
+                dst.rectValue = src.rectValue;
+                return true;
+            case SerializedPropertyType.Bounds:
+                dst.boundsValue = src.boundsValue;
+                return true;
+            case SerializedPropertyType.Quaternion:
+                dst.quaternionValue = src.quaternionValue;
+                return true;
+            case SerializedPropertyType.Vector2Int:
+                dst.vector2IntValue = src.vector2IntValue;
+                return true;
+            case SerializedPropertyType.Vector3Int:
+                dst.vector3IntValue = src.vector3IntValue;
+                return true;
+            case SerializedPropertyType.RectInt:
+                dst.rectIntValue = src.rectIntValue;
+                return true;
+            case SerializedPropertyType.BoundsInt:
+                dst.boundsIntValue = src.boundsIntValue;
+                return true;
+            case SerializedPropertyType.AnimationCurve:
+                dst.animationCurveValue = src.animationCurveValue;
+                return true;
+            case SerializedPropertyType.ExposedReference:
+                dst.exposedReferenceValue = src.exposedReferenceValue;
+                return true;
+            case SerializedPropertyType.ManagedReference:
+                dst.managedReferenceValue = src.managedReferenceValue;
+                return true;
+            case SerializedPropertyType.Generic:
+            default:
+                return false;
+        }
+    }
+
+    private static void SetObjectReferenceIfExists(SerializedObject so, string propName, UnityEngine.Object value)
+    {
+        if (so == null)
+            return;
+
+        SerializedProperty prop = so.FindProperty(propName);
+        if (prop == null)
+            return;
+
+        prop.objectReferenceValue = value;
     }
 
     private static GameObject FindSceneObjectIncludingInactive(string name)
