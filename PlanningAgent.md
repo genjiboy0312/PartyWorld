@@ -5,7 +5,7 @@
 `PartyWorld` 프로젝트(참고: Party Animals / Fall Guys)의 **8인(추후 확장) 3D 1인 생존** 파티 플랫폼 게임을 기준으로,
 현재 코드/씬 구조를 바탕으로 한 **플로우(시나리오) + 구현 우선순위 + 리스크**를 정리합니다.
 
-**마지막 업데이트**: 2026-03-19
+**마지막 업데이트**: 2026-03-24
 
 ---
 
@@ -207,6 +207,12 @@
 - [x] Ready 토글 + 카운트다운 “시작/취소” 프로토타입 추가(`LobbyUIBootstrapper`, `NetworkAuthorityManager`)
 - [x] 카운트다운 완료 시 룸 닫기(`IsOpen=false`) 적용
 - [x] **전역 매니저 아키텍처 표준화 (안정성 강화)**
+- [x] Firebase Auth 콜백 메인스레드 디스패치 + 로그인/회원가입 UI 페이지 전환(LogIn/Join) 정리
+- [x] 닉네임 저장/로드: Firebase Auth `DisplayName` 저장/로드 → `DataManager.nickname` + Photon/채팅 표시 반영
+- [x] WaitingRoom 채팅: `Room_WaitingRoomChat` JoinOrCreate + QuickPlay 시 LeaveRoom 후 매칭 룸 진입
+- [x] Lobby UI: 플레이어 리스트 + 인원수(현재/최대) 텍스트 추가 및 `LobbyUIController` 연동
+- [x] Lobby 카운트다운 숫자 팝(스케일) 코루틴 효과 추가(기본 5→1)
+- [x] DOTween: 씬 전환 시 destroyed Text 접근 에러 방지(`UITextEffect`, `UITextTypingMotion` Kill 처리)
 - [ ] 결과(Result) 화면/로비 복귀 플로우 추가
 
 ---
@@ -230,3 +236,12 @@
 - **기존 우수 구조 확인:** `GameManager` 및 `NetworkAuthorityManager`가 이미 표준적인 싱글톤 패턴을 따르고 있음을 확인하고 별도로 수정하지 않았습니다.
 - **레거시 코드 식별 및 처리:** `PhotonManager`, `PlayerCheckingManager`, `PlayManager`를 기능이 중복되거나 비어있는 레거시 코드로 식별하고, 프로젝트의 혼란 방지를 위해 제거를 권장했습니다.
 - **씬 전용 매니저 검토:** `UIManager`, `ChatManager`, `UserListManager`를 검토하여 씬에 종속적인 역할에 맞게 설계되었는지 확인했습니다. 이 과정에서 `UIManager`의 코드 안정성을 소폭 개선했습니다.
+
+### 2026-03-24: 로그인/닉네임/채팅/로비 UI 안정화
+
+- **Auth/로그인 UI 안정화:** `FirebaseAuthManager` 콜백 메인스레드 디스패치, `LogInSystem`에서 Login/Join 페이지 전환 + 입력 검증 + Join Exit 버튼 처리.
+- **닉네임 저장/로드:** 회원가입 시 Firebase Auth 프로필 `DisplayName` 저장, 로그인 시 `DataManager.CurrentUserData.nickname`로 로드 → Photon `NickName`/채팅/유저리스트에 반영.
+- **WaitingRoom 채팅 룸:** `Room_WaitingRoomChat` 자동 입장으로 WaitingRoom에서도 채팅 가능, QuickPlay 시작 시 `NetworkAuthorityManager`가 기존 룸 Leave 후 매칭 Join.
+- **Lobby UI 보강:** `Scene_Lobby`에 플레이어 리스트/인원수 UI 텍스트 추가 및 `LobbyUIController`에서 갱신.
+- **카운트다운 효과:** 카운트다운 숫자 텍스트에 “팝(스케일)” 코루틴 효과 추가(기본 5→1).
+- **DOTween 예외 제거:** 씬 전환/비활성화 시 UI Text Tween `Kill/DOKill` 처리로 SafeMode 에러 방지.

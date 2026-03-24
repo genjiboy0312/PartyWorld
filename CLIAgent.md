@@ -2,7 +2,7 @@
 
 **문서 버전**: 1.0.1
 **작성일**: 2026-02-13
-**작성자**: Gemini CLI Agent
+**작성자**: CLI Agent
 **문서 유형**: CLI Agent Operation & Policy Document
 
 ---
