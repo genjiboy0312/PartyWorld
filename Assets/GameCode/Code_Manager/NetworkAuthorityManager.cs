@@ -47,7 +47,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [SerializeField] private float _loadingGateDelaySeconds = 0.25f;
 
     [Header("Lobby Countdown")]
-    [SerializeField] private float _lobbyCountdownSeconds = 3f;
+    [SerializeField] private float _lobbyCountdownSeconds = 5f;
 
     [Header("Debug/Retry")]
     [SerializeField] private float _joinTimeoutSeconds = 10f;

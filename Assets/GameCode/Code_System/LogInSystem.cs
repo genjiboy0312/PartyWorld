@@ -23,6 +23,7 @@ public class LogInSystem : MonoBehaviour
     [SerializeField] private InputField _inputJoinUserConfirmPassword;
     [SerializeField] private Button _checkBtn;
     [SerializeField] private Button _createBtn;
+    [SerializeField] private Button _exitBtn;
 
     [Header("Scene Transition")]
     [SerializeField] private bool _loadNextSceneOnLogin = true;
@@ -47,6 +48,7 @@ public class LogInSystem : MonoBehaviour
         if (_logOutBtn != null) _logOutBtn.onClick.AddListener(OnLogOutClicked);
         if (_joinBtn != null) _joinBtn.onClick.AddListener(OpenJoinPage);
         if (_checkBtn != null) _checkBtn.onClick.AddListener(CloseJoinPage);
+        if (_exitBtn != null) _exitBtn.onClick.AddListener(CloseJoinPage);
         if (_createBtn != null) _createBtn.onClick.AddListener(OnCreateClicked);
     }
 
@@ -138,6 +140,16 @@ public class LogInSystem : MonoBehaviour
             Transform t = _uiJoinPage.transform.Find("Input_nickname");
             if (t != null)
                 _inputJoinUserNickname = t.GetComponent<InputField>();
+        }
+
+        if (_exitBtn == null && _uiJoinPage != null)
+        {
+            Transform t = _uiJoinPage.transform.Find("Btn_Exit");
+            if (t != null)
+                _exitBtn = t.GetComponent<Button>();
+
+            if (_exitBtn != null)
+                _exitBtn.onClick.AddListener(CloseJoinPage);
         }
     }
 
