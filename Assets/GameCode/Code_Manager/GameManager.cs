@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum GameState
 {
@@ -62,11 +63,20 @@ public class GameManager : MonoBehaviour
 
         _stage = 1;
 
+        SceneManager.sceneLoaded += OnSceneLoaded;
         InitializeChatManager();
     }
 
     private void OnDestroy()
     {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        if (_chatMgr != null)
+        {
+            _onGameStateChange -= _chatMgr.OnGameStateChange;
+            _chatMgr = null;
+        }
+
         // 싱글톤 정리
         if (Instance == this)
         {
@@ -74,20 +84,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        InitializeChatManager();
+    }
+
     public void StartGame() => SetGameState(GameState.Playing);
     public void GameOver() => SetGameState(GameState.GameOver);
 
     public void InitializeChatManager()
     {
+        if (_chatMgr != null)
+        {
+            _onGameStateChange -= _chatMgr.OnGameStateChange;
+            _chatMgr = null;
+        }
+
         _chatMgr = FindObjectOfType<ChatManager>();
 
         if (_chatMgr != null)
         {
             _onGameStateChange += _chatMgr.OnGameStateChange;
-        }
-        else
-        {
-            Debug.LogWarning("ChatManager를 찾을 수 없습니다.");
         }
     }
 

@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class ChatManager : MonoBehaviourPunCallbacks
 {
@@ -13,12 +14,21 @@ public class ChatManager : MonoBehaviourPunCallbacks
     [SerializeField] private Button _sendBtn;
     [SerializeField] private GameObject _textHide;
 
+    [Header("Connection")]
+    [SerializeField] private bool _connectOnStart = true;
+    [SerializeField] private bool _autoStartQuickPlayOnSendIfNotInRoom = false;
+    [SerializeField] private bool _autoJoinChatRoomInWaitingRoom = true;
+    [SerializeField] private string _waitingRoomSceneName = "Scene_WaitingRoom";
+    [SerializeField] private string _waitingRoomChatRoomName = "Room_WaitingRoomChat";
+    [SerializeField] private byte _waitingRoomChatMaxPlayers = 20;
+
     [Header("ETC")]
     [SerializeField] private Text _statusText;
 
     private PhotonView _pv;
     private GameManager _gameManager;
     private FirebaseAuthManager _authManager;
+    private bool _requestedChatRoomJoin;
 
     private void Awake()
     {
@@ -51,11 +61,24 @@ public class ChatManager : MonoBehaviourPunCallbacks
     private void Start()
     {
         // Photon NickName 설정
-        if (_authManager != null)
+        if (DataManager.Instance != null &&
+            !string.IsNullOrWhiteSpace(DataManager.Instance.CurrentUserData.nickname) &&
+            DataManager.Instance.CurrentUserData.nickname != "NewPlayer")
+        {
+            PhotonNetwork.NickName = DataManager.Instance.CurrentUserData.nickname;
+        }
+        else if (_authManager != null)
         {
             if (!string.IsNullOrWhiteSpace(_authManager._userEmail) && _authManager._userEmail != "None")
                 PhotonNetwork.NickName = _authManager._userEmail;
         }
+
+        if (_connectOnStart)
+        {
+            Connect();
+        }
+
+        TryJoinWaitingRoomChatIfNeeded();
 
         // Send 버튼 이벤트 연결
         if (_sendBtn != null)
@@ -81,6 +104,8 @@ public class ChatManager : MonoBehaviourPunCallbacks
         {
             _statusText.text = PhotonNetwork.NetworkClientState.ToString();
         }
+
+        RefreshSendInteractivity();
 
         // UI 외 영역 클릭 시 활성화
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
@@ -129,12 +154,22 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
     public void Connect()
     {
-        NetworkAuthorityManager.Instance?.ConnectIfNeeded();
+        if (NetworkAuthorityManager.Instance != null)
+        {
+            NetworkAuthorityManager.Instance.ConnectIfNeeded();
+            return;
+        }
+
+        if (!PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.ConnectUsingSettings();
+        }
     }
 
     public override void OnConnectedToMaster()
     {
         Debug.Log("[ChatManager] Photon 마스터 서버 연결 성공");
+        TryJoinWaitingRoomChatIfNeeded();
     }
 
     public override void OnJoinedRoom()
@@ -148,6 +183,19 @@ public class ChatManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.LogWarning($"[ChatManager] Photon 서버 연결 해제: {cause}");
+        _requestedChatRoomJoin = false;
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        Debug.LogWarning($"[ChatManager] OnJoinRoomFailed (code={returnCode}, msg={message}, state={PhotonNetwork.NetworkClientState})");
+        _requestedChatRoomJoin = false;
+    }
+
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        Debug.LogWarning($"[ChatManager] OnCreateRoomFailed (code={returnCode}, msg={message}, state={PhotonNetwork.NetworkClientState})");
+        _requestedChatRoomJoin = false;
     }
 
     #endregion
@@ -189,7 +237,16 @@ public class ChatManager : MonoBehaviourPunCallbacks
 
         if (!PhotonNetwork.InRoom)
         {
-            Debug.LogError("[ChatManager] 방에 입장하지 않았습니다. 메시지를 전송할 수 없습니다.");
+            AddChatMessage($"<color=yellow>*** 아직 방에 입장하지 않았습니다. (state={PhotonNetwork.NetworkClientState}) ***</color>");
+
+            if (_autoStartQuickPlayOnSendIfNotInRoom)
+            {
+                NetworkAuthorityManager.Instance?.StartQuickPlay();
+            }
+            else
+            {
+                TryJoinWaitingRoomChatIfNeeded();
+            }
             return;
         }
 
@@ -199,8 +256,8 @@ public class ChatManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        string email = _authManager != null ? _authManager._userEmail : "Unknown";
-        string formattedMessage = $"<color=white>[{email}]</color> {_chatInput.text}";
+        string nickname = !string.IsNullOrWhiteSpace(PhotonNetwork.NickName) ? PhotonNetwork.NickName : "Unknown";
+        string formattedMessage = $"<color=white>[{nickname}]</color> {_chatInput.text}";
 
         _pv.RPC(nameof(ChatRPC), RpcTarget.All, formattedMessage);
 
@@ -286,6 +343,54 @@ public class ChatManager : MonoBehaviourPunCallbacks
     }
 
     #endregion
+
+    private void RefreshSendInteractivity()
+    {
+        bool canSend = PhotonNetwork.InRoom;
+
+        if (_sendBtn != null && _sendBtn.interactable != canSend)
+            _sendBtn.interactable = canSend;
+
+        if (_chatInput != null && _chatInput.interactable != canSend)
+            _chatInput.interactable = canSend;
+    }
+
+    private void TryJoinWaitingRoomChatIfNeeded()
+    {
+        if (!_autoJoinChatRoomInWaitingRoom)
+            return;
+
+        if (_requestedChatRoomJoin)
+            return;
+
+        string activeScene = SceneManager.GetActiveScene().name;
+        if (!string.Equals(activeScene, _waitingRoomSceneName))
+            return;
+
+        if (!PhotonNetwork.IsConnectedAndReady)
+            return;
+
+        if (PhotonNetwork.InRoom)
+            return;
+
+        if (string.IsNullOrWhiteSpace(_waitingRoomChatRoomName))
+        {
+            Debug.LogError("[ChatManager] WaitingRoom chat room name is empty.");
+            return;
+        }
+
+        _requestedChatRoomJoin = true;
+
+        RoomOptions options = new RoomOptions
+        {
+            IsOpen = true,
+            IsVisible = true,
+            MaxPlayers = _waitingRoomChatMaxPlayers
+        };
+
+        PhotonNetwork.JoinOrCreateRoom(_waitingRoomChatRoomName, options, TypedLobby.Default);
+        Debug.Log($"[ChatManager] JoinOrCreateRoom({_waitingRoomChatRoomName}) requested (scene={activeScene}).");
+    }
 
     #region UI 활성화/비활성화
 

@@ -127,7 +127,13 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         ConnectIfNeeded();
 
-        if (PhotonNetwork.IsConnectedAndReady)
+        // WaitingRoom 등에서 채팅용 Room에 먼저 들어가 있을 수 있으므로, QuickPlay 시작 시 Room을 먼저 빠져나감
+        if (PhotonNetwork.InRoom)
+        {
+            Debug.Log($"[NetworkAuthorityManager] StartQuickPlay while in room -> LeaveRoom (room={PhotonNetwork.CurrentRoom?.Name})");
+            PhotonNetwork.LeaveRoom();
+        }
+        else if (PhotonNetwork.IsConnectedAndReady)
             TryJoinRandomOrCreateRoom();
 
         Debug.Log($"[NetworkAuthorityManager] StartQuickPlay (state={PhotonNetwork.NetworkClientState}, inRoom={PhotonNetwork.InRoom}, inLobby={PhotonNetwork.InLobby})");
@@ -135,6 +141,18 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         // 매칭이 멈추는 케이스를 대비해 타임아웃 감시
         if (_quickPlayWatchCoroutine == null)
             _quickPlayWatchCoroutine = StartCoroutine(WatchQuickPlay());
+    }
+
+    public override void OnLeftRoom()
+    {
+        // 채팅용 Room 등에서 빠져나온 뒤 QuickPlay 룸 매칭을 이어서 진행
+        if (!_quickPlayRequested)
+            return;
+
+        if (PhotonNetwork.IsConnectedAndReady && !PhotonNetwork.InRoom)
+            TryJoinRandomOrCreateRoom();
+
+        Debug.Log($"[NetworkAuthorityManager] OnLeftRoom (state={PhotonNetwork.NetworkClientState}, inRoom={PhotonNetwork.InRoom})");
     }
 
     public void ConnectIfNeeded()
@@ -277,18 +295,22 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        bool joinedForMatchmaking = _autoMatchmake || _quickPlayRequested;
         // 룸 입장 직후: Ready/Scene 프로퍼티를 초기화(동기화 게이트 기반)
         SetLocalPlayerProperty(PLAYER_PROP_READY, false);
         SetLocalPlayerProperty(PLAYER_PROP_SCENE, SceneManager.GetActiveScene().name);
 
         // 룸에 들어오면 “룸 로비” 씬으로 통일(전원 같은 공간에서 Ready/미니게임)
-        if (SceneManager.GetActiveScene().name != _roomLobbySceneName)
+        if (joinedForMatchmaking && SceneManager.GetActiveScene().name != _roomLobbySceneName)
             PhotonNetwork.LoadLevel(_roomLobbySceneName);
 
         // 매칭 요청은 1회성으로 처리
         _quickPlayRequested = false;
 
-        Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_roomLobbySceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
+        if (joinedForMatchmaking)
+            Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_roomLobbySceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
+        else
+            Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom (no scene load) (room={PhotonNetwork.CurrentRoom?.Name})");
 
         // 매칭 감시 코루틴 정리
         StopQuickPlayWatch();
@@ -364,6 +386,14 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         // 닉네임이 없으면 개발용 기본 닉네임을 세팅(채팅/유저리스트 안정화)
         if (!string.IsNullOrWhiteSpace(PhotonNetwork.NickName))
             return;
+
+        if (DataManager.Instance != null &&
+            !string.IsNullOrWhiteSpace(DataManager.Instance.CurrentUserData.nickname) &&
+            DataManager.Instance.CurrentUserData.nickname != "NewPlayer")
+        {
+            PhotonNetwork.NickName = DataManager.Instance.CurrentUserData.nickname;
+            return;
+        }
 
         PhotonNetwork.NickName = $"Dev_{Random.Range(1000, 9999)}";
     }

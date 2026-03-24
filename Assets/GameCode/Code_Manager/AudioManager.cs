@@ -16,11 +16,11 @@ public class AudioManager : MonoBehaviour
             return;
 
         GameObject go = new GameObject(nameof(AudioManager));
+        go.AddComponent<AudioSource>(); // Music Source
+        go.AddComponent<AudioSource>(); // SFX Source
         go.AddComponent<AudioManager>();
         
         // AudioManager에 필요한 AudioSource 2개를 동적으로 추가
-        go.AddComponent<AudioSource>(); // Music Source
-        go.AddComponent<AudioSource>(); // SFX Source
     }
 
     [Header("Sound 설정")]
@@ -44,6 +44,12 @@ public class AudioManager : MonoBehaviour
         
         // AudioSource 컴포넌트 할당
         AudioSource[] sources = GetComponents<AudioSource>();
+        while (sources.Length < 2)
+        {
+            gameObject.AddComponent<AudioSource>();
+            sources = GetComponents<AudioSource>();
+        }
+
         if (sources.Length >= 2)
         {
             _musicSource = sources[0];
