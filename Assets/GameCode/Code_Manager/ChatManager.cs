@@ -315,6 +315,9 @@ public class ChatManager : MonoBehaviourPunCallbacks
         switch (newGameState)
         {
             case GameState.Title:
+            case GameState.CharacterCreation:
+            case GameState.WaitingRoom:
+            case GameState.Lobby:
                 SendSystemMessage("*** 게임 대기 중 ***");
                 break;
 
@@ -327,6 +330,7 @@ public class ChatManager : MonoBehaviourPunCallbacks
                 break;
 
             case GameState.GameOver:
+            case GameState.Result:
                 SendSystemMessage("*** 게임 종료 ***");
                 break;
         }

@@ -7,7 +7,11 @@ public enum GameState
     Title,
     Loading,
     Playing,
-    GameOver
+    GameOver,
+    CharacterCreation,
+    WaitingRoom,
+    Lobby,
+    Result
 }
 
 public class GameManager : MonoBehaviour
@@ -30,6 +34,15 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GameState _currentGameState = GameState.Title;
     [SerializeField] private static int _stage;
+
+    [Header("Scene-State Mapping")]
+    [SerializeField] private string _titleSceneName = "Scene_Title&Login";
+    [SerializeField] private string _characterCreationSceneName = "Scene_CharacterCreation";
+    [SerializeField] private string _waitingRoomSceneName = "Scene_WaitingRoom";
+    [SerializeField] private string _lobbySceneName = "Scene_Lobby";
+    [SerializeField] private string _loadingSceneName = "Scene_Loading";
+    [SerializeField] private string _resultSceneName = "Scene_Result";
+    [SerializeField] private string _mapScenePrefix = "Scene_Map";
 
     // 옵저버 패턴
     private event Action<GameState> _onGameStateChange;
@@ -65,6 +78,7 @@ public class GameManager : MonoBehaviour
 
         SceneManager.sceneLoaded += OnSceneLoaded;
         InitializeChatManager();
+        SyncStateByScene(SceneManager.GetActiveScene().name);
     }
 
     private void OnDestroy()
@@ -87,6 +101,7 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         InitializeChatManager();
+        SyncStateByScene(scene.name);
     }
 
     public void StartGame() => SetGameState(GameState.Playing);
@@ -100,7 +115,7 @@ public class GameManager : MonoBehaviour
             _chatMgr = null;
         }
 
-        _chatMgr = FindObjectOfType<ChatManager>();
+        _chatMgr = FindAnyObjectByType<ChatManager>();
 
         if (_chatMgr != null)
         {
@@ -118,6 +133,83 @@ public class GameManager : MonoBehaviour
 
         // 옵저버 이벤트 안전 호출
         SafeInvokeGameStateChange(newGameState);
+    }
+
+    public void SyncStateByScene(string sceneName)
+    {
+        if (!TryResolveGameState(sceneName, out GameState resolved))
+            return;
+
+        SetGameState(resolved);
+    }
+
+    private bool TryResolveGameState(string sceneName, out GameState state)
+    {
+        state = _currentGameState;
+
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return false;
+
+        if (IsScene(sceneName, _titleSceneName))
+        {
+            state = GameState.Title;
+            return true;
+        }
+
+        if (IsScene(sceneName, _characterCreationSceneName))
+        {
+            state = GameState.CharacterCreation;
+            return true;
+        }
+
+        if (IsScene(sceneName, _waitingRoomSceneName))
+        {
+            state = GameState.WaitingRoom;
+            return true;
+        }
+
+        if (IsScene(sceneName, _lobbySceneName))
+        {
+            state = GameState.Lobby;
+            return true;
+        }
+
+        if (IsScene(sceneName, _loadingSceneName))
+        {
+            state = GameState.Loading;
+            return true;
+        }
+
+        if (IsScene(sceneName, _resultSceneName))
+        {
+            state = GameState.Result;
+            return true;
+        }
+
+        if (IsMapScene(sceneName))
+        {
+            state = GameState.Playing;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsMapScene(string sceneName)
+    {
+        if (!string.IsNullOrWhiteSpace(_mapScenePrefix) &&
+            sceneName.StartsWith(_mapScenePrefix, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    private static bool IsScene(string sceneName, string configured)
+    {
+        if (string.IsNullOrWhiteSpace(configured))
+            return false;
+
+        return string.Equals(sceneName, configured, StringComparison.OrdinalIgnoreCase);
     }
 
     // 개선된 안전한 이벤트 호출

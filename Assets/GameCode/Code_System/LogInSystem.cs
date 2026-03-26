@@ -7,6 +7,7 @@ public class LogInSystem : MonoBehaviour
     [Header("Pages")]
     [SerializeField] private GameObject _uiLoginPage;
     [SerializeField] private GameObject _uiJoinPage;
+    [SerializeField] private bool _showLoginPageOnStart = false;
 
     [Header("UI LogIn References")]
     [SerializeField] private InputField _inputLogInEmail;
@@ -41,7 +42,11 @@ public class LogInSystem : MonoBehaviour
         FirebaseAuthManager.Instance.Init();
 
         AutoWirePagesIfNeeded();
-        SetJoinPageActive(false);
+
+        if (_showLoginPageOnStart)
+            SetJoinPageActive(false);
+        else
+            SetLoginFlowVisible(false);
 
         // 버튼 클릭 이벤트 코드에서 등록
         if (_logInBtn != null) _logInBtn.onClick.AddListener(OnLogInClicked);
@@ -166,6 +171,15 @@ public class LogInSystem : MonoBehaviour
 
         if (_uiLoginPage != null)
             _uiLoginPage.SetActive(!isActive);
+    }
+
+    private void SetLoginFlowVisible(bool isVisible)
+    {
+        if (_uiJoinPage != null)
+            _uiJoinPage.SetActive(false);
+
+        if (_uiLoginPage != null)
+            _uiLoginPage.SetActive(isVisible);
     }
 
     private void AutoWirePagesIfNeeded()

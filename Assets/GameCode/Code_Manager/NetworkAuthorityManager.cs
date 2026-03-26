@@ -720,16 +720,11 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     private void SyncGameManagerState(string sceneName)
     {
-        // 씬 이름을 GameState로 매핑(UI/채팅 시스템 메시지 등에 사용)
+        // 씬 상태 매핑은 GameManager가 단일 책임으로 관리
         GameManager gm = GameManager.Instance;
         if (gm == null)
             return;
 
-        if (sceneName == _loadingSceneName)
-            gm.SetGameState(GameState.Loading);
-        else if (sceneName == _mapSceneName)
-            gm.SetGameState(GameState.Playing);
-        else if (sceneName == _titleSceneName || sceneName == _waitingRoomSceneName || sceneName == _roomLobbySceneName)
-            gm.SetGameState(GameState.Title);
+        gm.SyncStateByScene(sceneName);
     }
 }

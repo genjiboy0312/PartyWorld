@@ -26,7 +26,7 @@ public class UICoolTime : MonoBehaviour
     {
         _isButtonPressed = false;
         _selectedImage.fillAmount = 1f;
-        _uiManager = FindObjectOfType<UIManager>();
+        _uiManager = FindAnyObjectByType<UIManager>();
     }
 
     void Update()

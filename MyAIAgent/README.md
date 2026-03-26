@@ -8,6 +8,7 @@
 - `NoticeAgent.md`: 최근 작업 내역/공지용 변경 로그
 - `CLIAgent.md`: Codex CLI 사용 가이드(프로젝트용)
 - `AgentCycle.md`: Plan/Build 작업 순환 가이드 및 체크리스트
+- `UnityAgent.md`: Unity/C# 개발 고도화를 위한 전용 운영 가이드
 
 ## 문서 운영 규칙
 

@@ -307,6 +307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiLogin: {fileID: 196381981}
+  _btnTouch: {fileID: 969330947}
 --- !u!4 &44310088
 Transform:
   m_ObjectHideFlags: 0
@@ -3627,6 +3628,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentGameState: 0
+  _titleSceneName: Scene_Title&Login
+  _characterCreationSceneName: Scene_CharacterCreation
+  _waitingRoomSceneName: Scene_WaitingRoom
+  _lobbySceneName: Scene_Lobby
+  _loadingSceneName: Scene_Loading
+  _resultSceneName: Scene_Result
+  _mapScenePrefix: Scene_Map
 --- !u!1 &1498404807
 GameObject:
   m_ObjectHideFlags: 0

@@ -1600,6 +1600,7 @@ MonoBehaviour:
   - {fileID: 304730858}
   - {fileID: 369209193}
   _userEmails: []
+  _includeSelf: 1
 --- !u!1 &276517339
 GameObject:
   m_ObjectHideFlags: 0
@@ -2244,6 +2245,12 @@ MonoBehaviour:
   _chatInput: {fileID: 107528424}
   _sendBtn: {fileID: 1543583116}
   _textHide: {fileID: 503689635}
+  _connectOnStart: 1
+  _autoStartQuickPlayOnSendIfNotInRoom: 0
+  _autoJoinChatRoomInWaitingRoom: 1
+  _waitingRoomSceneName: Scene_WaitingRoom
+  _waitingRoomChatRoomName: Room_WaitingRoomChat
+  _waitingRoomChatMaxPlayers: 20
   _statusText: {fileID: 0}
 --- !u!114 &400717008
 MonoBehaviour:
@@ -8030,6 +8037,7 @@ GameObject:
   - component: {fileID: 1530166914}
   - component: {fileID: 1530166916}
   - component: {fileID: 1530166917}
+  - component: {fileID: 1530166918}
   m_Layer: 0
   m_Name: Manager_UI
   m_TagString: Untagged
@@ -8129,6 +8137,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _shopBoard: {fileID: 429544830}
   _exitBtn: {fileID: 404236552}
+--- !u!114 &1530166918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1530166910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55b92211ee7e09d42acd73c1c19792b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIClock
+  _clockText: {fileID: 1946087557}
 --- !u!1 &1531708692
 GameObject:
   m_ObjectHideFlags: 0
@@ -9637,7 +9658,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1738408363}
   m_Layer: 5
-  m_Name: Pannel_Stauts
+  m_Name: Setting_Clock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10235,7 +10256,7 @@ GameObject:
   - component: {fileID: 1946087558}
   - component: {fileID: 1946087557}
   m_Layer: 5
-  m_Name: Txt_Status
+  m_Name: Txt_Clock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10257,7 +10278,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 39.2, y: 0}
   m_SizeDelta: {x: 150, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1946087557
@@ -10293,7 +10314,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Status
+  m_Text: Clock
 --- !u!222 &1946087558
 CanvasRenderer:
   m_ObjectHideFlags: 0
