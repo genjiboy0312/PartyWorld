@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string _waitingRoomSceneName = "Scene_WaitingRoom";
     [SerializeField] private string _lobbySceneName = "Scene_Lobby";
     [SerializeField] private string _loadingSceneName = "Scene_Loading";
-    [SerializeField] private string _resultSceneName = "Scene_Result";
+    [SerializeField] private string _resultSceneName = "";
     [SerializeField] private string _mapScenePrefix = "Scene_Map";
 
     // 옵저버 패턴

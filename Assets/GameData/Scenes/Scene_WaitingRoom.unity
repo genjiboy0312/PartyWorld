@@ -2741,7 +2741,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 8400000, guid: daa5e3786d1974046ae11e8dd3ba5f09, type: 2}
+  m_Texture: {fileID: 8400000, guid: f6a874432a43c4b499050caa80e23c0a, type: 2}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -3142,7 +3142,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 2076814564}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99999225
+  m_Size: 0.9999962
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3517,6 +3517,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaitingRoomCharacterPreview
   _playerPreviewRoot: {fileID: 632986363}
+  _characterCatalog: {fileID: 0}
   _entries:
   - characterId: bear_base
     prefab: {fileID: 3499011036621755863, guid: 7138733c896003348b4d892db136e68f, type: 3}
@@ -4874,13 +4875,13 @@ Camera:
   far clip plane: 1000
   field of view: 30
   orthographic: 1
-  orthographic size: 4
+  orthographic size: 0.5
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 65
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: daa5e3786d1974046ae11e8dd3ba5f09, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: f6a874432a43c4b499050caa80e23c0a, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -4899,7 +4900,7 @@ Transform:
   m_GameObject: {fileID: 912945785}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6, y: 3, z: -5}
+  m_LocalPosition: {x: 0.1, y: 0.3, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10686,7 +10687,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 836129359}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.9999998
+  m_Size: 0.9999999
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -10845,7 +10846,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.000028454506}
+  m_AnchoredPosition: {x: 0, y: -0.000018021712}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &2107276477
@@ -10930,8 +10931,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1669059039}
   m_HandleRect: {fileID: 1669059038}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

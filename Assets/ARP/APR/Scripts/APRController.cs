@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using UnityEngine;
+using Photon.Pun;
 
 namespace ARP.APR.Scripts
 {
-    public class APRController : MonoBehaviour
+    public class APRController : MonoBehaviourPunCallbacks, IPunObservable
     {
         //--Variables
         //Active Ragdoll Player parts
@@ -123,15 +124,56 @@ namespace ARP.APR.Scripts
         [Header("Player Editor Debug Mode")]
         public bool editorDebugMode;
 
+        [Header("Network")]
+        [SerializeField] private PhotonView _photonView;
+        private Vector3 _networkPosition;
+        private Quaternion _networkRotation;
+        private float _networkLerpSpeed = 15f;
+
+        [Header("Mobile Input")]
+        [SerializeField] private bool _useMobileInput = false;
+        [SerializeField] private VirtualJoyStick _virtualJoyStick;
+        [SerializeField] private UnityEngine.UI.Button _jumpButton;
+        [SerializeField] private UnityEngine.UI.Button _punchLeftButton;
+        [SerializeField] private UnityEngine.UI.Button _punchRightButton;
+
+        private GameManager _gameManager;
+
         void Awake()
         {
             PlayerSetup();
 
+            if (_photonView == null)
+                _photonView = GetComponent<PhotonView>();
 
+            _gameManager = GameManager.Instance;
+            if (_gameManager != null)
+                _gameManager.OnGameStateChangeEvent += OnGameStateChange;
+
+            if (_useMobileInput)
+                SetupMobileInput();
+        }
+
+        void OnDisable()
+        {
+            if (_gameManager != null)
+                _gameManager.OnGameStateChangeEvent -= OnGameStateChange;
+        }
+
+        void OnDestroy()
+        {
+            if (_gameManager != null)
+                _gameManager.OnGameStateChangeEvent -= OnGameStateChange;
         }
 
         void Update()
         {
+            if (_photonView != null && !_photonView.IsMine)
+            {
+                InterpolateNetworkTransform();
+                return;
+            }
+
             if (useControls && !inAir)
             {
                 PlayerMovement();
@@ -165,6 +207,9 @@ namespace ARP.APR.Scripts
         }
         void FixedUpdate()
         {
+            if (_photonView != null && !_photonView.IsMine)
+                return;
+
             Walking();
 
             if (useControls)
@@ -317,13 +362,27 @@ namespace ARP.APR.Scripts
 
         void PlayerMovement()
         {
+            float inputH = 0f;
+            float inputV = 0f;
+
+            if (_useMobileInput && _virtualJoyStick != null)
+            {
+                inputH = _virtualJoyStick.Horizontal();
+                inputV = _virtualJoyStick.Vertical();
+            }
+            else
+            {
+                inputH = Input.GetAxisRaw(leftRight);
+                inputV = Input.GetAxisRaw(forwardBackward);
+            }
+
             if (forwardIsCameraDirection)
             {
-                Direction = APR_Parts[0].transform.rotation * new Vector3(Input.GetAxisRaw(leftRight), 0.0f, Input.GetAxisRaw(forwardBackward));
+                Direction = APR_Parts[0].transform.rotation * new Vector3(inputH, 0.0f, inputV);
                 Direction.y = 0f;
                 APR_Parts[0].transform.GetComponent<Rigidbody>().linearVelocity = Vector3.Lerp(APR_Parts[0].transform.GetComponent<Rigidbody>().linearVelocity, (Direction * moveSpeed) + new Vector3(0, APR_Parts[0].transform.GetComponent<Rigidbody>().linearVelocity.y, 0), 0.8f);
 
-                if (Input.GetAxisRaw(leftRight) != 0 || Input.GetAxisRaw(forwardBackward) != 0 && balanced)
+                if (inputH != 0 || inputV != 0 && balanced)
                 {
                     if (!WalkForward && !moveAxisUsed)
                     {
@@ -332,7 +391,7 @@ namespace ARP.APR.Scripts
                         isKeyDown = true;
                     }
                 }
-                else if (Input.GetAxisRaw(leftRight) == 0 && Input.GetAxisRaw(forwardBackward) == 0)
+                else if (inputH == 0 && inputV == 0)
                 {
                     if (WalkForward && moveAxisUsed)
                     {
@@ -345,13 +404,13 @@ namespace ARP.APR.Scripts
 
             else
             {
-                if (Input.GetAxisRaw(forwardBackward) != 0)
+                if (inputV != 0)
                 {
-                    var v3 = APR_Parts[0].GetComponent<Rigidbody>().transform.forward * (Input.GetAxisRaw(forwardBackward) * moveSpeed);
+                    var v3 = APR_Parts[0].GetComponent<Rigidbody>().transform.forward * (inputV * moveSpeed);
                     v3.y = APR_Parts[0].GetComponent<Rigidbody>().linearVelocity.y;
                     APR_Parts[0].GetComponent<Rigidbody>().linearVelocity = v3;
                 }
-                if (Input.GetAxisRaw(forwardBackward) > 0)
+                if (inputV > 0)
                 {
                     if (!WalkForward && !moveAxisUsed)
                     {
@@ -377,7 +436,7 @@ namespace ARP.APR.Scripts
                         }
                     }
                 }
-                else if (Input.GetAxisRaw(forwardBackward) < 0)
+                else if (inputV < 0)
                 {
                     if (!WalkBackward && !moveAxisUsed)
                     {
@@ -403,7 +462,7 @@ namespace ARP.APR.Scripts
                         }
                     }
                 }
-                else if (Input.GetAxisRaw(forwardBackward) == 0)
+                else if (inputV == 0)
                 {
                     if (WalkForward || WalkBackward && moveAxisUsed)
                     {
@@ -465,7 +524,9 @@ namespace ARP.APR.Scripts
 
         void PlayerGetUpJumping()
         {
-            if (Input.GetAxis(jump) > 0)
+            bool jumpInput = _useMobileInput ? false : Input.GetAxis(jump) > 0;
+
+            if (jumpInput)
             {
                 if (!jumpAxisUsed)
                 {
@@ -970,5 +1031,100 @@ namespace ARP.APR.Scripts
             }
         }
 
+        #region Photon Network Sync
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (stream.IsWriting)
+            {
+                stream.SendNext(APR_Parts[0].transform.position);
+                stream.SendNext(APR_Parts[0].transform.rotation);
+                stream.SendNext(balanced);
+                stream.SendNext(isRagdoll);
+            }
+            else
+            {
+                _networkPosition = (Vector3)stream.ReceiveNext();
+                _networkRotation = (Quaternion)stream.ReceiveNext();
+                bool remoteBalanced = (bool)stream.ReceiveNext();
+                bool remoteRagdoll = (bool)stream.ReceiveNext();
+
+                if (remoteRagdoll && !isRagdoll)
+                    ActivateRagdoll();
+                else if (!remoteRagdoll && isRagdoll)
+                    DeactivateRagdoll();
+            }
+        }
+
+        private void InterpolateNetworkTransform()
+        {
+            float delta = Time.deltaTime * _networkLerpSpeed;
+            APR_Parts[0].transform.position = Vector3.Lerp(APR_Parts[0].transform.position, _networkPosition, delta);
+            APR_Parts[0].transform.rotation = Quaternion.Slerp(APR_Parts[0].transform.rotation, _networkRotation, delta);
+        }
+        #endregion
+
+        #region GameManager State
+        private void OnGameStateChange(GameState newState)
+        {
+            switch (newState)
+            {
+                case GameState.Title:
+                case GameState.Loading:
+                    useControls = false;
+                    break;
+                case GameState.Playing:
+                    useControls = true;
+                    break;
+                case GameState.GameOver:
+                    useControls = false;
+                    ActivateRagdoll();
+                    break;
+            }
+        }
+        #endregion
+
+        #region Mobile Input
+        private void SetupMobileInput()
+        {
+            if (_jumpButton != null)
+                _jumpButton.onClick.AddListener(OnJumpButtonPressed);
+
+            if (_punchLeftButton != null)
+                _punchLeftButton.onClick.AddListener(OnPunchLeftButtonPressed);
+
+            if (_punchRightButton != null)
+                _punchRightButton.onClick.AddListener(OnPunchRightButtonPressed);
+        }
+
+        private void OnJumpButtonPressed()
+        {
+            if (balanced && !inAir)
+                jumping = true;
+            else if (!balanced)
+                DeactivateRagdoll();
+        }
+
+        private void OnPunchLeftButtonPressed()
+        {
+            if (!punchingLeft)
+            {
+                punchingLeft = true;
+                APR_Parts[1].GetComponent<ConfigurableJoint>().targetRotation = new Quaternion(-0.15f, 0.15f, 0, 1);
+                APR_Parts[5].GetComponent<ConfigurableJoint>().targetRotation = new Quaternion(0.62f, -0.51f, 0.02f, 1);
+                APR_Parts[6].GetComponent<ConfigurableJoint>().targetRotation = new Quaternion(-1.31f, 0.5f, 0.5f, 1);
+            }
+        }
+
+        private void OnPunchRightButtonPressed()
+        {
+            if (!punchingRight)
+            {
+                punchingRight = true;
+                APR_Parts[1].GetComponent<ConfigurableJoint>().targetRotation = new Quaternion(-0.15f, -0.15f, 0, 1);
+                APR_Parts[3].GetComponent<ConfigurableJoint>().targetRotation = new Quaternion(-0.62f, -0.51f, 0.02f, 1);
+                APR_Parts[4].GetComponent<ConfigurableJoint>().targetRotation = new Quaternion(1.31f, 0.5f, -0.5f, 1);
+            }
+        }
+        #endregion
     }
 }

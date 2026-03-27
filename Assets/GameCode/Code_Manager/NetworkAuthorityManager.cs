@@ -77,6 +77,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     private bool _issuedLoadingForThisCountdown;
     private Coroutine _quickPlayWatchCoroutine;
     private GameObject _localSpawnedPlayer;
+    public GameObject LocalSpawnedPlayer => _localSpawnedPlayer;
     private bool _characterCatalogTriedLoad;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -902,5 +903,22 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return keyInPrefabsCharacters;
 
         return string.Empty;
+    }
+
+    public void ReturnToLobby()
+    {
+        if (!PhotonNetwork.InRoom)
+            return;
+
+        if (_localSpawnedPlayer != null)
+        {
+            PhotonView view = _localSpawnedPlayer.GetComponent<PhotonView>();
+            if (view != null && view.IsMine)
+                PhotonNetwork.Destroy(_localSpawnedPlayer);
+
+            _localSpawnedPlayer = null;
+        }
+
+        PhotonNetwork.LoadLevel(_roomLobbySceneName);
     }
 }
