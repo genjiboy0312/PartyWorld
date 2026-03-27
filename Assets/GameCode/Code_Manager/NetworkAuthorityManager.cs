@@ -11,13 +11,24 @@ using PhotonHashtable = ExitGames.Client.Photon.Hashtable;
 
 public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 {
+    [System.Serializable]
+    private struct CharacterSpawnEntry
+    {
+        public string characterId;
+        public string prefabName;
+    }
+
     public static NetworkAuthorityManager Instance { get; private set; }
 
     private const string DEBUG_PREF_AUTO_QUICKPLAY = "PW_DEBUG_AUTO_QUICKPLAY";
     private const string DEBUG_PREF_FORCE_NICKNAME = "PW_DEBUG_FORCE_NICKNAME";
+    private const string PREF_SELECTED_CHARACTER_ID = "PW_SELECTED_CHARACTER_ID";
+    private const string PREF_SELECTED_CHARACTER_PREFAB = "PW_SELECTED_CHARACTER_PREFAB";
+    private const string CHARACTER_CATALOG_RESOURCE_PATH = "CharacterCatalog";
 
     private const string PLAYER_PROP_READY = "ready";
     private const string PLAYER_PROP_SCENE = "scene";
+    private const string PLAYER_PROP_CHARACTER_ID = "characterId";
     private const string ROOM_PROP_SELECTED_MAP = "selectedMap";
     private const string ROOM_PROP_COUNTDOWN_ACTIVE = "lobbyCountdownActive";
     private const string ROOM_PROP_COUNTDOWN_START_TIME = "lobbyCountdownStartTime";
@@ -41,6 +52,14 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [SerializeField] private string _mapSceneName = "Scene_Map01";
     [SerializeField] private List<string> _mapSceneNames = new List<string>();
 
+    [Header("Character Spawn")]
+    [SerializeField] private CharacterCatalog _characterCatalog;
+    [SerializeField] private List<CharacterSpawnEntry> _characterSpawnEntries = new List<CharacterSpawnEntry>();
+    [SerializeField] private string _defaultCharacterId = "bear_base";
+    [SerializeField] private string _defaultPlayerPrefabName = "Player_Test01";
+    [SerializeField] private Vector3 _fallbackSpawnPosition = Vector3.zero;
+    [SerializeField] private Vector3 _fallbackSpawnStep = new Vector3(1.5f, 0f, 0f);
+
     [Header("Networking")]
     [SerializeField] private int _sendRate = 60;
     [SerializeField] private int _serializationRate = 60;
@@ -57,6 +76,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     private bool _quickPlayRequested;
     private bool _issuedLoadingForThisCountdown;
     private Coroutine _quickPlayWatchCoroutine;
+    private GameObject _localSpawnedPlayer;
+    private bool _characterCatalogTriedLoad;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -300,6 +321,10 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         SetLocalPlayerProperty(PLAYER_PROP_READY, false);
         SetLocalPlayerProperty(PLAYER_PROP_SCENE, SceneManager.GetActiveScene().name);
 
+        string selectedCharacterId = ResolveSelectedCharacterId();
+        if (!string.IsNullOrWhiteSpace(selectedCharacterId))
+            SetLocalPlayerProperty(PLAYER_PROP_CHARACTER_ID, selectedCharacterId);
+
         // 룸에 들어오면 “룸 로비” 씬으로 통일(전원 같은 공간에서 Ready/미니게임)
         if (joinedForMatchmaking && SceneManager.GetActiveScene().name != _roomLobbySceneName)
             PhotonNetwork.LoadLevel(_roomLobbySceneName);
@@ -311,6 +336,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_roomLobbySceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
         else
             Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom (no scene load) (room={PhotonNetwork.CurrentRoom?.Name})");
+
+        _localSpawnedPlayer = null;
 
         // 매칭 감시 코루틴 정리
         StopQuickPlayWatch();
@@ -398,6 +425,22 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         PhotonNetwork.NickName = $"Dev_{Random.Range(1000, 9999)}";
     }
 
+    private string ResolveSelectedCharacterId()
+    {
+        if (DataManager.Instance != null &&
+            DataManager.Instance.CurrentUserData != null &&
+            !string.IsNullOrWhiteSpace(DataManager.Instance.CurrentUserData.selectedCharacterId))
+        {
+            return DataManager.Instance.CurrentUserData.selectedCharacterId;
+        }
+
+        string savedId = PlayerPrefs.GetString(PREF_SELECTED_CHARACTER_ID, string.Empty);
+        if (!string.IsNullOrWhiteSpace(savedId))
+            return savedId;
+
+        return string.Empty;
+    }
+
     private void TryStartDebugQuickPlay(string sceneName)
     {
         // 에디터/개발 빌드에서만 디버그 매칭을 허용
@@ -463,12 +506,18 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         SyncGameManagerState(scene.name);
 
-        if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.InRoom)
         {
             // 디버그 옵션이면 룸이 없어도 로비 씬에서 자동 매칭을 시작
             TryStartDebugQuickPlay(scene.name);
             return;
         }
+
+        if (scene.name.StartsWith("Scene_Map"))
+            TrySpawnLocalPlayerForMap();
+
+        if (!PhotonNetwork.IsMasterClient)
+            return;
 
         if (scene.name == _roomLobbySceneName)
         {
@@ -480,6 +529,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         {
             if (_loadingGateCoroutine == null && AreAllPlayersInScene(_loadingSceneName))
                 _loadingGateCoroutine = StartCoroutine(LoadingGateToMap());
+
+            return;
         }
     }
 
@@ -726,5 +777,130 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
 
         gm.SyncStateByScene(sceneName);
+    }
+
+    private void TrySpawnLocalPlayerForMap()
+    {
+        if (!PhotonNetwork.InRoom || PhotonNetwork.LocalPlayer == null)
+            return;
+
+        Vector3 spawnPosition = _fallbackSpawnPosition;
+        spawnPosition += _fallbackSpawnStep * (PhotonNetwork.LocalPlayer.ActorNumber - 1);
+        SpawnLocalSelectedCharacter(spawnPosition, Quaternion.identity, true);
+    }
+
+    public GameObject SpawnLocalSelectedCharacter(Vector3 position, Quaternion rotation, bool forceRespawn)
+    {
+        if (!PhotonNetwork.InRoom || PhotonNetwork.LocalPlayer == null)
+            return null;
+
+        if (_localSpawnedPlayer != null)
+        {
+            if (!forceRespawn)
+                return _localSpawnedPlayer;
+
+            PhotonView view = _localSpawnedPlayer.GetComponent<PhotonView>();
+            if (view != null && view.IsMine)
+                PhotonNetwork.Destroy(_localSpawnedPlayer);
+
+            _localSpawnedPlayer = null;
+        }
+
+        string characterId = ResolveSelectedCharacterId();
+        string prefabName = ResolvePlayerPrefabName(characterId);
+        if (string.IsNullOrWhiteSpace(prefabName))
+        {
+            Debug.LogWarning("[NetworkAuthorityManager] prefabName is empty. check character spawn entries.");
+            return null;
+        }
+
+        string instantiateKey = ResolvePhotonPrefabKey(prefabName);
+        if (string.IsNullOrWhiteSpace(instantiateKey))
+        {
+            Debug.LogWarning($"[NetworkAuthorityManager] Photon prefab not found in Resources. prefabName={prefabName}");
+            return null;
+        }
+
+        try
+        {
+            _localSpawnedPlayer = PhotonNetwork.Instantiate(instantiateKey, position, rotation);
+            Debug.Log($"[NetworkAuthorityManager] Spawned player prefab={instantiateKey}, characterId={characterId}");
+            return _localSpawnedPlayer;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[NetworkAuthorityManager] Spawn failed for prefab '{instantiateKey}': {e.Message}");
+            return null;
+        }
+    }
+
+    private string ResolvePlayerPrefabName(string characterId)
+    {
+        EnsureCharacterCatalogLoaded();
+
+        if (_characterCatalog != null)
+        {
+            GameObject catalogPrefab = _characterCatalog.GetPrefabOrDefault(characterId, _defaultCharacterId);
+            if (catalogPrefab != null)
+                return catalogPrefab.name;
+        }
+
+        if (!string.IsNullOrWhiteSpace(characterId) && _characterSpawnEntries != null)
+        {
+            for (int i = 0; i < _characterSpawnEntries.Count; i++)
+            {
+                CharacterSpawnEntry entry = _characterSpawnEntries[i];
+                if (string.Equals(entry.characterId, characterId, System.StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(entry.prefabName))
+                    return entry.prefabName;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(_defaultCharacterId) && _characterSpawnEntries != null)
+        {
+            for (int i = 0; i < _characterSpawnEntries.Count; i++)
+            {
+                CharacterSpawnEntry entry = _characterSpawnEntries[i];
+                if (string.Equals(entry.characterId, _defaultCharacterId, System.StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(entry.prefabName))
+                    return entry.prefabName;
+            }
+        }
+
+        string savedPrefab = PlayerPrefs.GetString(PREF_SELECTED_CHARACTER_PREFAB, string.Empty);
+        if (!string.IsNullOrWhiteSpace(savedPrefab))
+            return savedPrefab;
+
+        return _defaultPlayerPrefabName;
+    }
+
+    private void EnsureCharacterCatalogLoaded()
+    {
+        if (_characterCatalog != null || _characterCatalogTriedLoad)
+            return;
+
+        _characterCatalogTriedLoad = true;
+        _characterCatalog = Resources.Load<CharacterCatalog>(CHARACTER_CATALOG_RESOURCE_PATH);
+        if (_characterCatalog == null)
+            Debug.LogWarning("[NetworkAuthorityManager] CharacterCatalog not found in Resources/CharacterCatalog.");
+    }
+
+    private static string ResolvePhotonPrefabKey(string prefabName)
+    {
+        if (string.IsNullOrWhiteSpace(prefabName))
+            return string.Empty;
+
+        if (Resources.Load<GameObject>(prefabName) != null)
+            return prefabName;
+
+        string keyInCharacters = $"Characters/{prefabName}";
+        if (Resources.Load<GameObject>(keyInCharacters) != null)
+            return keyInCharacters;
+
+        string keyInPrefabsCharacters = $"Prefabs/Characters/{prefabName}";
+        if (Resources.Load<GameObject>(keyInPrefabsCharacters) != null)
+            return keyInPrefabsCharacters;
+
+        return string.Empty;
     }
 }

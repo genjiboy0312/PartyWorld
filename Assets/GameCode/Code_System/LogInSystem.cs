@@ -26,8 +26,12 @@ public class LogInSystem : MonoBehaviour
     [SerializeField] private Button _createBtn;
     [SerializeField] private Button _exitBtn;
 
+    private string _lastCheckedEmail;
+    private bool _isLastCheckedEmailAvailable;
+
     [Header("Scene Transition")]
     [SerializeField] private bool _loadNextSceneOnLogin = true;
+    [SerializeField] private string _characterCreationSceneName = "Scene_CharacterCreation";
     [SerializeField] private string _nextSceneName = "Scene_WaitingRoom";
     private bool _requestedSceneLoad;
 
@@ -52,7 +56,7 @@ public class LogInSystem : MonoBehaviour
         if (_logInBtn != null) _logInBtn.onClick.AddListener(OnLogInClicked);
         if (_logOutBtn != null) _logOutBtn.onClick.AddListener(OnLogOutClicked);
         if (_joinBtn != null) _joinBtn.onClick.AddListener(OpenJoinPage);
-        if (_checkBtn != null) _checkBtn.onClick.AddListener(CloseJoinPage);
+        if (_checkBtn != null) _checkBtn.onClick.AddListener(OnCheckClicked);
         if (_exitBtn != null) _exitBtn.onClick.AddListener(CloseJoinPage);
         if (_createBtn != null) _createBtn.onClick.AddListener(OnCreateClicked);
     }
@@ -60,6 +64,9 @@ public class LogInSystem : MonoBehaviour
     // 로그인 상태 변경 시 UI 갱신
     private void OnChangedState(bool signedIn)
     {
+        if (!signedIn)
+            _requestedSceneLoad = false;
+
         if (_outputTxt != null)
         {
             _outputTxt.text = signedIn ? "로그인" : "로그아웃";
@@ -70,14 +77,28 @@ public class LogInSystem : MonoBehaviour
         {
             _requestedSceneLoad = true;
 
-            if (string.IsNullOrWhiteSpace(_nextSceneName))
+            string targetScene = ResolvePostLoginSceneName();
+
+            if (string.IsNullOrWhiteSpace(targetScene))
             {
                 Debug.LogError("[LogInSystem] Next scene name is empty.");
                 return;
             }
 
-            SceneManager.LoadScene(_nextSceneName);
+            SceneManager.LoadScene(targetScene);
         }
+    }
+
+    private string ResolvePostLoginSceneName()
+    {
+        if (DataManager.Instance == null || DataManager.Instance.CurrentUserData == null)
+            return _characterCreationSceneName;
+
+        string selectedCharacterId = DataManager.Instance.CurrentUserData.selectedCharacterId;
+        if (string.IsNullOrWhiteSpace(selectedCharacterId))
+            return _characterCreationSceneName;
+
+        return _nextSceneName;
     }
 
     // 버튼 이벤트 콜백
@@ -123,12 +144,73 @@ public class LogInSystem : MonoBehaviour
             return;
         }
 
+        if (password.Length < 6)
+        {
+            if (_outputTxt != null) _outputTxt.text = "비밀번호는 6자 이상이어야 합니다.";
+            return;
+        }
+
         if (DataManager.Instance != null)
         {
             DataManager.Instance.CurrentUserData.nickname = nickname;
         }
 
-        FirebaseAuthManager.Instance.Create(email, password, nickname);
+        if (_lastCheckedEmail == email && _isLastCheckedEmailAvailable)
+        {
+            FirebaseAuthManager.Instance.Create(email, password, nickname);
+            return;
+        }
+
+        FirebaseAuthManager.Instance.CheckEmailExists(email, (success, exists) =>
+        {
+            if (!success)
+            {
+                if (_outputTxt != null) _outputTxt.text = "중복 확인 실패. 네트워크 상태를 확인하세요.";
+                return;
+            }
+
+            if (exists)
+            {
+                _isLastCheckedEmailAvailable = false;
+                if (_outputTxt != null) _outputTxt.text = "이미 사용 중인 이메일입니다.";
+                return;
+            }
+
+            _lastCheckedEmail = email;
+            _isLastCheckedEmailAvailable = true;
+            FirebaseAuthManager.Instance.Create(email, password, nickname);
+        });
+    }
+
+    private void OnCheckClicked()
+    {
+        string email = _inputJoinUserEmail != null ? _inputJoinUserEmail.text : string.Empty;
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            if (_outputTxt != null) _outputTxt.text = "중복 확인할 이메일을 입력하세요.";
+            return;
+        }
+
+        FirebaseAuthManager.Instance.CheckEmailExists(email, (success, exists) =>
+        {
+            if (!success)
+            {
+                _isLastCheckedEmailAvailable = false;
+                if (_outputTxt != null) _outputTxt.text = "중복 확인 실패. 잠시 후 다시 시도하세요.";
+                return;
+            }
+
+            _lastCheckedEmail = email;
+            _isLastCheckedEmailAvailable = !exists;
+
+            if (_outputTxt == null)
+                return;
+
+            _outputTxt.text = exists
+                ? "이미 사용 중인 이메일입니다."
+                : "사용 가능한 이메일입니다.";
+        });
     }
 
     private void OpenJoinPage()
@@ -138,6 +220,9 @@ public class LogInSystem : MonoBehaviour
 
         if (_inputJoinUserEmail != null && _inputLogInEmail != null)
             _inputJoinUserEmail.text = _inputLogInEmail.text;
+
+        _lastCheckedEmail = string.Empty;
+        _isLastCheckedEmailAvailable = false;
 
         // 인스펙터에 안 물려있으면 JoinPage에서 자동으로 찾아봄(옵션)
         if (_inputJoinUserNickname == null && _uiJoinPage != null)
@@ -162,6 +247,8 @@ public class LogInSystem : MonoBehaviour
     {
         AutoWirePagesIfNeeded();
         SetJoinPageActive(false);
+        _lastCheckedEmail = string.Empty;
+        _isLastCheckedEmailAvailable = false;
     }
 
     private void SetJoinPageActive(bool isActive)

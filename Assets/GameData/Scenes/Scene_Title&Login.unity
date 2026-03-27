@@ -1083,8 +1083,12 @@ MonoBehaviour:
     money: 0
     level: 1
     exp: 0
+    selectedCharacterId: 
     inventory: []
-    lastLoginTime: 0
+    dataVersion: 1
+    createdAt: 1774577329
+    updatedAt: 1774577329
+    lastLoginAt: 0
 --- !u!1 &259198037
 GameObject:
   m_ObjectHideFlags: 0
@@ -2185,6 +2189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _uiLoginPage: {fileID: 196381981}
   _uiJoinPage: {fileID: 619216202}
+  _showLoginPageOnStart: 0
   _inputLogInEmail: {fileID: 801744319}
   _inputLogInPassword: {fileID: 703465385}
   _outputTxt: {fileID: 2017282769}
@@ -2196,7 +2201,7 @@ MonoBehaviour:
   _inputJoinUserPassword: {fileID: 1621237686}
   _inputJoinUserConfirmPassword: {fileID: 1117871279}
   _checkBtn: {fileID: 227521248}
-  _createBtn: {fileID: 259198039}
+  _createBtn: {fileID: 1591676374}
   _exitBtn: {fileID: 79729123}
   _loadNextSceneOnLogin: 1
   _nextSceneName: Scene_WaitingRoom

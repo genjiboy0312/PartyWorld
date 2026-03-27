@@ -173,6 +173,9 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         if (!_pv.IsMine)
             return;
 
+        if (_rigidbody3D == null || _rigidbody3D.isKinematic)
+            return;
+
         // ConfigurableJoint 이용한 움직임 처리
         CheckGroundStatus();
         UpdateJointMovement();
@@ -211,6 +214,9 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     // ConfigurableJoint를 이용한 바닥 체크
     private void CheckGroundStatus()
     {
+        if (_rigidbody3D == null || _rigidbody3D.isKinematic)
+            return;
+
         _isGrounded = false;
 
         int numberOfHits = Physics.SphereCastNonAlloc(
@@ -242,6 +248,9 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     // ConfigurableJoint를 이용한 이동 처리
     private void UpdateJointMovement()
     {
+        if (_rigidbody3D == null || _rigidbody3D.isKinematic)
+            return;
+
         // if (_model.IsDive)
         //     return;
 
@@ -272,6 +281,9 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     // ConfigurableJoint용 점프
     private void JumpWithJoint()
     {
+        if (_rigidbody3D == null || _rigidbody3D.isKinematic)
+            return;
+
         if (!_isGrounded)
             return;
 

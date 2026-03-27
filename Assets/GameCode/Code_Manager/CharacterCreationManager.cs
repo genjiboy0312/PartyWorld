@@ -224,6 +224,12 @@ public class CharacterCreationManager : MonoBehaviour
         PlayerPrefs.SetString(PREF_SELECTED_CHARACTER_PREFAB, selectedPrefabName);
         PlayerPrefs.Save();
 
+        if (DataManager.Instance != null)
+        {
+            DataManager.Instance.CurrentUserData.selectedCharacterId = selectedId;
+            DataManager.Instance.SaveUserDataToFirebase();
+        }
+
         SceneManager.LoadScene(_nextSceneName);
     }
 

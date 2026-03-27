@@ -4,13 +4,16 @@ apply plugin: 'com.android.library'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 // Android Resolver Dependencies Start
-    implementation 'com.google.android.gms:play-services-base:18.4.0' // Assets/GameData/EditorFolder/Firebase/Editor/AppDependencies.xml:17
-    implementation 'com.google.firebase:firebase-analytics:22.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AuthDependencies.xml:15
+    implementation 'com.google.android.gms:play-services-base:18.10.0' // Assets/GameData/EditorFolder/Firebase/Editor/AppDependencies.xml:20
+    // implementation 'com.google.firebase:firebase-analytics:22.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AnalyticsDependencies.xml:13
+    implementation 'com.google.firebase:firebase-analytics:23.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AuthDependencies.xml:18
     implementation 'com.google.firebase:firebase-analytics-unity:12.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AnalyticsDependencies.xml:18
-    implementation 'com.google.firebase:firebase-app-unity:12.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AppDependencies.xml:22
-    implementation 'com.google.firebase:firebase-auth:23.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AuthDependencies.xml:13
-    implementation 'com.google.firebase:firebase-auth-unity:12.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AuthDependencies.xml:20
-    implementation 'com.google.firebase:firebase-common:21.0.0' // Assets/GameData/EditorFolder/Firebase/Editor/AppDependencies.xml:13
+    implementation 'com.google.firebase:firebase-app-unity:13.9.0' // Assets/GameData/EditorFolder/Firebase/Editor/AppDependencies.xml:25
+    implementation 'com.google.firebase:firebase-auth:24.0.1' // Assets/GameData/EditorFolder/Firebase/Editor/AuthDependencies.xml:16
+    implementation 'com.google.firebase:firebase-auth-unity:13.9.0' // Assets/GameData/EditorFolder/Firebase/Editor/AuthDependencies.xml:23
+    implementation 'com.google.firebase:firebase-common:22.0.1' // Assets/GameData/EditorFolder/Firebase/Editor/AppDependencies.xml:16
+    implementation 'com.google.firebase:firebase-database:22.0.1' // Assets/Firebase/Editor/DatabaseDependencies.xml:16
+    implementation 'com.google.firebase:firebase-database-unity:13.9.0' // Assets/Firebase/Editor/DatabaseDependencies.xml:25
 // Android Resolver Dependencies End
 **DEPS**}
 

@@ -5,7 +5,7 @@
 `PartyWorld` 프로젝트(참고: Party Animals / Fall Guys)의 **8인(추후 확장) 3D 1인 생존** 파티 플랫폼 게임을 기준으로,
 현재 코드/씬 구조를 바탕으로 한 **플로우(시나리오) + 구현 우선순위 + 리스크**를 정리합니다.
 
-**마지막 업데이트**: 2026-03-25
+**마지막 업데이트**: 2026-03-27
 
 ---
 
@@ -45,6 +45,18 @@
 - `selectedMap` 랜덤 로드는 구현되어 있으나, `GameManager` 상태 동기화가 기본값 `_mapSceneName` 중심이므로 `Scene_Map*` 전반 대응이 필요
 - 플레이어 스폰 책임 위치가 문서에서 완전히 고정되지 않았으므로, `NetworkAuthorityManager` 기준의 단일 스폰 주체를 확정해야 함
 - Result 단계는 문서/리스크에 남아 있으나 구현 완료 기준과 폴백 규칙을 P0 항목으로 승격 필요
+
+### 2.6 최근 진행 반영(2026-03-27)
+
+- 로그인 이후 분기 플로우를 `selectedCharacterId` 기반으로 정리:
+  - 비어 있으면 `Scene_CharacterCreation`
+  - 값이 있으면 `Scene_WaitingRoom`
+- `UserData` 스키마에 `selectedCharacterId`, `dataVersion`, `createdAt/updatedAt/lastLoginAt` 반영
+- Firebase Realtime Database 경로 상수(`users/{uid}/profile`) 및 Save/Load 경로 정리
+- WaitingRoom 프리뷰는 `selectedCharacterId` 기반으로 캐릭터 프리팹 로드
+- Lobby/Map 스폰은 `NetworkAuthorityManager`에서 캐릭터 ID 기반 프리팹 선택 후 `PhotonNetwork.Instantiate`로 생성
+- 캐릭터 매핑은 `CharacterCatalog` + `GenJiTools/Character Catalog/Sync|Validate` 워크플로우로 운영
+- 스폰 프리팹은 Photon 규칙상 `Resources` 경로를 기준으로 관리
 
 ---
 

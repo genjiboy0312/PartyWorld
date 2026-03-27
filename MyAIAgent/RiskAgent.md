@@ -4,7 +4,7 @@
 
 `PartyWorld` 프로젝트의 **알려진 리스크/회귀 포인트/릴리즈 전 체크리스트**를 단일 문서로 관리합니다.
 
-**마지막 업데이트**: 2026-03-25
+**마지막 업데이트**: 2026-03-27
 
 ---
 
@@ -34,8 +34,10 @@
 | R-003 | 로딩 게이트 지연/교착 | Medium | 일부 클라 로딩 완료 신호 누락 | 로딩 타임아웃 + 미도착 인원 표시 + 재동기화 | TBD | Monitoring |
 | R-004 | 닉네임/표시 불일치 | Medium | Auth DisplayName, DataManager, Photon NickName 불일치 | 로그인 직후 단일 소스(DataManager) 기준 재동기화 | TBD | Monitoring |
 | R-005 | 다중 맵에서 GameState 동기화 누락 가능성 | High | 랜덤 맵이 `_mapSceneName` 외 이름으로 로드됨 | `Scene_Map*` 패턴 기반으로 `Playing` 상태 매핑 통일 | TBD | Open |
-| R-006 | 플레이어 스폰 책임 주체 불명확 | High | 룸 입장/씬 전환 시 스폰 호출 분산 또는 누락 | `NetworkAuthorityManager` 단일 스폰 정책 문서화 + 코드 고정 | TBD | Open |
+| R-006 | 플레이어 스폰 책임 주체 불명확 | High | 룸 입장/씬 전환 시 스폰 호출 분산 또는 누락 | `NetworkAuthorityManager` 단일 스폰 정책 문서화 + 코드 고정 | TBD | Monitoring |
 | R-007 | 실제 빌드 플로우와 문서 플로우 불일치 | Medium | `Scene_CharacterCreation` 포함 여부가 문서/구현에서 다르게 해석 | 신규/기존 유저 분기 규칙을 Planning에 명시 | TBD | Open |
+| R-008 | Photon 스폰 프리팹 경로 불일치 | High | `PhotonNetwork.Instantiate` 키와 `Resources` 경로가 맞지 않음 | `Assets/Resources/Characters/*` 표준화 + 카탈로그/키 검증 | TBD | Open |
+| R-009 | CharacterCatalog 미동기화로 인한 프리팹 누락 | Medium | 프리팹 변경 후 카탈로그 미갱신 | `GenJiTools/Character Catalog/Sync` 절차를 작업 플로우에 고정 | TBD | Open |
 
 ## 4) Known Issue 재현 템플릿
 

@@ -23,7 +23,7 @@ namespace ARP.APR.Scripts.Editor
 		public Texture tex;
 		private static APR_Player_Settings_Injector _instance;
     
-		[MenuItem("APR Player/APR Player Settings Injector")]
+		[MenuItem("GenJiTools/APR Player/APR Player Settings Injector")]
 		static void APRPlayerSettingsInjectorWindow()
 		{
 			if(_instance == null)

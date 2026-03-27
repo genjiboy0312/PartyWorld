@@ -19,6 +19,7 @@ public class FirebaseAuthManager
 
     private FirebaseAuth _auth;
     private FirebaseUser _user;
+    private string _pendingNicknameForNewUser;
 
     public string _userId => _user != null ? _user.UserId : "None";
     public string _userEmail => _user != null ? _user.Email : "None";
@@ -98,35 +99,67 @@ public class FirebaseAuthManager
 
         if (DataManager.Instance != null)
         {
+            string authNickname = _user.DisplayName;
+
             DataManager.Instance.CurrentUserData.userId = _user.UserId;
-
-            // Firebase Auth 프로필(DisplayName)에서 닉네임 로드
-            if (!string.IsNullOrWhiteSpace(_user.DisplayName))
+            DataManager.Instance.MarkLoginNow();
+            DataManager.Instance.LoadUserDataFromFirebase(_user.UserId, loaded =>
             {
-                DataManager.Instance.CurrentUserData.nickname = _user.DisplayName;
-            }
-            else
-            {
-                // DisplayName이 비어있으면 로컬 닉네임을 역으로 업로드(레거시 계정 대응)
-                string localNick = DataManager.Instance.CurrentUserData.nickname;
-                if (!string.IsNullOrWhiteSpace(localNick) && localNick != "NewPlayer")
+                if (DataManager.Instance == null)
                 {
-                    UserProfile profile = new UserProfile { DisplayName = localNick };
-                    _user.UpdateUserProfileAsync(profile).ContinueWith(profileTask =>
-                    {
-                        RunOnUnityThread(() =>
-                        {
-                            if (profileTask.IsCanceled || profileTask.IsFaulted)
-                            {
-                                Debug.LogWarning("[FirebaseAuth] 닉네임(DisplayName) 저장 실패: " + profileTask.Exception);
-                                return;
-                            }
-
-                            Debug.Log($"[FirebaseAuth] 닉네임 저장 완료: {localNick}");
-                        });
-                    });
+                    _loginState?.Invoke(true);
+                    return;
                 }
-            }
+
+                string localNick = DataManager.Instance.CurrentUserData.nickname;
+                bool localMissing = string.IsNullOrWhiteSpace(localNick) || localNick == "NewPlayer";
+
+                if (localMissing && !string.IsNullOrWhiteSpace(_pendingNicknameForNewUser))
+                {
+                    localNick = _pendingNicknameForNewUser;
+                    localMissing = false;
+                    DataManager.Instance.CurrentUserData.nickname = localNick;
+                }
+
+                if (!string.IsNullOrWhiteSpace(authNickname))
+                {
+                    if (localMissing || !loaded)
+                    {
+                        DataManager.Instance.CurrentUserData.nickname = authNickname;
+                        DataManager.Instance.SaveUserDataToFirebase();
+                    }
+
+                    _loginState?.Invoke(true);
+                    return;
+                }
+
+                if (localMissing)
+                {
+                    _loginState?.Invoke(true);
+                    return;
+                }
+
+                UserProfile profile = new UserProfile { DisplayName = localNick };
+                _user.UpdateUserProfileAsync(profile).ContinueWith(profileTask =>
+                {
+                    RunOnUnityThread(() =>
+                    {
+                        if (profileTask.IsCanceled || profileTask.IsFaulted)
+                        {
+                            Debug.LogWarning("[FirebaseAuth] 닉네임(DisplayName) 저장 실패: " + profileTask.Exception);
+                            _loginState?.Invoke(true);
+                            return;
+                        }
+
+                        Debug.Log($"[FirebaseAuth] 닉네임 저장 완료: {localNick}");
+                        DataManager.Instance.SaveUserDataToFirebase();
+                        _pendingNicknameForNewUser = null;
+                        _loginState?.Invoke(true);
+                    });
+                });
+            });
+
+            return;
         }
 
         _loginState?.Invoke(true);
@@ -137,6 +170,8 @@ public class FirebaseAuthManager
     // 회원가입 + 닉네임 저장(프로필 DisplayName)
     public void Create(string email, string password, string nickname)
     {
+        _pendingNicknameForNewUser = nickname;
+
         _auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
         {
             RunOnUnityThread(() =>
@@ -144,11 +179,13 @@ public class FirebaseAuthManager
                 if (task.IsCanceled)
                 {
                     Debug.LogError("[FirebaseAuth] 회원가입 취소됨");
+                    _pendingNicknameForNewUser = null;
                     return;
                 }
                 if (task.IsFaulted)
                 {
                     Debug.LogError("[FirebaseAuth] 회원가입 실패: " + task.Exception);
+                    _pendingNicknameForNewUser = null;
                     return;
                 }
 
@@ -161,6 +198,9 @@ public class FirebaseAuthManager
 
                 if (!string.IsNullOrWhiteSpace(desiredNickname) && desiredNickname != "NewPlayer")
                 {
+                    if (DataManager.Instance != null)
+                        DataManager.Instance.CurrentUserData.nickname = desiredNickname;
+
                     UserProfile profile = new UserProfile { DisplayName = desiredNickname };
                     newUser.UpdateUserProfileAsync(profile).ContinueWith(profileTask =>
                     {
@@ -173,6 +213,7 @@ public class FirebaseAuthManager
                             }
 
                             Debug.Log($"[FirebaseAuth] 닉네임 저장 완료: {desiredNickname}");
+                            _pendingNicknameForNewUser = null;
                         });
                     });
                 }
@@ -207,5 +248,37 @@ public class FirebaseAuthManager
     {
         _auth.SignOut();
         Debug.Log("[FirebaseAuth] 로그아웃 명령 실행");
+    }
+
+    public void CheckEmailExists(string email, Action<bool, bool> onCompleted)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            RunOnUnityThread(() => onCompleted?.Invoke(false, false));
+            return;
+        }
+
+        _auth.FetchProvidersForEmailAsync(email).ContinueWith((System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string>> task) =>
+        {
+            RunOnUnityThread(() =>
+            {
+                if (task.IsCanceled || task.IsFaulted)
+                {
+                    Debug.LogWarning("[FirebaseAuth] 이메일 중복 확인 실패: " + task.Exception);
+                    onCompleted?.Invoke(false, false);
+                    return;
+                }
+
+                bool exists = false;
+                if (task.Result != null)
+                {
+                    using (var e = task.Result.GetEnumerator())
+                    {
+                        exists = e.MoveNext();
+                    }
+                }
+                onCompleted?.Invoke(true, exists);
+            });
+        });
     }
 }

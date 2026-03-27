@@ -81,6 +81,11 @@ public class AudioManager : MonoBehaviour
     public void PlayMusic(string name)
     {
         if (_musicSource == null) return;
+        if (_musicSounds == null || _musicSounds.Length == 0)
+        {
+            Debug.LogWarning("AudioManager: music sound array is empty.");
+            return;
+        }
 
         Sound sound = Array.Find(_musicSounds, x => x._name == name);
         if (sound == null)
@@ -102,6 +107,11 @@ public class AudioManager : MonoBehaviour
     public void PlaySFX(string name)
     {
         if (_sfxSource == null) return;
+        if (_sfxSounds == null || _sfxSounds.Length == 0)
+        {
+            Debug.LogWarning("AudioManager: sfx sound array is empty.");
+            return;
+        }
 
         Sound sound = Array.Find(_sfxSounds, x => x._name == name);
         if (sound == null)

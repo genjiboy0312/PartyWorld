@@ -4,7 +4,7 @@
 
 `PartyWorld` 프로젝트의 **최근 작업 내역/변경 로그(공지용 요약)**를 누적 관리합니다.
 
-**마지막 업데이트**: 2026-03-25
+**마지막 업데이트**: 2026-03-27
 
 ---
 
@@ -38,6 +38,19 @@
 - **우선순위 재정렬:** Result 플로우 완결, 스폰 책임 단일화, 다중 맵 상태 동기화 항목을 P0으로 승격.
 - **리스크 확장:** 다중 맵 `GameState` 동기화 누락, 스폰 책임 불명확, 문서/빌드 플로우 불일치 리스크를 신규 등록.
 - **의사결정 항목 추가:** CharacterCreation 진입 조건, 스폰 책임 주체를 오픈 질문으로 추가.
+
+### 2026-03-27: 계정/캐릭터 데이터 플로우 및 스폰 파이프라인 보강
+
+- **영향 범위:** Scenes=`Scene_Title&Login`, `Scene_CharacterCreation`, `Scene_WaitingRoom`, `Scene_Lobby`, `Scene_Map*` / Scripts=`LogInSystem`, `FirebaseAuthManager`, `DataManager`, `NetworkAuthorityManager`, `WaitingRoomCharacterPreview`, `LobbyPlayerSpawner` / Prefab=`Assets/Resources/Characters/*`, `CharacterCatalog.asset`
+
+- **가입/로그인 분기 정리:** 로그인 완료 시 `selectedCharacterId` 유무로 `CharacterCreation`/`WaitingRoom` 분기 고정.
+- **Firebase 연동 강화:** `users/{uid}/profile` 경로 기준 Save/Load 공통화 및 닉네임 저장 타이밍 보정.
+- **닉네임 품질 가드:** `NewPlayer`/빈 닉네임 상태에서 저장 차단 로직 추가.
+- **캐릭터 선택 저장:** CharacterCreation 확인 시 `selectedCharacterId`를 UserData/DB에 즉시 반영.
+- **WaitingRoom 프리뷰:** 선택된 캐릭터 프리팹을 `PlayerPreview`에 로드하고 로컬 트랜스폼을 0 기준으로 고정.
+- **Lobby/Map 스폰:** `NetworkAuthorityManager` 단일 책임으로 캐릭터 ID 기반 프리팹 스폰 처리.
+- **카탈로그 자동화:** `CharacterCatalog` 도입 및 `GenJiTools/Character Catalog/Sync|Validate` 메뉴 추가.
+- **에디터 메뉴 정리:** 불필요한 `Tools/PartyWorld` 기반 유틸 일부 제거, APR Player 메뉴를 `GenJiTools` 하위로 이동.
 
 ---
 

@@ -106,7 +106,7 @@ namespace ARP.APR.Scripts.Editor
 		private GameObject LeftFootChildren;
 		private GameObject LeftFoot;
 	
-		[MenuItem("APR Player/APR Player Binder")]
+		[MenuItem("GenJiTools/APR Player/APR Player Binder")]
 		static void APRPlayerBinderWindow()
 		{
 			if(_instance == null)
