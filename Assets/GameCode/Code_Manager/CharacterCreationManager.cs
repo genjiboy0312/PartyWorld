@@ -179,6 +179,31 @@ public class CharacterCreationManager : MonoBehaviour
         UpdateCharacterInfoUI();
         UpdateCharacterSelectInteractable();
         UpdateConfirmInteractable();
+
+        if (_selectedCharacterData == null)
+            return;
+
+        string selectedId = _selectedCharacterData.CharacterId;
+        if (string.IsNullOrWhiteSpace(selectedId))
+            return;
+
+        string selectedName = GetSelectedCharacterName();
+        string selectedPrefabName = _selectedCharacterData.CharacterPrefab != null
+            ? _selectedCharacterData.CharacterPrefab.name
+            : string.Empty;
+
+        PlayerPrefs.SetInt(PREF_SELECTED_CHARACTER_INDEX, _selectedIndex);
+        PlayerPrefs.SetString(PREF_SELECTED_CHARACTER_NAME, selectedName);
+        PlayerPrefs.SetString(PREF_SELECTED_CHARACTER_ID, selectedId);
+        PlayerPrefs.SetString(PREF_SELECTED_CHARACTER_PREFAB, selectedPrefabName);
+        PlayerPrefs.Save();
+
+        if (DataManager.Instance != null)
+        {
+            DataManager.Instance.CurrentUserData.selectedCharacterId = selectedId;
+        }
+
+        Debug.Log($"[CharacterCreationManager] 캐릭터 선택 즉시 저장: {selectedId} ({selectedName})");
     }
 
     private void OnCharacterSelectButtonClicked()

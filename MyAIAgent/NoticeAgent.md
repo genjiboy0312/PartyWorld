@@ -4,7 +4,7 @@
 
 `PartyWorld` 프로젝트의 **최근 작업 내역/변경 로그(공지용 요약)**를 누적 관리합니다.
 
-**마지막 업데이트**: 2026-03-27
+**마지막 업데이트**: 2026-03-30
 
 ---
 
@@ -47,10 +47,19 @@
 - **Firebase 연동 강화:** `users/{uid}/profile` 경로 기준 Save/Load 공통화 및 닉네임 저장 타이밍 보정.
 - **닉네임 품질 가드:** `NewPlayer`/빈 닉네임 상태에서 저장 차단 로직 추가.
 - **캐릭터 선택 저장:** CharacterCreation 확인 시 `selectedCharacterId`를 UserData/DB에 즉시 반영.
+- **캐릭터 선택 즉시 저장:** 캐릭터 클릭(선택) 시 바로 `selectedCharacterId`를 `DataManager.CurrentUserData` 및 `PlayerPrefs`에 저장 (앱 종료/재실행 시에도 선택 상태 유지).
 - **WaitingRoom 프리뷰:** 선택된 캐릭터 프리팹을 `PlayerPreview`에 로드하고 로컬 트랜스폼을 0 기준으로 고정.
 - **Lobby/Map 스폰:** `NetworkAuthorityManager` 단일 책임으로 캐릭터 ID 기반 프리팹 스폰 처리.
 - **카탈로그 자동화:** `CharacterCatalog` 도입 및 `GenJiTools/Character Catalog/Sync|Validate` 메뉴 추가.
 - **에디터 메뉴 정리:** 불필요한 `Tools/PartyWorld` 기반 유틸 일부 제거, APR Player 메뉴를 `GenJiTools` 하위로 이동.
+
+### 2026-03-30: Save/Load 공통 함수 async/await 개선 및 테스트 가이드 추가
+
+- **영향 범위:** Scripts=`DataManager` / Documents=`MYAIAgent/TestGuide.md`
+
+- **async/await 공통 함수 추가:** `DataManager`에 `SaveUserDataToFirebaseAsync()` 및 `LoadUserDataFromFirebaseAsync()` 메서드 추가 (기존 콜백 기반 메서드와 병행 유지).
+- **Task<bool> 반환 지원:** 비동기 작업 결과를 `await` 방식으로 처리 가능, 코드 가독성 및 오류 처리 개선.
+- **테스트 가이드 추가:** `MYAIAgent/TestGuide.md` 생성 및 3가지 테스트 시나리오(신규/기존/재실행) 정의.
 
 ---
 

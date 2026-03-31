@@ -5,7 +5,7 @@
 `PartyWorld` 프로젝트(참고: Party Animals / Fall Guys)의 **8인(추후 확장) 3D 1인 생존** 파티 플랫폼 게임을 기준으로,
 현재 코드/씬 구조를 바탕으로 한 **플로우(시나리오) + 구현 우선순위 + 리스크**를 정리합니다.
 
-**마지막 업데이트**: 2026-03-27
+**마지막 업데이트**: 2026-03-31 (Hex-A-Gone 시스템 추가)
 
 ---
 
@@ -255,3 +255,107 @@
 ## 9) 최근 작업 내역 (Recent Work History)
 
 - 별도 에이전트 문서로 분리해서 관리합니다: `NoticeAgent.md`
+
+---
+
+## 10) 향후 계획 (2026-03-31)
+
+### P0 (MVP 완주를 위해 반드시 필요)
+
+| 순위 | 작업 | 상태 | 비고 |
+|:--|:--|:--|:--|
+| 1 | Result 화면/로비 복귀 플로우 | 미완료 | R-001 리스크, 승자 판정 → Result UI → Scene_Lobby 복귀 |
+| 2 | 다중 맵 GameState 동기화 보강 | 미완료 | R-005 리스크, Scene_Map* 패턴 인식 강화 |
+| 3 | P0.5 레거시 코드 정리 | 진행 중 | 미사용 스크립트 삭제, 불필요한 전역 매니저 오브젝트 제거 |
+
+### P0.5 (리팩토링)
+
+| 순위 | 작업 | 상태 | 비고 |
+|:--|:--|:--|:--|
+| 1 | 미사용 스크립트 삭제 | 대기 | PhotonManager, PlayerCheckingManager, PlayManager 등 |
+| 2 | 불필요한 전역 매니저 오브젝트 제거 | 대기 | 씬별 중복 배치된 매니저 정리 |
+| 3 | 레거시 프리팹 컴포넌트 정리 | 대기 | PhotonManager 등이 연결된 프리팹 확인/수정 |
+
+### P1 (재미 강화)
+
+| 순위 | 작업 | 상태 | 비고 |
+|:--|:--|:--|:--|
+| 1 | 라운드 모디파이어 5종 | 미완료 | 저중력/강풍/미끄럼/점프증가/시야제한 |
+| 2 | 관전 모드 | 미완료 | 탈락자 카메라 전환 |
+| 3 | 탈락자 카메라 전환 | 미완료 | 관전 모드와 연계 |
+
+### P2 (확장)
+
+| 순위 | 작업 | 상태 | 비고 |
+|:--|:--|:--|:--|
+| 1 | 8→16/32 스트레스 테스트 | 미완료 | SendRate/SerializationRate 튜닝 |
+| 2 | 리플레이/하이라이트 | 미완료 | 짧은 클립 저장 또는 서버 로그 기반 |
+| 3 | 래그/물리 악용 방지 | 미완료 | 입력 제한, 잡기/충돌 스팸 완화 |
+
+---
+
+## 11) 코드 정리 현황 (2026-03-31)
+
+### Hex-A-Gone 시스템 (신규)
+
+**생성된 스크립트:**
+- `HexTile.cs` - 타일耐久도, 색상变化, 가라앉기
+- `HexArenaManager.cs` - 전체 아레나 관리, 플레이어 추적
+- `BubbleZone.cs` - 탈락 감지 존
+- `HexGameManager.cs` - 게임 흐름, 타이머, 승자 판정
+
+**씬 구성:**
+- `Scene_HexagonMap` - Hex-A-Gone 전용 맵
+- HexTileContainer - 타일 배치용 부모 오브젝트
+- BubbleZone - 탈락 감지 영역
+
+**참조 문서:** `MYAIAgent/HexArenaGuide.md`
+
+---
+
+### 현재 Code_Manager 상태
+
+**유지 대상:**
+- `AudioManager.cs` - 오디오 관리 (유지)
+- `CharacterCreationManager.cs` - 캐릭터 생성 (유지)
+- `ChatManager.cs` - 채팅 관리 (유지)
+- `DataManager.cs` - 데이터 관리 (유지)
+- `FirebaseAuthManager.cs` - 파이어베이스 인증 (유지)
+- `GameManager.cs` - 게임 상태 관리 (유지)
+- `HexArenaManager.cs` - Hex-A-Gone 아레나 관리 (신규)
+- `HexGameManager.cs` - Hex-A-Gone 게임 매니저 (신규)
+- `HexTile.cs` - Hex-A-Gone 타일 (신규)
+- `BubbleZone.cs` - 탈락 감지 존 (신규)
+- `LobbyPlayerSpawner.cs` - 로비 플레이어 스폰 (유지)
+- `NetworkAuthorityManager.cs` - 네트워크 권위 (유지)
+- `UserListManager.cs` - 유저 목록 (유지)
+- `WaitingRoomCharacterPreview.cs` - 대기실 캐릭터 미리보기 (유지)
+
+**레거시 파일 (이미 정리됨):**
+- `PhotonManager.cs` - 삭제됨
+- `PlayerCheckingManager.cs` - 삭제됨
+- `PlayManager.cs` - 삭제됨
+- `PlayerController.cs` - 삭제됨 (전체 주석 상태 + 미참조)
+- `Logger.cs` - 삭제됨 (미참조)
+- `Tracker.cs` - 삭제됨 (미참조)
+- `MovementHandler.cs` - 삭제됨 (미참조)
+
+**기타:**
+- `Assets/GameCode/Code_System/RagDollEditor.cs` - 에디터 전용 (#if UNITY_EDITOR 가드됨) - 유지
+- `Assets/GameCode/Editor/Tools/*` - GenJiTools 메뉴 - 유지
+
+### 정리 원칙
+
+1. **사용 여부 확인**: 전체 코드에서 참조 여부 검색
+2. **참조 없음**: 즉시 삭제 검토
+3. **부분 사용**: 불필요한 메서드만 제거, 핵심 기능 유지
+4. **스크립트 삭제 후**: 연결된 프리팹/게임 오브젝트에서 컴포넌트 제거
+
+### 추가 검토 필요 사항
+
+- [x] 미사용 using 문 정리 (ChatManager.cs 정리 완료)
+- [x] 미사용 MonoBehaviour 정리 (PlayerController.cs, Logger.cs, Tracker.cs, MovementHandler.cs 삭제 완료)
+- [x] TODO/FIXME 항목 검토 (TODO/FIXME 없음 확인)
+- [ ] 주석/문서화 상태 확인
+- [ ] Result 화면 구현
+- [ ] 다중 맵 GameState 동기화
