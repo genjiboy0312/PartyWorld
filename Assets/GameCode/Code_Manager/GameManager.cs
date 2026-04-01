@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -36,13 +37,22 @@ public class GameManager : MonoBehaviour
     [SerializeField] private static int _stage;
 
     [Header("Scene-State Mapping")]
-    [SerializeField] private string _titleSceneName = "Scene_Title&Login";
-    [SerializeField] private string _characterCreationSceneName = "Scene_CharacterCreation";
-    [SerializeField] private string _waitingRoomSceneName = "Scene_WaitingRoom";
-    [SerializeField] private string _lobbySceneName = "Scene_Lobby";
-    [SerializeField] private string _loadingSceneName = "Scene_Loading";
-    [SerializeField] private string _resultSceneName = "";
-    [SerializeField] private string _mapScenePrefix = "Scene_Map";
+    [SerializeField] private SceneReference _titleScene = new SceneReference();
+    [SerializeField] private SceneReference _characterCreationScene = new SceneReference();
+    [SerializeField] private SceneReference _waitingRoomScene = new SceneReference();
+    [SerializeField] private SceneReference _lobbyScene = new SceneReference();
+    [SerializeField] private SceneReference _loadingScene = new SceneReference();
+    [SerializeField] private SceneReference _resultScene = new SceneReference();
+    [SerializeField] private List<SceneReference> _mapScenes = new List<SceneReference>();
+
+    // 런타임용 문자열 캐시
+    private string _titleSceneName;
+    private string _characterCreationSceneName;
+    private string _waitingRoomSceneName;
+    private string _lobbySceneName;
+    private string _loadingSceneName;
+    private string _resultSceneName;
+    private HashSet<string> _mapSceneNames = new HashSet<string>();
 
     // 옵저버 패턴
     private event Action<GameState> _onGameStateChange;
@@ -75,6 +85,26 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         _stage = 1;
+
+        // SceneReference에서 문자열 캐시 생성
+        _titleSceneName = _titleScene?.SceneName ?? "";
+        _characterCreationSceneName = _characterCreationScene?.SceneName ?? "";
+        _waitingRoomSceneName = _waitingRoomScene?.SceneName ?? "";
+        _lobbySceneName = _lobbyScene?.SceneName ?? "";
+        _loadingSceneName = _loadingScene?.SceneName ?? "";
+        _resultSceneName = _resultScene?.SceneName ?? "";
+
+        // 맵 씬 HashSet 구성
+        _mapSceneNames.Clear();
+        if (_mapScenes != null)
+        {
+            foreach (var scene in _mapScenes)
+            {
+                string name = scene?.SceneName;
+                if (!string.IsNullOrWhiteSpace(name))
+                    _mapSceneNames.Add(name);
+            }
+        }
 
         SceneManager.sceneLoaded += OnSceneLoaded;
         InitializeChatManager();
@@ -197,11 +227,10 @@ public class GameManager : MonoBehaviour
 
     private bool IsMapScene(string sceneName)
     {
-        if (!string.IsNullOrWhiteSpace(_mapScenePrefix) &&
-            sceneName.StartsWith(_mapScenePrefix, StringComparison.OrdinalIgnoreCase))
-            return true;
+        if (_mapSceneNames == null || string.IsNullOrWhiteSpace(sceneName))
+            return false;
 
-        return false;
+        return _mapSceneNames.Contains(sceneName);
     }
 
     private static bool IsScene(string sceneName, string configured)

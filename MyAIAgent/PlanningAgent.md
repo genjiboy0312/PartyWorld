@@ -5,7 +5,7 @@
 `PartyWorld` 프로젝트(참고: Party Animals / Fall Guys)의 **8인(추후 확장) 3D 1인 생존** 파티 플랫폼 게임을 기준으로,
 현재 코드/씬 구조를 바탕으로 한 **플로우(시나리오) + 구현 우선순위 + 리스크**를 정리합니다.
 
-**마지막 업데이트**: 2026-03-31 (Hex-A-Gone 시스템 추가)
+**마지막 업데이트**: 2026-04-01 (Hex-A-Gone 시스템 보강, SceneReference 도입)
 
 ---
 
@@ -246,6 +246,24 @@
 
 ---
 
+### 2026-04-01: SceneReference 방식 도입
+
+**변경 사항:**
+- **SceneReference.cs 생성:** `Assets/GameCode/SceneReference.cs` - 씬 에셋 드래그 앤 드롭 지원 래퍼
+- **NetworkAuthorityManager:** `SceneReference` 방식으로 변경, `_playMapScenes` 리스트로 맵 관리
+- **GameManager:** `SceneReference` 방식으로 변경, `_mapScenes` 리스트로 맵 관리
+
+**설정 방법:**
+1. `NetworkAuthorityManager` / `GameManager` 인스펙터에서 씬 에셋 드래그 앤 드롭
+2. `_playMapScenes` / `_mapScenes`에 사용할 게임 맵 추가
+
+**장점:**
+- 타이핑 오류 방지
+- 빌드 호환성 유지 (Runtime에서도 정상 동작)
+- 드래그 앤 드롭으로 직관적인 설정
+
+---
+
 ## 8) 오픈 질문(결정되면 계획 업데이트)
 
 - 별도 에이전트 문서로 분리해서 관리합니다: `OpenQuestionsAgent.md`
@@ -258,7 +276,7 @@
 
 ---
 
-## 10) 향후 계획 (2026-03-31)
+## 10) 향후 계획 (2026-04-01)
 
 ### P0 (MVP 완주를 위해 반드시 필요)
 
@@ -294,13 +312,13 @@
 
 ---
 
-## 11) 코드 정리 현황 (2026-03-31)
+## 11) 코드 정리 현황 (2026-04-01)
 
 ### Hex-A-Gone 시스템 (신규)
 
 **생성된 스크립트:**
-- `HexTile.cs` - 타일耐久도, 색상变化, 가라앉기
-- `HexArenaManager.cs` - 전체 아레나 관리, 플레이어 추적
+- `HexTile.cs` - 타일耐久도, 색상变化, 가라앉기, 네트워크 동기화
+- `HexArenaManager.cs` - 전체 아레나 관리, 플레이어 추적, RPC 동기화
 - `BubbleZone.cs` - 탈락 감지 존
 - `HexGameManager.cs` - 게임 흐름, 타이머, 승자 판정
 
@@ -310,6 +328,19 @@
 - BubbleZone - 탈락 감지 영역
 
 **참조 문서:** `MYAIAgent/HexArenaGuide.md`
+
+### SceneReference 시스템 (2026-04-01)
+
+**생성된 스크립트:**
+- `SceneReference.cs` - 씬 에셋 드래그 앤 드롭 지원 래퍼
+
+**변경된 스크립트:**
+- `NetworkAuthorityManager.cs` - SceneReference 방식으로 변경
+- `GameManager.cs` - SceneReference 방식으로 변경
+
+**목적:**
+- 씬 이름 타이핑 오류 방지
+- 인스펙터에서 드래그 앤 드롭으로 직관적 설정
 
 ---
 
@@ -321,13 +352,14 @@
 - `ChatManager.cs` - 채팅 관리 (유지)
 - `DataManager.cs` - 데이터 관리 (유지)
 - `FirebaseAuthManager.cs` - 파이어베이스 인증 (유지)
-- `GameManager.cs` - 게임 상태 관리 (유지)
-- `HexArenaManager.cs` - Hex-A-Gone 아레나 관리 (신규)
+- `GameManager.cs` - 게임 상태 관리, SceneReference 방식 (개정)
+- `HexArenaManager.cs` - Hex-A-Gone 아레나 관리, RPC 동기화 (개정)
 - `HexGameManager.cs` - Hex-A-Gone 게임 매니저 (신규)
-- `HexTile.cs` - Hex-A-Gone 타일 (신규)
+- `HexTile.cs` - Hex-A-Gone 타일, 네트워크 동기화 (개정)
 - `BubbleZone.cs` - 탈락 감지 존 (신규)
 - `LobbyPlayerSpawner.cs` - 로비 플레이어 스폰 (유지)
-- `NetworkAuthorityManager.cs` - 네트워크 권위 (유지)
+- `NetworkAuthorityManager.cs` - 네트워크 권위, SceneReference 방식 (개정)
+- `SceneReference.cs` - 씬 에셋 래퍼 (신규)
 - `UserListManager.cs` - 유저 목록 (유지)
 - `WaitingRoomCharacterPreview.cs` - 대기실 캐릭터 미리보기 (유지)
 

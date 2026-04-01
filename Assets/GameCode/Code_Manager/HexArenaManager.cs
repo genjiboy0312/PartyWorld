@@ -8,6 +8,7 @@ using Photon.Realtime;
 /// - 모든 HexTile 추적
 /// - 활성 타일 수 관리
 /// - 플레이어 상태 추적
+/// - 네트워크 동기화
 /// </summary>
 public class HexArenaManager : MonoBehaviourPunCallbacks
 {
@@ -28,6 +29,10 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
 
     [Header("Game Flow")]
     [SerializeField] private bool _isGameActive = false;
+
+    // 타일 상태 동기화용 배열 (tileIndex -> durability)
+    private int[] _tileDurabilities;
+    private bool[] _tileSunkStates;
 
     // 이벤트
     public System.Action<int> TileSunk; // (남은 타일 수)
@@ -60,11 +65,25 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
         {
             _hexTiles.Clear();
             _hexTiles.AddRange(_tileContainer.GetComponentsInChildren<HexTile>());
+
+            // 각 타일에 tileIndex 설정
+            for (int i = 0; i < _hexTiles.Count; i++)
+            {
+                _hexTiles[i].SetTileIndex(i);
+            }
         }
 
         _totalTileCount = _hexTiles.Count;
         _activeTileCount = _totalTileCount;
         _sunkTileCount = 0;
+
+        // 타일 상태 배열 초기화
+        _tileDurabilities = new int[_totalTileCount];
+        _tileSunkStates = new bool[_totalTileCount];
+        for (int i = 0; i < _totalTileCount; i++)
+        {
+            _tileDurabilities[i] = _hexTiles[i].MaxDurability;
+        }
 
         Debug.Log($"[HexArenaManager] Initialized with {_totalTileCount} tiles");
     }
@@ -90,6 +109,12 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
         _sunkTileCount = 0;
         _activeTileCount = _totalTileCount;
 
+        // RPC로 모든 클라이언트에 게임 시작 동기화
+        if (PhotonNetwork.InRoom)
+        {
+            photonView.RPC("RPC_SyncGameStart", RpcTarget.All);
+        }
+
         Debug.Log("[HexArenaManager] Game started");
     }
 
@@ -114,6 +139,12 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
 
         // 딜레이 후 이동 재개
         StartCoroutine(ConfirmResetTiles());
+
+        // RPC로 동기화
+        if (PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("RPC_SyncResetAllTiles", RpcTarget.All);
+        }
     }
 
     private System.Collections.IEnumerator ConfirmResetTiles()
@@ -127,6 +158,13 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
 
         _sunkTileCount = 0;
         _activeTileCount = _totalTileCount;
+
+        // 상태 배열 리셋
+        for (int i = 0; i < _totalTileCount; i++)
+        {
+            _tileDurabilities[i] = _hexTiles[i].MaxDurability;
+            _tileSunkStates[i] = false;
+        }
     }
 
     /// <summary>
@@ -151,15 +189,32 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
     /// <summary>
     /// 타일이 가라앉았을 때 마스터에서 호출
     /// </summary>
-    public void HandleTileSunk(HexTile tile)
+    public void HandleTileSunk(int tileIndex)
     {
+        if (!PhotonNetwork.InRoom)
+        {
+            // 오프라인 모드 - 직접 처리
+            ProcessTileSunk(tileIndex);
+            return;
+        }
+
         if (!PhotonNetwork.IsMasterClient)
             return;
 
+        // RPC로 동기화
+        photonView.RPC("RPC_TileSunk", RpcTarget.All, tileIndex);
+    }
+
+    private void ProcessTileSunk(int tileIndex)
+    {
+        if (tileIndex < 0 || tileIndex >= _totalTileCount)
+            return;
+
+        _tileSunkStates[tileIndex] = true;
         _sunkTileCount++;
         _activeTileCount = _totalTileCount - _sunkTileCount;
 
-        Debug.Log($"[HexArenaManager] Tile sunk. Remaining tiles: {_activeTileCount}");
+        Debug.Log($"[HexArenaManager] Tile {tileIndex} sunk. Remaining tiles: {_activeTileCount}");
 
         TileSunk?.Invoke(_activeTileCount);
 
@@ -171,18 +226,36 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
     }
 
     /// <summary>
-    /// 타일이 데미지를 입었을 때 (네트워크 동기화용)
+    /// 타일이 데미지를 입었을 때 마스터에서 호출 (네트워크 동기화)
     /// </summary>
-    public void OnTileDamaged(HexTile tile, int remainingDurability)
+    public void OnTileDamaged(int tileIndex, int remainingDurability)
     {
+        if (!PhotonNetwork.InRoom)
+        {
+            // 오프라인 모드 - 직접 처리
+            ProcessTileDamaged(tileIndex, remainingDurability);
+            return;
+        }
+
         // 마스터에서만 처리
         if (!PhotonNetwork.IsMasterClient)
             return;
 
-        // 네트워크로 동기화 (선택사항)
-        if (PhotonNetwork.InRoom)
+        // RPC로 동기화
+        photonView.RPC("RPC_TileDamaged", RpcTarget.All, tileIndex, remainingDurability);
+    }
+
+    private void ProcessTileDamaged(int tileIndex, int remainingDurability)
+    {
+        if (tileIndex < 0 || tileIndex >= _totalTileCount)
+            return;
+
+        _tileDurabilities[tileIndex] = remainingDurability;
+
+        // 로컬 타일에 적용
+        if (tileIndex < _hexTiles.Count)
         {
-            // RPC 또는 CustomProperties로 동기화
+            _hexTiles[tileIndex].ApplyNetworkState(remainingDurability);
         }
     }
 
@@ -228,13 +301,6 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
         // 2. 활성 타일 1개 이하
         if (_activeTileCount <= 1)
         {
-            // 마지막 타일 위에 있는 플레이어가 승리
-            HexTile lastTile = GetLastActiveTile();
-            if (lastTile != null)
-            {
-                // 타일 위에 있는 플레이어 확인
-                // TODO: 실제 플레이어 위치 체크
-            }
             OnLastTileSunk?.Invoke();
         }
     }
@@ -255,15 +321,6 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
     }
 
     /// <summary>
-    /// 가장 많은 타일 위에 있는 플레이어 가져오기
-    /// </summary>
-    public GameObject GetPlayerOnMostTiles()
-    {
-        // TODO: 각 플레이어별 밟은 타일 수 추적 로직
-        return null;
-    }
-
-    /// <summary>
     /// 아레나 통계 반환
     /// </summary>
     public string GetArenaStats()
@@ -271,7 +328,108 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
         return $"[HexArena] Tiles: {_activeTileCount}/{_totalTileCount} | Players: {_alivePlayerCount}";
     }
 
+    #region Photon RPCs
+
+    [PunRPC]
+    private void RPC_TileDamaged(int tileIndex, int remainingDurability, PhotonMessageInfo info)
+    {
+        ProcessTileDamaged(tileIndex, remainingDurability);
+    }
+
+    [PunRPC]
+    private void RPC_TileSunk(int tileIndex, PhotonMessageInfo info)
+    {
+        ProcessTileSunk(tileIndex);
+    }
+
+    [PunRPC]
+    private void RPC_SyncGameStart(PhotonMessageInfo info)
+    {
+        _isGameActive = true;
+        Debug.Log($"[HexArenaManager] Game started (synced from {info.Sender.NickName})");
+    }
+
+    [PunRPC]
+    private void RPC_SyncResetAllTiles(PhotonMessageInfo info)
+    {
+        ResetAllTiles();
+    }
+
+    /// <summary>
+    /// 전체 타일 상태 동기화 (새로운 클라이언트용)
+    /// </summary>
+    [PunRPC]
+    private void RPC_SyncAllTileStates(int[] durabilities, bool[] sunkStates, PhotonMessageInfo info)
+    {
+        if (durabilities.Length != _totalTileCount || sunkStates.Length != _totalTileCount)
+        {
+            Debug.LogError("[HexArenaManager] Invalid tile state sync data");
+            return;
+        }
+
+        for (int i = 0; i < _totalTileCount; i++)
+        {
+            _tileDurabilities[i] = durabilities[i];
+            _tileSunkStates[i] = sunkStates[i];
+
+            if (i < _hexTiles.Count)
+            {
+                _hexTiles[i].ApplyNetworkState(durabilities[i]);
+                if (sunkStates[i])
+                {
+                    _hexTiles[i].ForceSink();
+                }
+            }
+        }
+
+        Debug.Log($"[HexArenaManager] Synced tile states from {info.Sender.NickName}");
+    }
+
+    /// <summary>
+    /// 마스터에게 전체 상태 요청 (새로운 클라이언트가 입장 시 호출)
+    /// </summary>
+    public void RequestFullSync()
+    {
+        if (!PhotonNetwork.InRoom)
+            return;
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            // 마스터면 직접 전송
+            photonView.RPC("RPC_SyncAllTileStates", RpcTarget.Others, _tileDurabilities, _tileSunkStates);
+        }
+        else
+        {
+            // 마스터에게 요청
+            photonView.RPC("RPC_RequestFullSync", RpcTarget.MasterClient);
+        }
+    }
+
+    [PunRPC]
+    private void RPC_RequestFullSync(PhotonMessageInfo info)
+    {
+        if (!PhotonNetwork.IsMasterClient)
+            return;
+
+        photonView.RPC("RPC_SyncAllTileStates", info.Sender, _tileDurabilities, _tileSunkStates);
+    }
+
+    #endregion
+
     #region Photon Callbacks
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        base.OnPlayerEnteredRoom(newPlayer);
+
+        Debug.Log($"[HexArenaManager] Player entered: {newPlayer.NickName}");
+
+        // 마스터가 새로운 클라이언트에게 상태 동기화
+        if (PhotonNetwork.IsMasterClient)
+        {
+            Invoke(nameof(RequestFullSync), 0.5f);
+        }
+    }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {

@@ -4,7 +4,7 @@
 
 `PartyWorld` 프로젝트의 **최근 작업 내역/변경 로그(공지용 요약)**를 누적 관리합니다.
 
-**마지막 업데이트**: 2026-03-30
+**마지막 업데이트**: 2026-04-01
 
 ---
 
@@ -60,6 +60,18 @@
 - **async/await 공통 함수 추가:** `DataManager`에 `SaveUserDataToFirebaseAsync()` 및 `LoadUserDataFromFirebaseAsync()` 메서드 추가 (기존 콜백 기반 메서드와 병행 유지).
 - **Task<bool> 반환 지원:** 비동기 작업 결과를 `await` 방식으로 처리 가능, 코드 가독성 및 오류 처리 개선.
 - **테스트 가이드 추가:** `MYAIAgent/TestGuide.md` 생성 및 3가지 테스트 시나리오(신규/기존/재실행) 정의.
+
+### 2026-04-01: Hex-A-Gone 시스템 보강 및 씬 관리 방식 개편
+
+- **영향 범위:** Scripts=`HexTile`, `HexArenaManager`, `NetworkAuthorityManager`, `GameManager` / Documents=`MYAIAgent/PlanningAgent.md` / Prefab=`HexTile.prefab`
+
+- **HexTile 프리팹 형태 유지:** `SetupFromPrefab()`, `CreateSolidCylinderMesh()` 등 메쉬 조작 코드 제거, 원본 프리팹 형태 그대로 유지.
+- **타일 네트워크 동기화:** `tileIndex` 기반 RPC 시스템 (`RPC_TileDamaged`, `RPC_TileSunk`, `RPC_SyncAllTileStates`) 추가.
+- **HexTile 컴포넌트 추가:** `SetTileIndex()`, `ApplyNetworkState()`, `NotifySunk()` 메서드 추가.
+- **SceneReference 방식 도입:** 씬 이름 타이핑 오류 방지 위해 `SceneReference` 래퍼 클래스 생성 (드래그 앤 드롭 지원).
+- **NetworkAuthorityManager 개편:** `_playMapScenes` 리스트로 게임 맵 수동 관리.
+- **GameManager 개편:** `_mapScenes` 리스트로 맵 씬 관리.
+- **생성된 파일:** `Assets/GameCode/SceneReference.cs`
 
 ---
 

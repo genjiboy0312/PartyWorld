@@ -45,12 +45,17 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [SerializeField] private bool _isRoomVisible = true;
 
     [Header("Scenes")]
-    [SerializeField] private string _titleSceneName = "Scene_Title&Login";
-    [SerializeField] private string _waitingRoomSceneName = "Scene_WaitingRoom";
-    [SerializeField] private string _roomLobbySceneName = "Scene_Lobby";
-    [SerializeField] private string _loadingSceneName = "Scene_Loading";
-    [SerializeField] private string _mapSceneName = "Scene_Map01";
-    [SerializeField] private List<string> _mapSceneNames = new List<string>();
+    [SerializeField] private SceneReference _titleScene = new SceneReference();
+    [SerializeField] private SceneReference _waitingRoomScene = new SceneReference();
+    [SerializeField] private SceneReference _roomLobbyScene = new SceneReference();
+    [SerializeField] private SceneReference _loadingScene = new SceneReference();
+    [SerializeField] private List<SceneReference> _playMapScenes = new List<SceneReference>();
+
+    // 런타임용 문자열 캐시
+    private string _titleSceneName;
+    private string _waitingRoomSceneName;
+    private string _roomLobbySceneName;
+    private string _loadingSceneName;
 
     [Header("Character Spawn")]
     [SerializeField] private CharacterCatalog _characterCatalog;
@@ -109,6 +114,12 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             PhotonNetwork.SendRate = _sendRate;
         if (_serializationRate > 0)
             PhotonNetwork.SerializationRate = _serializationRate;
+
+        // SceneReference에서 문자열 캐시 생성
+        _titleSceneName = _titleScene?.SceneName ?? "";
+        _waitingRoomSceneName = _waitingRoomScene?.SceneName ?? "";
+        _roomLobbySceneName = _roomLobbyScene?.SceneName ?? "";
+        _loadingSceneName = _loadingScene?.SceneName ?? "";
     }
 
     public override void OnEnable()
@@ -659,7 +670,13 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
 
         List<string> candidates = GetCandidateMapSceneNames();
-        string selected = candidates.Count > 0 ? candidates[Random.Range(0, candidates.Count)] : _mapSceneName;
+        if (candidates.Count == 0)
+        {
+            Debug.LogError("[NetworkAuthorityManager] No maps configured in _playMapScenes!");
+            return;
+        }
+
+        string selected = candidates[Random.Range(0, candidates.Count)];
 
         PhotonHashtable props = new PhotonHashtable
         {
@@ -671,9 +688,12 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     private string GetSelectedMapSceneName()
     {
-        // 룸 프로퍼티 기반으로 선택된 맵을 읽어옴(없으면 기본 맵)
+        // 룸 프로퍼티 기반으로 선택된 맵을 읽어옴(없으면 첫 번째 맵)
         if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
-            return _mapSceneName;
+        {
+            List<string> candidates = GetCandidateMapSceneNames();
+            return candidates.Count > 0 ? candidates[0] : string.Empty;
+        }
 
         if (PhotonNetwork.CurrentRoom.CustomProperties != null &&
             PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(ROOM_PROP_SELECTED_MAP, out object raw) &&
@@ -683,41 +703,25 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return sceneName;
         }
 
-        return _mapSceneName;
+        // 룸 프로퍼티에 없으면 첫 번째 맵 반환
+        List<string> fallbackCandidates = GetCandidateMapSceneNames();
+        return fallbackCandidates.Count > 0 ? fallbackCandidates[0] : string.Empty;
     }
 
     private List<string> GetCandidateMapSceneNames()
     {
-        // 인스펙터 지정 맵이 있으면 우선 사용, 없으면 BuildSettings에서 Scene_Map* 자동 수집
+        // 인스펙터에서 지정한 맵 리스트만 사용 (SceneReference)
         List<string> candidates = new List<string>();
 
-        if (_mapSceneNames != null)
+        if (_playMapScenes != null)
         {
-            for (int i = 0; i < _mapSceneNames.Count; i++)
+            for (int i = 0; i < _playMapScenes.Count; i++)
             {
-                string name = _mapSceneNames[i];
-                if (!string.IsNullOrWhiteSpace(name))
-                    candidates.Add(name);
+                string sceneName = _playMapScenes[i]?.SceneName;
+                if (!string.IsNullOrWhiteSpace(sceneName))
+                    candidates.Add(sceneName);
             }
         }
-
-        if (candidates.Count > 0)
-            return candidates;
-
-        int count = SceneManager.sceneCountInBuildSettings;
-        for (int i = 0; i < count; i++)
-        {
-            string path = SceneUtility.GetScenePathByBuildIndex(i);
-            string name = Path.GetFileNameWithoutExtension(path);
-            if (string.IsNullOrWhiteSpace(name))
-                continue;
-
-            if (name.StartsWith("Scene_Map"))
-                candidates.Add(name);
-        }
-
-        if (candidates.Count == 0 && !string.IsNullOrWhiteSpace(_mapSceneName))
-            candidates.Add(_mapSceneName);
 
         return candidates;
     }

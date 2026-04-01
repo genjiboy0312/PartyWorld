@@ -26,6 +26,7 @@ public class HexTile : MonoBehaviour
     [SerializeField] private AudioClip _sinkSound;
 
     // 현재 상태
+    private int _tileIndex = -1;
     private int _currentDurability;
     private int _playersOnTile = 0;
     private bool _isSinking = false;
@@ -33,8 +34,10 @@ public class HexTile : MonoBehaviour
     private Vector3 _originalPosition;
     private Quaternion _originalRotation;
     private Renderer _renderer;
+    private MeshFilter _meshFilter;
 
     // 프로퍼티
+    public int TileIndex => _tileIndex;
     public int CurrentDurability => _currentDurability;
     public int MaxDurability => _maxDurability;
     public bool IsSunk => _isSunk;
@@ -44,11 +47,55 @@ public class HexTile : MonoBehaviour
     private void Awake()
     {
         _renderer = GetComponent<Renderer>();
+        _meshFilter = GetComponent<MeshFilter>();
         _currentDurability = _maxDurability;
         _originalPosition = transform.position;
         _originalRotation = transform.rotation;
 
-        // 머티리얼 자동 할당 (인스펙터에서 미설정 시)
+        // 프리팹에서 머티리얼 로드 (메쉬는 그대로 유지)
+        LoadMaterials();
+
+        UpdateMaterial();
+    }
+
+    /// <summary>
+    /// 타일 인덱스 설정 (HexArenaManager에서 호출)
+    /// </summary>
+    public void SetTileIndex(int index)
+    {
+        _tileIndex = index;
+    }
+
+    /// <summary>
+    /// 네트워크에서 받은 상태 적용
+    /// </summary>
+    public void ApplyNetworkState(int durability)
+    {
+        _currentDurability = durability;
+        UpdateMaterial();
+    }
+
+    /// <summary>
+    /// 머티리얼 로드 (Resources/Materials에서 또는 동적 생성)
+    /// </summary>
+    private void LoadMaterials()
+    {
+        // Resources/Materials에서 머티리얼 로드
+        Material[] materials = Resources.LoadAll<Material>("Materials/");
+
+        foreach (Material mat in materials)
+        {
+            if (mat.name.Contains("Green") && _greenMaterial == null)
+                _greenMaterial = mat;
+            else if (mat.name.Contains("Yellow") && _yellowMaterial == null)
+                _yellowMaterial = mat;
+            else if (mat.name.Contains("Orange") && _orangeMaterial == null)
+                _orangeMaterial = mat;
+            else if (mat.name.Contains("Red") && _redMaterial == null)
+                _redMaterial = mat;
+        }
+
+        // 없으면 동적 생성
         if (_greenMaterial == null)
             _greenMaterial = CreateSolidMaterial(new Color(0.2f, 0.8f, 0.2f));
         if (_yellowMaterial == null)
@@ -57,8 +104,6 @@ public class HexTile : MonoBehaviour
             _orangeMaterial = CreateSolidMaterial(new Color(0.9f, 0.5f, 0.2f));
         if (_redMaterial == null)
             _redMaterial = CreateSolidMaterial(new Color(0.9f, 0.2f, 0.2f));
-
-        UpdateMaterial();
     }
 
     private void Update()
@@ -79,8 +124,8 @@ public class HexTile : MonoBehaviour
                 _isSinking = false;
                 gameObject.SetActive(false);
 
-                // 아레나 매니저에 알림
-                HexArenaManager.Instance?.HandleTileSunk(this);
+                // 아레나 매니저에 알림 (tileIndex 기반)
+                NotifySunk();
             }
         }
     }
@@ -131,8 +176,11 @@ public class HexTile : MonoBehaviour
             PlaySound(_stepSound);
         }
 
-        // 아레나 매니저에 알림
-        HexArenaManager.Instance?.OnTileDamaged(this, _currentDurability);
+        // 아레나 매니저에 알림 (tileIndex 기반)
+        if (_tileIndex >= 0 && HexArenaManager.Instance != null)
+        {
+            HexArenaManager.Instance.OnTileDamaged(_tileIndex, _currentDurability);
+        }
     }
 
     private void OnPlayerExited()
@@ -163,6 +211,17 @@ public class HexTile : MonoBehaviour
         _isSinking = true;
         UpdateMaterial(); // 빨간색으로 변경
         PlaySound(_sinkSound);
+    }
+
+    /// <summary>
+    /// 가라앉기 완료 시 HexArenaManager에 알림 (외부에서 호출)
+    /// </summary>
+    public void NotifySunk()
+    {
+        if (_tileIndex >= 0 && HexArenaManager.Instance != null)
+        {
+            HexArenaManager.Instance.HandleTileSunk(_tileIndex);
+        }
     }
 
     /// <summary>
