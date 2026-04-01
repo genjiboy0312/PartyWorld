@@ -2204,6 +2204,7 @@ MonoBehaviour:
   _createBtn: {fileID: 1591676374}
   _exitBtn: {fileID: 79729123}
   _loadNextSceneOnLogin: 1
+  _characterCreationSceneName: Scene_CharacterCreation
   _nextSceneName: Scene_WaitingRoom
 --- !u!1 &782037048
 GameObject:
@@ -3633,13 +3634,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentGameState: 0
-  _titleSceneName: Scene_Title&Login
-  _characterCreationSceneName: Scene_CharacterCreation
-  _waitingRoomSceneName: Scene_WaitingRoom
-  _lobbySceneName: Scene_Lobby
-  _loadingSceneName: Scene_Loading
-  _resultSceneName: Scene_Result
-  _mapScenePrefix: Scene_Map
+  _titleScene:
+    _sceneName: Scene_Title&Login
+    _sceneAsset: {fileID: 102900000, guid: 71484d49c31399b4090a3e9dbb935a96, type: 3}
+  _characterCreationScene:
+    _sceneName: Scene_CharacterCreation
+    _sceneAsset: {fileID: 102900000, guid: fa8f3be174d66bf41b155075fe2fe6c6, type: 3}
+  _waitingRoomScene:
+    _sceneName: Scene_WaitingRoom
+    _sceneAsset: {fileID: 102900000, guid: b2b460ad656040ad9e6c37dc1deb6e70, type: 3}
+  _lobbyScene:
+    _sceneName: Scene_Lobby
+    _sceneAsset: {fileID: 102900000, guid: d3d09f8ef0692654b9bb5bed6b01ea7f, type: 3}
+  _loadingScene:
+    _sceneName: Scene_Loading
+    _sceneAsset: {fileID: 102900000, guid: 42a9afc7c4e5a8a41b376947fb08ac89, type: 3}
+  _resultScene:
+    _sceneName: 
+    _sceneAsset: {fileID: 0}
+  _mapScenes:
+  - _sceneName: Scene_Map01
+    _sceneAsset: {fileID: 102900000, guid: ab7f2b28c2b5d0d4b972f1942395b5ab, type: 3}
+  - _sceneName: Scene_HexagonMap
+    _sceneAsset: {fileID: 102900000, guid: b9dde5f75d34eb74689fa6d5e3e17602, type: 3}
 --- !u!1 &1498404807
 GameObject:
   m_ObjectHideFlags: 0
@@ -4440,6 +4457,7 @@ Transform:
   - {fileID: 44310088}
   - {fileID: 1366392453}
   - {fileID: 235529667}
+  - {fileID: 1985618183}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1849360512
@@ -4773,6 +4791,85 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1985618182
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1985618183}
+  - component: {fileID: 1985618184}
+  m_Layer: 0
+  m_Name: NetworkAuthorityManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1985618183
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1985618182}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1704239763}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1985618184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1985618182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7267c1f18c8cbf34ea80b8620cbf9f19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkAuthorityManager
+  _autoConnect: 0
+  _autoMatchmake: 0
+  _gameVersion: 1.0f
+  _maxPlayers: 8
+  _isRoomOpen: 1
+  _isRoomVisible: 1
+  _titleScene:
+    _sceneName: Scene_Title&Login
+    _sceneAsset: {fileID: 102900000, guid: 71484d49c31399b4090a3e9dbb935a96, type: 3}
+  _waitingRoomScene:
+    _sceneName: Scene_WaitingRoom
+    _sceneAsset: {fileID: 102900000, guid: b2b460ad656040ad9e6c37dc1deb6e70, type: 3}
+  _roomLobbyScene:
+    _sceneName: Scene_Lobby
+    _sceneAsset: {fileID: 102900000, guid: d3d09f8ef0692654b9bb5bed6b01ea7f, type: 3}
+  _loadingScene:
+    _sceneName: Scene_Loading
+    _sceneAsset: {fileID: 102900000, guid: 42a9afc7c4e5a8a41b376947fb08ac89, type: 3}
+  _playMapScenes:
+  - _sceneName: Scene_Map01
+    _sceneAsset: {fileID: 102900000, guid: ab7f2b28c2b5d0d4b972f1942395b5ab, type: 3}
+  - _sceneName: Scene_HexagonMap
+    _sceneAsset: {fileID: 102900000, guid: b9dde5f75d34eb74689fa6d5e3e17602, type: 3}
+  _characterCatalog: {fileID: 0}
+  _characterSpawnEntries: []
+  _defaultCharacterId: bear_base
+  _defaultPlayerPrefabName: Player_Test01
+  _fallbackSpawnPosition: {x: 0, y: 0, z: 0}
+  _fallbackSpawnStep: {x: 1.5, y: 0, z: 0}
+  _sendRate: 60
+  _serializationRate: 60
+  _loadingGateDelaySeconds: 0.25
+  _lobbyCountdownSeconds: 5
+  _joinTimeoutSeconds: 10
+  _retryDelaySeconds: 1.5
 --- !u!1 &2017282767
 GameObject:
   m_ObjectHideFlags: 0
