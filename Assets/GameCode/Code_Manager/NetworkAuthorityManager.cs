@@ -370,7 +370,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         if (state == ClientState.Joining || state == ClientState.ConnectingToGameServer || state == ClientState.Leaving)
             return;
 
-        if (state != ClientState.ConnectedToMasterServer && state != ClientState.ConnectedToMaster)
+        if (state != ClientState.ConnectedToMasterServer)
             return;
 
         RoomOptions options = new RoomOptions

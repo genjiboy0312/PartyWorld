@@ -154,8 +154,9 @@ namespace ARP.APR.Scripts
                 SetupMobileInput();
         }
 
-        void OnDisable()
+        public override void OnDisable()
         {
+            base.OnDisable();
             if (_gameManager != null)
                 _gameManager.OnGameStateChangeEvent -= OnGameStateChange;
         }

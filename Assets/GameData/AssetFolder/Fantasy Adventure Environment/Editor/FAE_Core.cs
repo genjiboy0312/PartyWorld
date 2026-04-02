@@ -317,7 +317,7 @@ namespace FAE
                 EditorApplication.update -= PostURPConversion;
       
                 //If any controllers are present in the open scene, these need to be nudged to apply the correct shaders
-                CliffAppearance[] cliffControllers = GameObject.FindObjectsOfType<CliffAppearance>();
+                CliffAppearance[] cliffControllers = GameObject.FindObjectsByType<CliffAppearance>(FindObjectsSortMode.None);
                 for (int i = 0; i < cliffControllers.Length; i++)
                 {
                     cliffControllers[i].OnEnable();

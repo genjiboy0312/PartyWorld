@@ -20,10 +20,6 @@ public class HexGameManager : MonoBehaviourPunCallbacks
     [SerializeField] private float _timeLimit = 0f; // 0이면 제한 없음
     [SerializeField] private bool _useTimeLimit = false;
 
-    [Header("Win Conditions")]
-    [SerializeField] private bool _lastPlayerWins = true; // 마지막 생존자 승리
-    [SerializeField] private bool _mostTilesWins = false; // 가장 많은 타일 위에서 생존
-
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI _timerText;
     [SerializeField] private TextMeshProUGUI _playerCountText;

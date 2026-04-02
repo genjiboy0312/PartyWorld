@@ -234,7 +234,7 @@ namespace FAE
         void LocateWindController()
         {
             //Debug.Log("Searching scene for WindController script");
-            windController = GameObject.FindObjectOfType<WindController>();
+            windController = GameObject.FindFirstObjectByType<WindController>();
             hasWindController = (windController) ? true : false;
         }
 

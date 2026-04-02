@@ -65,7 +65,7 @@ namespace Photon.Pun.UtilityScripts
 
             if (this.cullArea == null)
             {
-                this.cullArea = FindObjectOfType<CullArea>();
+                this.cullArea = FindFirstObjectByType<CullArea>();
             }
 
             this.previousActiveCells = new List<byte>(0);
