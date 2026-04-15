@@ -64,6 +64,12 @@ MonoBehaviour:
   - RPC_PlayerEliminated
   - RPC_StartGame
   - RPC_WinnerDeclared
+  - RPC_RequestFullSync
+  - RPC_SyncAllTileStates
+  - RPC_SyncGameStart
+  - RPC_SyncResetAllTiles
+  - RPC_TileDamaged
+  - RPC_TileSunk
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

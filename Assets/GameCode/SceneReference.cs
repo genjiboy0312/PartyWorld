@@ -12,7 +12,7 @@ using UnityEditor;
 public class SceneReference
 {
     [SerializeField] private string _sceneName = "";
-    
+
 #if UNITY_EDITOR
     [SerializeField] private UnityEngine.Object _sceneAsset;
 #endif

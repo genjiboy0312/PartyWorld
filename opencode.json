@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "sllm": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "사내 AI 서버",
+      "options": {
+        "baseURL": "http://172.25.249.44:50002/v1"
+      },
+      "models": {
+        "qwen3:14b": {
+          "name": "Qwen3 8B (tools+thinking)",
+          "limit": { "context": 32768, "output": 8192 }
+        },
+        "qwen2.5-coder:14b": {
+          "name": "Qwen2.5-Coder 14B",
+          "limit": { "context": 32768, "output": 8192 }
+        }
+      }
+    }
+  },
+  "model": "sllm/qwen3:14b",
+  "small_model": "sllm/qwen3:14b",
+  "plugin": ["oh-my-openagent"],
+  "plugin": ["oh-my-openagent"],
+  "share": "disabled"
+}
