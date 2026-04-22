@@ -7,7 +7,6 @@ public class FollowCamera : MonoBehaviour
     [SerializeField] private Vector3 _offset = new Vector3(0, 5, -7);
     [SerializeField] private Vector3 _rotationOffset = new Vector3(20, 0, 0);
     [SerializeField] private float _smoothTime = 0.15f;
-    [SerializeField] private float _velocityThreshold = 0.5f;
 
     private Vector3 _velocity;
     private float _rotationVelocity;
@@ -21,22 +20,24 @@ public class FollowCamera : MonoBehaviour
         if (_playerTransform == null)
             return;
 
-        // 위치: 플레이어 기준 오프셋 + 부드러운 보간
-        Vector3 targetPos = _playerTransform.position + _playerTransform.rotation * _offset;
-        transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref _velocity, _smoothTime);
-
-        // 회전: 플레이어가 실제로 바라보는 방향 기준
+        // 회전: 플레이어의 수평(yaw) 방향 기준으로만 갱신
         float targetY = GetFacingAngle();
         float currentY = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetY, ref _rotationVelocity, _smoothTime);
+
+        // 위치: yaw 기준 오프셋만 적용해서 pitch/roll 틀어짐 방지
+        Quaternion yawRotation = Quaternion.Euler(0f, currentY, 0f);
+        Vector3 targetPos = _playerTransform.position + yawRotation * _offset;
+        transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref _velocity, _smoothTime);
+
         transform.rotation = Quaternion.Euler(_rotationOffset.x, currentY, _rotationOffset.z);
     }
 
     private float GetFacingAngle()
     {
-        Rigidbody rb = _playerTransform.GetComponentInChildren<Rigidbody>();
-        if (rb != null && rb.linearVelocity.magnitude > _velocityThreshold)
+        Vector3 horizontalForward = Vector3.ProjectOnPlane(_playerTransform.forward, Vector3.up);
+        if (horizontalForward.sqrMagnitude > 0.0001f)
         {
-            _lastFacingY = Quaternion.LookRotation(new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z)).eulerAngles.y;
+            _lastFacingY = Quaternion.LookRotation(horizontalForward, Vector3.up).eulerAngles.y;
         }
         return _lastFacingY;
     }
@@ -47,9 +48,7 @@ public class FollowCamera : MonoBehaviour
             NetworkAuthorityManager.Instance.LocalSpawnedPlayer != null)
         {
             _playerTransform = NetworkAuthorityManager.Instance.LocalSpawnedPlayer.transform;
-            Rigidbody rb = _playerTransform.GetComponentInChildren<Rigidbody>();
-            if (rb != null)
-                _lastFacingY = _playerTransform.eulerAngles.y;
+            _lastFacingY = _playerTransform.eulerAngles.y;
             return;
         }
 

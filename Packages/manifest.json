@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.ivanmurzak.unity.mcp": "0.66.0",
     "com.siccity.gltfutility": "https://github.com/siccity/gltfutility.git",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.ai.navigation": "2.0.10",
@@ -45,8 +46,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0",
-    "com.ivanmurzak.unity.mcp": "0.63.3"
+    "com.unity.modules.xr": "1.0.0"
   },
   "scopedRegistries": [
     {
