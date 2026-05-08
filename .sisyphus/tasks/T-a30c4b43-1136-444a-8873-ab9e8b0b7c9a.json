@@ -1,0 +1,10 @@
+{
+  "id": "T-a30c4b43-1136-444a-8873-ab9e8b0b7c9a",
+  "subject": "Fix held input activation",
+  "description": "Update PlayerPresenter input handling so WASD and Arrow keyboard inputs are active only while held, reset immediately on release, and keep UI joystick behavior independent.",
+  "status": "completed",
+  "activeForm": "Fixed sticky input activation",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_1fead6d3fffemAlHfbozA9WGAo"
+}

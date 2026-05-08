@@ -1,0 +1,14 @@
+{
+  "componentRef": {
+    "instanceID": 148320
+  },
+  "jsonPatch": [
+    {
+      "op": "replace",
+      "path": "/_rigidbody3D",
+      "value": {
+        "instanceID": 147814
+      }
+    }
+  ]
+}

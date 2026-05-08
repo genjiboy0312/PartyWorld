@@ -1,0 +1,12 @@
+{
+  "id": "T-c9210119-7ff7-4d30-aceb-49c99625670e",
+  "subject": "Summarize ViewQuery resolution steps",
+  "description": "Return the package name, namespace, using directive, missing-environment cause, and concrete steps to resolve CS0246.",
+  "status": "completed",
+  "activeForm": "Summarizing ViewQuery resolution steps",
+  "blocks": [],
+  "blockedBy": [
+    "T-3d14fda1-9ae4-4650-8d0c-d1eb9420e39a"
+  ],
+  "threadID": "ses_2054eb5cfffeSh4R1Te4Lpae8h"
+}

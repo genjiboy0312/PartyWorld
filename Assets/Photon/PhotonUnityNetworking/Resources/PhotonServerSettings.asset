@@ -70,6 +70,8 @@ MonoBehaviour:
   - RPC_SyncResetAllTiles
   - RPC_TileDamaged
   - RPC_TileSunk
+  - RPC_PlayerFinished
+  - RPC_StartRace
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -1,0 +1,11 @@
+{
+  "id": "T-e578f1e2-0746-4f5c-856c-dc126067f70b",
+  "subject": "Analyze HexGameManager reuse",
+  "description": "Investigate HexGameManager, GameManager, and related gameplay manager boundaries to recommend a reusable architecture for future game scenes.",
+  "status": "in_progress",
+  "activeForm": "Reviewing gameplay manager boundaries",
+  "blocks": [],
+  "blockedBy": [],
+  "owner": "Sisyphus",
+  "threadID": "ses_24c233a67ffelZ5cUtpH5DyC1N"
+}

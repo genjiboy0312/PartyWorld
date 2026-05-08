@@ -1,0 +1,11 @@
+{
+  "id": "T-72c74a9e-581e-4186-9913-bf149016f749",
+  "subject": "Add HexagonMap match UI",
+  "description": "Inspect Scene_HexagonMap canvas and place common match UI for MatchManager using existing scene/UI patterns.",
+  "status": "completed",
+  "activeForm": "Completed HexagonMap match UI analysis",
+  "blocks": [],
+  "blockedBy": [],
+  "owner": "Sisyphus",
+  "threadID": "ses_24c233a67ffelZ5cUtpH5DyC1N"
+}

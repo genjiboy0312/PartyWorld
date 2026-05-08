@@ -1,0 +1,10 @@
+{
+  "id": "T-7bae24f0-c7e2-492a-92bd-13ebb2df4595",
+  "subject": "Investigate UI_PlayerController usage",
+  "description": "Find exact files/scenes/prefabs/scripts where UI_PlayerController appears and how it is referenced or instantiated.",
+  "status": "completed",
+  "activeForm": "reporting findings",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_24c228a8fffejr91TtY5hBYtX3"
+}
