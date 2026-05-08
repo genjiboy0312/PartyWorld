@@ -11,7 +11,7 @@ public class PlayerModel
     public event Action<float> OnSpeedChanged;
 
     [Header("Movement Settings")]
-    [SerializeField] private float _speed = 30f;
+    [SerializeField] private float _speed = 2f;
     [SerializeField] private float _jumpPower = 20f;
     [SerializeField] private float _diveForce = 20f;
 

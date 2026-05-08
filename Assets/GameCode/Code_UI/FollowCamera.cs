@@ -1,66 +1,37 @@
-﻿using UnityEngine;
-using Photon.Pun;
+using UnityEngine;
 
 public class FollowCamera : MonoBehaviour
 {
     [SerializeField] private Transform _playerTransform;
-    [SerializeField] private Vector3 _offset = new Vector3(0, 5, -7);
-    [SerializeField] private Vector3 _rotationOffset = new Vector3(20, 0, 0);
-    [SerializeField] private float _smoothTime = 0.15f;
+    [SerializeField] private float _rotationSpeed = 50f;
+    [SerializeField] private float _minPitch = -30f;        //  아래로 내렸을 때 한계
+    [SerializeField] private float _maxPitch = 30f;     //  위로 올렸을 때 한계
 
-    private Vector3 _velocity;
-    private float _rotationVelocity;
-    private float _lastFacingY;
+    private float _yaw = 0f;
+    private float _pitch = 20f;
+    private Vector3 _offset;
+
+    void Start()
+    {
+        if (_playerTransform != null)
+        {
+            _offset = transform.position - _playerTransform.position;
+            _yaw = transform.eulerAngles.y;
+        }
+    }
 
     void LateUpdate()
     {
-        if (_playerTransform == null)
-            FindLocalPlayer();
+        if (_playerTransform == null) return;
 
-        if (_playerTransform == null)
-            return;
-
-        // 회전: 플레이어의 수평(yaw) 방향 기준으로만 갱신
-        float targetY = GetFacingAngle();
-        float currentY = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetY, ref _rotationVelocity, _smoothTime);
-
-        // 위치: yaw 기준 오프셋만 적용해서 pitch/roll 틀어짐 방지
-        Quaternion yawRotation = Quaternion.Euler(0f, currentY, 0f);
-        Vector3 targetPos = _playerTransform.position + yawRotation * _offset;
-        transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref _velocity, _smoothTime);
-
-        transform.rotation = Quaternion.Euler(_rotationOffset.x, currentY, _rotationOffset.z);
+        Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+        transform.position = _playerTransform.position + (rotation * new Vector3(0, _offset.y, -_offset.magnitude));
+        transform.LookAt(_playerTransform.position + Vector3.up * 1.5f);
     }
 
-    private float GetFacingAngle()
+    public void AddRotation(float yawDelta, float pitchDelta)
     {
-        Vector3 horizontalForward = Vector3.ProjectOnPlane(_playerTransform.forward, Vector3.up);
-        if (horizontalForward.sqrMagnitude > 0.0001f)
-        {
-            _lastFacingY = Quaternion.LookRotation(horizontalForward, Vector3.up).eulerAngles.y;
-        }
-        return _lastFacingY;
-    }
-
-    private void FindLocalPlayer()
-    {
-        if (NetworkAuthorityManager.Instance != null &&
-            NetworkAuthorityManager.Instance.LocalSpawnedPlayer != null)
-        {
-            _playerTransform = NetworkAuthorityManager.Instance.LocalSpawnedPlayer.transform;
-            _lastFacingY = _playerTransform.eulerAngles.y;
-            return;
-        }
-
-        PhotonView[] views = FindObjectsByType<PhotonView>(FindObjectsSortMode.None);
-        for (int i = 0; i < views.Length; i++)
-        {
-            if (views[i].IsMine && views[i].GetComponent<Rigidbody>() != null)
-            {
-                _playerTransform = views[i].transform;
-                _lastFacingY = _playerTransform.eulerAngles.y;
-                return;
-            }
-        }
+        _yaw += yawDelta * _rotationSpeed * Time.deltaTime;
+        _pitch = Mathf.Clamp(_pitch - pitchDelta * _rotationSpeed * Time.deltaTime, _minPitch, _maxPitch);
     }
 }

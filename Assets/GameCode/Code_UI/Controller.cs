@@ -25,6 +25,26 @@ public class Controller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoi
         _diveBtn.onClick.AddListener(PlayerDive);
     }
 
+    public void SetJoystickInput(Vector2 input)
+    {
+        Vector2 visualInput = Vector2.ClampMagnitude(input, 1.0f);
+
+        if (_joyStickBackground == null || _joyStickImage == null)
+            return;
+
+        _joyStickImage.rectTransform.anchoredPosition = new Vector2(
+            visualInput.x * (_joyStickBackground.rectTransform.sizeDelta.x / 4),
+            visualInput.y * (_joyStickBackground.rectTransform.sizeDelta.y / 4)
+        );
+    }
+
+    public void ResetJoystick()
+    {
+        _posInput = Vector2.zero;
+        _joyStickImage.rectTransform.anchoredPosition = Vector2.zero;
+        _isDragging = false;
+    }
+
     public void OnDrag(PointerEventData eventData)
     {
         if (_joyStickBackground == null || _joyStickImage == null)
@@ -68,20 +88,12 @@ public class Controller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoi
 
     public float InputHorizontal()
     {
-#if UNITY_EDITOR || UNITY_STANDALONE
-        return _isDragging ? _posInput.x : Input.GetAxisRaw("Horizontal");
-#else
         return _isDragging ? _posInput.x : 0f;
-#endif
     }
 
     public float InputVertical()
     {
-#if UNITY_EDITOR || UNITY_STANDALONE
-        return _isDragging ? _posInput.y : Input.GetAxisRaw("Vertical");
-#else
         return _isDragging ? _posInput.y : 0f;
-#endif
     }
 
     private void PlayerJump()
