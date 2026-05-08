@@ -18,7 +18,7 @@ public class PlayerModel
     [Header("Status (Read Only)")]
     [SerializeField] private bool _isJump;
     [SerializeField] private bool _isDive;
-    [SerializeField] private bool _isGrap;
+    [SerializeField] private bool _isDash;
     private Vector3 _moveDirection;
 
     public float Speed
@@ -58,14 +58,14 @@ public class PlayerModel
         }
     }
 
-    public bool IsGrap
+    public bool IsDash
     {
-        get => _isGrap;
+        get => _isDash;
         set
         {
-            if (_isGrap == value) return;
-            _isGrap = value;
-            SafeInvoke(OnGrapStateChanged, _isGrap);
+            if (_isDash == value) return;
+            _isDash = value;
+            SafeInvoke(OnGrapStateChanged, _isDash);
         }
     }
 
@@ -75,15 +75,15 @@ public class PlayerModel
         set => _moveDirection = value;
     }
 
-    public bool CanJump() => !_isJump && !_isDive;
-    public bool CanDive() => !_isJump && !_isDive;
-    public bool CanGrap() => !_isGrap;
+    public bool CanJump() => !_isJump && !_isDash;
+    public bool CanDive() => !_isDive;
+    public bool CanDash() => !_isJump && !_isDive && !_isDash;
 
     public void ResetStates()
     {
         IsJump = false;
         IsDive = false;
-        IsGrap = false;
+        IsDash = false;
         Debug.Log("Model 상태 리셋 완료");
     }
 

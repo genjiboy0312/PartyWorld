@@ -18,7 +18,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     [SerializeField] private Controller _cameraController;
     [SerializeField] private Button _btnJump;
     [SerializeField] private Button _btnDive;
-    [SerializeField] private Button _btnGrap;
+    [SerializeField] private Button _btnDash;       //  Dash Attack
 
     [Header("Movement Setting")]
     [SerializeField] private Rigidbody _rigidbody3D;
@@ -47,7 +47,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
 
         if (_btnJump != null) _btnJump.onClick.AddListener(Jump);
         if (_btnDive != null) _btnDive.onClick.AddListener(Dive);
-        if (_btnGrap != null) _btnGrap.onClick.AddListener(Grap);
+        if (_btnDash != null) _btnDash.onClick.AddListener(Dash);
 
         if (_model != null)
         {
@@ -81,7 +81,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         UnsubscribeEvents();
         if (_btnJump != null) _btnJump.onClick.RemoveListener(Jump);
         if (_btnDive != null) _btnDive.onClick.RemoveListener(Dive);
-        if (_btnGrap != null) _btnGrap.onClick.RemoveListener(Grap);
+        if (_btnDash != null) _btnDash.onClick.RemoveListener(Dash);
     }
 
     private void UnsubscribeEvents()
@@ -131,7 +131,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
             else if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f)
                 _cameraController.ResetJoystick();
         }
-        
+
         h += arrowH;
         v += arrowV;
 
@@ -177,7 +177,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
 
         if (Input.GetKeyDown(KeyCode.Space)) Jump();
         if (Input.GetKeyDown(KeyCode.LeftShift)) Dive();
-        if (Input.GetKeyDown(KeyCode.LeftControl)) Grap();
+        if (Input.GetKeyDown(KeyCode.LeftControl)) Dash();
     }
 
     private void FixedUpdate()
@@ -227,10 +227,61 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         }
     }
 
-    private void Dive() { if (_model != null && _model.CanDive()) _model.IsDive = true; }
-    private void Grap() { if (_model != null && _model.CanGrap()) _model.IsGrap = true; }
+    [Header("Dash Setting")]
+    [SerializeField] private float _dashForce = 20f;
+    private bool _isDashing = false;
 
-    private void OnCollisionEnter(Collision collision) => UpdateGroundedState(collision);
+    // 대시
+    private void Dash() 
+    { 
+        if (_model != null && !_isDashing) 
+        {
+            StartCoroutine(DashCoroutine());
+        }
+    }
+
+    private System.Collections.IEnumerator DashCoroutine()
+    {
+        _isDashing = true;
+        _rigidbody3D.AddForce(transform.forward * _dashForce, ForceMode.Impulse);
+        yield return new WaitForSeconds(0.3f);
+        _isDashing = false;
+    }
+
+    // 다이브
+    private void Dive() 
+    { 
+        if (_model != null && _model.CanDive()) 
+        {
+            _model.IsDive = true;
+            // 필요 시 뷰 호출: _view.Dive(_model.DiveForce);
+        }
+    }
+
+    // 다이브 종료 (버튼 뗄 때 호출)
+    public void DiveEnd()
+    {
+        if (_model != null)
+        {
+            _model.IsDive = false;
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        UpdateGroundedState(collision);
+
+        // 대시 중 충돌 시 상대방 밀쳐내기
+        if (_isDashing && collision.gameObject.CompareTag("Player"))
+        {
+            Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
+            if (otherRb != null)
+            {
+                Vector3 pushDir = (collision.transform.position - transform.position).normalized;
+                otherRb.AddForce(pushDir * (_dashForce * 0.5f), ForceMode.Impulse);
+            }
+        }
+    }
     private void OnCollisionStay(Collision collision) => UpdateGroundedState(collision);
     private void OnCollisionExit(Collision collision)
     {
