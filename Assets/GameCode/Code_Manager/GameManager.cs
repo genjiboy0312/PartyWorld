@@ -27,6 +27,10 @@ public class GameManager : MonoBehaviour
 
         GameObject go = new GameObject(nameof(GameManager));
         go.AddComponent<GameManager>();
+
+        // 플랫폼 품질 관리자 초기화 (GameManager와 동일한 GameObject에 추가)
+        if (PlatformQualityManager.Instance == null)
+            go.AddComponent<PlatformQualityManager>();
     }
 
     [SerializeField] private GameState _currentGameState = GameState.Title;
