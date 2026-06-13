@@ -1,19 +1,39 @@
 # MyAIAgent
 
-프로젝트에서 사용하는 에이전트 문서 모음입니다.
+`PartyWorld` 프로젝트(Unity 기반 멀티플레이 파티 게임)에서 사용하는 에이전트 문서 모음입니다.
+**타겟 플랫폼**: Android / iOS 모바일
 
-- `PlanningAgent.md`: 씬/네트워크 흐름, 우선순위, 구현 계획(메인)
-- `RiskAgent.md`: 알려진 리스크 & 체크리스트(릴리즈/회귀 점검)
-- `OpenQuestionsAgent.md`: 오픈 질문(결정 필요 항목)
-- `NoticeAgent.md`: 최근 작업 내역/공지용 변경 로그
-- `CLIAgent.md`: Codex CLI 사용 가이드(프로젝트용)
-- `AgentCycle.md`: Plan/Build 작업 순환 가이드 및 체크리스트
-- `UnityAgent.md`: Unity/C# 개발 고도화를 위한 전용 운영 가이드
+---
+
+## 문서 목록
+
+### 🎯 Unity 개발
+- **`UnityAgent.md`**: Unity/C# 개발 품질 기준, 작업 프로토콜, 리뷰 체크리스트 ⭐ **시작점**
+- `AgentCycle.md`: Plan/Build 작업 순환 가이드
+
+### ⚠️ 리스크 및 운영
+- `RiskAgent.md`: 기술 리스크 관리 (성능/네트워크/모바일)
+- `NoticeAgent.md`: 작업 내역 및 변경 로그
+
+### 📊 분석
+- `MyAIAgent_Analysis_20260613.md`: 프로젝트 종합 분석 보고서
+
+---
 
 ## 문서 운영 규칙
 
-- 기능/플로우 변경 시: `PlanningAgent.md` + `RiskAgent.md` + `NoticeAgent.md` 동시 업데이트
-- 결정 필요 항목이 생기면: `OpenQuestionsAgent.md`에 먼저 등록 후, 결정되면 `PlanningAgent.md`에 반영
-- 회귀/장애가 발생하면: `RiskAgent.md`에 재현 절차를 남기고, 해결 후 체크리스트 상태를 갱신
-- 작업 종료 시: `NoticeAgent.md`에 날짜 기준으로 영향 범위(씬/스크립트/프리팹)까지 함께 기록
-- 문서 변경 시: 각 문서의 `마지막 업데이트` 날짜를 당일 기준으로 유지
+- **기능/아키텍처 변경 시**: `UnityAgent.md` + `RiskAgent.md` + `NoticeAgent.md` 동시 업데이트
+- **리스크 발견 시**: `RiskAgent.md`에 재현 절차 및 완화 방안 기록
+- **작업 완료 시**: `NoticeAgent.md`에 날짜/변경 내용/영향 범위 기록
+- **문서 변경 시**: 각 문서의 `마지막 업데이트` 날짜를 당일 기준으로 유지
+
+### Git 작업 정책
+
+- **사용자가 명시적으로 요청하기 전까지** 절대 커밋/푸시하지 않음
+- 기본 원칙은 **로컬 수정 + 검증까지만 수행**
+- 원격 반영은 사용자 확인 후에만 수행
+
+---
+
+**마지막 업데이트**: 2026-06-13
+**변경 사항**: 프로젝트 컨텍스트를 Unity + 모바일로 통일, 웹 프로젝트 문서 제거

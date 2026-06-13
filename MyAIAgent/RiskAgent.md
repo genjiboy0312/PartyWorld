@@ -2,60 +2,70 @@
 
 ## 1) 목적
 
-`PartyWorld` 프로젝트의 **알려진 리스크/회귀 포인트/릴리즈 전 체크리스트**를 단일 문서로 관리합니다.
+`PartyWorld` Unity 프로젝트의 **기술 리스크, 성능 문제, 회귀 포인트**를 관리합니다.
+타겟 플랫폼: Android / iOS 모바일
 
-**마지막 업데이트**: 2026-03-27
+**마지막 업데이트**: 2026-06-13
 
 ---
 
-## 2) 알려진 리스크 & 체크리스트
+## 2) 리스크 매트릭스
 
-- [x] 런타임 코드에서 `UnityEditor` 의존성 제거(빌드 안정성, `RagDollEditor` 가드)
-- [x] `ConnectUsingSettings()` 중복 호출 제거(권위 매니저로 단일화)
-- [x] 로딩→맵 전환은 멀티 상황에서 `PhotonNetwork.LoadLevel`로 통일
-- [x] `Scene_WaitingRoom`을 Build Settings에 추가
-- [x] Ready 토글 + 카운트다운 “시작/취소” 프로토타입 추가(`LobbyUIBootstrapper`, `NetworkAuthorityManager`)
-- [x] 카운트다운 완료 시 룸 닫기(`IsOpen=false`) 적용
-- [x] **전역 매니저 아키텍처 표준화 (안정성 강화)**
-- [x] Firebase Auth 콜백 메인스레드 디스패치 + 로그인/회원가입 UI 페이지 전환(LogIn/Join) 정리
-- [x] 닉네임 저장/로드: Firebase Auth `DisplayName` 저장/로드 → `DataManager.nickname` + Photon/채팅 표시 반영
-- [x] WaitingRoom 채팅: `Room_WaitingRoomChat` JoinOrCreate + QuickPlay 시 LeaveRoom 후 매칭 룸 진입
-- [x] Lobby UI: 플레이어 리스트 + 인원수(현재/최대) 텍스트 추가 및 `LobbyUIController` 연동
-- [x] Lobby 카운트다운 숫자 팝(스케일) 코루틴 효과 추가(기본 5→1)
-- [x] DOTween: 씬 전환 시 destroyed Text 접근 에러 방지(`UITextEffect`, `UITextTypingMotion` Kill 처리)
-- [ ] 결과(Result) 화면/로비 복귀 플로우 추가
+| ID | 항목 | 심각도 | 발생 조건 | 대응책 | 상태 |
+|:--|:--|:--|:--|:--|:--|
+| R-001 | 모바일 성능 (Frame Drop) | High | 다수 플레이어/파티클/이펙트 동시 재생 시 | LOD, 오클루전 컬링, VFX 그래프 최적화 | Open |
+| R-002 | Photon 네트워크 지연/끊김 | High | 모바일 데이터 환경 (3G/5G 전환, Wi-Fi 불안정) | 재연결 로직, 상태 동기화 폴백, RTT 모니터링 | Open |
+| R-003 | 메모리 부족 (저사양 기기) | High | 구형 Android 기기, 대용량 텍스처/모델 | Addressables, 텍스처 압축, 에셋 번들 | Open |
+| R-004 | 씬 전환 데이터 동기화 불일치 | Medium | 마스터 클라이언트 이탈, 네트워크 지연 시 | 로딩 게이트, 플레이어 프로퍼티 기반 상태 검증 | Open |
+| R-005 | Firebase 인증 지연/실패 | Medium | 네트워크 불안정, 토큰 만료 | 재시도 로직, 오프라인 모드 폴백 | Open |
 
-## 3) 리스크 매트릭스(운영용)
+---
 
-| ID | 항목 | Severity | Trigger(발생 조건) | Mitigation(대응) | Owner | 상태 |
-|:--|:--|:--|:--|:--|:--|:--|
-| R-001 | 결과 화면/로비 복귀 미완성 | High | 라운드 종료 후 다음 상태 전환 실패 | Result Phase 명시 구현 + 타임아웃 폴백(`Scene_Lobby` 강제 복귀) | TBD | Open |
-| R-002 | 마스터 이탈 시 흐름 중단 | High | 카운트다운/로딩 중 MasterClient 변경 | `OnMasterClientSwitched`에서 상태 재평가 및 타이머 재기동 | TBD | Monitoring |
-| R-003 | 로딩 게이트 지연/교착 | Medium | 일부 클라 로딩 완료 신호 누락 | 로딩 타임아웃 + 미도착 인원 표시 + 재동기화 | TBD | Monitoring |
-| R-004 | 닉네임/표시 불일치 | Medium | Auth DisplayName, DataManager, Photon NickName 불일치 | 로그인 직후 단일 소스(DataManager) 기준 재동기화 | TBD | Monitoring |
-| R-005 | 다중 맵에서 GameState 동기화 누락 가능성 | High | 랜덤 맵이 `_mapSceneName` 외 이름으로 로드됨 | `Scene_Map*` 패턴 기반으로 `Playing` 상태 매핑 통일 | TBD | Open |
-| R-006 | 플레이어 스폰 책임 주체 불명확 | High | 룸 입장/씬 전환 시 스폰 호출 분산 또는 누락 | `NetworkAuthorityManager` 단일 스폰 정책 문서화 + 코드 고정 | TBD | Monitoring |
-| R-007 | 실제 빌드 플로우와 문서 플로우 불일치 | Medium | `Scene_CharacterCreation` 포함 여부가 문서/구현에서 다르게 해석 | 신규/기존 유저 분기 규칙을 Planning에 명시 | TBD | Open |
-| R-008 | Photon 스폰 프리팹 경로 불일치 | High | `PhotonNetwork.Instantiate` 키와 `Resources` 경로가 맞지 않음 | `Assets/Resources/Characters/*` 표준화 + 카탈로그/키 검증 | TBD | Open |
-| R-009 | CharacterCatalog 미동기화로 인한 프리팹 누락 | Medium | 프리팹 변경 후 카탈로그 미갱신 | `GenJiTools/Character Catalog/Sync` 절차를 작업 플로우에 고정 | TBD | Open |
+## 3) 리스크 상세
 
-## 4) Known Issue 재현 템플릿
+### R-001: 모바일 성능 (Frame Drop)
+- **환경**: Android/iOS 저중사양 기기 (RAM 3GB 이하)
+- **증상**: 파티클 이펙트, 다수 캐릭터 동시 표시 시 30fps 이하로 하락
+- **영향**: 사용자 경험 저하, 조작감 악화
+- **대응**:
+  - Quality Settings 레벨별 분기 (저/중/고)
+  - VFX Graph → GPU 파티클로 전환
+  - 캐릭터 LOD (멀리 있는 플레이어 Polygon 감소)
+  - UI Canvas 최적화 (Atlas, Overlay 병합)
 
-아래 템플릿으로 이슈를 누적하면 회귀 확인이 쉬워집니다.
+### R-002: Photon 네트워크 지연/끊김
+- **환경**: 모바일 데이터 환경, Wi-Fi 핸드오프
+- **증상**: 플레이어 위치 순간이동, Ready 상태 불일치, 카운트다운 동기화 실패
+- **영향**: 게임 진행 불가, 플레이어 경험 악화
+- **대응**:
+  - PhotonNetwork.SendRate/SerializationRate 모바일 환경에 맞게 조정
+  - OnDisconnected 시 재연결 UI 및 자동 재시도
+  - 마스터 이탈 시 새 마스터 선출 및 상태 복구
+
+### R-003: 메모리 부족
+- **환경**: 2-3GB RAM 기기, 대규모 맵
+- **증상**: 앱 크래시, OutOfMemoryException
+- **영향**: 게임 플레이 불가
+- **대응**:
+  - Addressables 도입 (레이지 로딩)
+  - 텍스처 최대 해상도 2048 제한
+  - 풀링 시스템 적용 (캐릭터/아이템/이펙트)
+  - Profiler 정기 측정
+
+---
+
+## 4) Known Issue 템플릿
 
 ```md
 ### [ISSUE-ID] 제목
 - 발견일: YYYY-MM-DD
-- Severity: High / Medium / Low
-- 환경: Editor/Build, 플랫폼, 브랜치, 커밋(선택)
+- 심각도: High / Medium / Low
+- 환경: (기기/OS/네트워크 조건)
 - 재현 스텝:
   1) ...
   2) ...
-  3) ...
 - 기대 결과: ...
 - 실제 결과: ...
-- 로그 위치: `Player.log`, Unity Console, Photon 로그 등
-- 임시 우회: ...
 - 원인 가설: ...
 - 해결 상태: Open / Fixing / Resolved
 ```
