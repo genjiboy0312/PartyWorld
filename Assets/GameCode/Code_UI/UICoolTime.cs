@@ -11,8 +11,7 @@ public class UICoolTime : MonoBehaviour
     [SerializeField] private int _buttonIndex;
     private float _fillAmountIncrement = 0.01f;
 
-    private UIManager _uiManager;
-
+    [SerializeField] private UIManager _uiManager;
     [SerializeField] private KeyCode activationKey;             // 활성화할 특정 키 설정
 
     #region Property
@@ -26,7 +25,6 @@ public class UICoolTime : MonoBehaviour
     {
         _isButtonPressed = false;
         _selectedImage.fillAmount = 1f;
-        _uiManager = FindAnyObjectByType<UIManager>();
     }
 
     void Update()
