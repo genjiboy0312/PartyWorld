@@ -36,14 +36,25 @@ public class LogInSystem : MonoBehaviour
     private bool _requestedSceneLoad;
 
     // 로그인 상태 이벤트 구독
-    private void OnEnable() => FirebaseAuthManager.Instance._loginState += OnChangedState;
+    private void OnEnable()
+    {
+        if (FirebaseAuthManager.Instance != null)
+            FirebaseAuthManager.Instance._loginState += OnChangedState;
+    }
 
-    private void OnDisable() => FirebaseAuthManager.Instance._loginState -= OnChangedState;
+    private void OnDisable()
+    {
+        if (FirebaseAuthManager.Instance != null)
+            FirebaseAuthManager.Instance._loginState -= OnChangedState;
+    }
 
     private void Start()
     {
         // Firebase 초기화
-        FirebaseAuthManager.Instance.Init();
+        if (FirebaseAuthManager.Instance != null)
+            FirebaseAuthManager.Instance.Init();
+        else
+            Debug.LogError("[LogInSystem] FirebaseAuthManager.Instance is null on Start.");
 
         AutoWirePagesIfNeeded();
 
@@ -64,12 +75,15 @@ public class LogInSystem : MonoBehaviour
     // 로그인 상태 변경 시 UI 갱신
     private void OnChangedState(bool signedIn)
     {
+        if (FirebaseAuthManager.Instance == null)
+            return;
+
         if (!signedIn)
             _requestedSceneLoad = false;
 
         if (_outputTxt != null)
         {
-            _outputTxt.text = signedIn ? "로그인" : "로그아웃";
+            _outputTxt.text = signedIn ? "\uB85C\uADF8\uC778" : "\uB85C\uADF8\uC544\uC6C3";
             _outputTxt.text += "\nUserID: " + FirebaseAuthManager.Instance._userId;
         }
 
@@ -104,22 +118,38 @@ public class LogInSystem : MonoBehaviour
     // 버튼 이벤트 콜백
     private void OnLogInClicked()
     {
+        if (FirebaseAuthManager.Instance == null)
+        {
+            Debug.LogError("[LogInSystem] FirebaseAuthManager.Instance is null.");
+            return;
+        }
+
         string email = _inputLogInEmail != null ? _inputLogInEmail.text : string.Empty;
         string password = _inputLogInPassword != null ? _inputLogInPassword.text : string.Empty;
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
-            if (_outputTxt != null) _outputTxt.text = "이메일/비밀번호를 입력하세요.";
+            if (_outputTxt != null) _outputTxt.text = "\uC774\uBA54\uC77C/\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694.";
             return;
         }
 
         FirebaseAuthManager.Instance.LogIn(email, password);
     }
 
-    private void OnLogOutClicked() => FirebaseAuthManager.Instance.LogOut();
+    private void OnLogOutClicked()
+    {
+        if (FirebaseAuthManager.Instance != null)
+            FirebaseAuthManager.Instance.LogOut();
+    }
 
     private void OnCreateClicked()
     {
+        if (FirebaseAuthManager.Instance == null)
+        {
+            Debug.LogError("[LogInSystem] FirebaseAuthManager.Instance is null.");
+            return;
+        }
+
         string nickname = _inputJoinUserNickname != null ? _inputJoinUserNickname.text : string.Empty;
         string email = _inputJoinUserEmail != null ? _inputJoinUserEmail.text : string.Empty;
         string password = _inputJoinUserPassword != null ? _inputJoinUserPassword.text : string.Empty;
@@ -127,26 +157,25 @@ public class LogInSystem : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(nickname))
         {
-            // 닉네임 입력 UI가 아직 없거나 비어있다면 이메일 아이디 부분을 기본 닉네임으로 사용
             int at = email.IndexOf('@');
             nickname = at > 0 ? email.Substring(0, at) : "NewPlayer";
         }
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
-            if (_outputTxt != null) _outputTxt.text = "이메일/비밀번호를 입력하세요.";
+            if (_outputTxt != null) _outputTxt.text = "\uC774\uBA54\uC77C/\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694.";
             return;
         }
 
         if (!string.Equals(password, confirm))
         {
-            if (_outputTxt != null) _outputTxt.text = "비밀번호 확인이 일치하지 않습니다.";
+            if (_outputTxt != null) _outputTxt.text = "\uBE44\uBC00\uBC88\uD638 \uD655\uC778\uC774 \uC77C\uCE58\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.";
             return;
         }
 
         if (password.Length < 6)
         {
-            if (_outputTxt != null) _outputTxt.text = "비밀번호는 6자 이상이어야 합니다.";
+            if (_outputTxt != null) _outputTxt.text = "\uBE44\uBC00\uBC88\uD638\uB294 6\uC790 \uC774\uC0C1\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.";
             return;
         }
 
@@ -165,14 +194,14 @@ public class LogInSystem : MonoBehaviour
         {
             if (!success)
             {
-                if (_outputTxt != null) _outputTxt.text = "중복 확인 실패. 네트워크 상태를 확인하세요.";
+                if (_outputTxt != null) _outputTxt.text = "\uC911\uBCF5 \uD655\uC778 \uC2E4\uD328. \uB124\uD2B8\uC6CC\uD06C \uC0C1\uD0DC\uB97C \uD655\uC778\uD558\uC138\uC694.";
                 return;
             }
 
             if (exists)
             {
                 _isLastCheckedEmailAvailable = false;
-                if (_outputTxt != null) _outputTxt.text = "이미 사용 중인 이메일입니다.";
+                if (_outputTxt != null) _outputTxt.text = "\uC774\uBBF8 \uC0AC\uC6A9 \uC911\uC778 \uC774\uBA54\uC77C\uC785\uB2C8\uB2E4.";
                 return;
             }
 
@@ -184,11 +213,17 @@ public class LogInSystem : MonoBehaviour
 
     private void OnCheckClicked()
     {
+        if (FirebaseAuthManager.Instance == null)
+        {
+            Debug.LogError("[LogInSystem] FirebaseAuthManager.Instance is null.");
+            return;
+        }
+
         string email = _inputJoinUserEmail != null ? _inputJoinUserEmail.text : string.Empty;
 
         if (string.IsNullOrWhiteSpace(email))
         {
-            if (_outputTxt != null) _outputTxt.text = "중복 확인할 이메일을 입력하세요.";
+            if (_outputTxt != null) _outputTxt.text = "\uC911\uBCF5 \uD655\uC778\uD560 \uC774\uBA54\uC77C\uC744 \uC785\uB825\uD558\uC138\uC694.";
             return;
         }
 
@@ -197,7 +232,7 @@ public class LogInSystem : MonoBehaviour
             if (!success)
             {
                 _isLastCheckedEmailAvailable = false;
-                if (_outputTxt != null) _outputTxt.text = "중복 확인 실패. 잠시 후 다시 시도하세요.";
+                if (_outputTxt != null) _outputTxt.text = "\uC911\uBCF5 \uD655\uC778 \uC2E4\uD328. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694.";
                 return;
             }
 
@@ -208,8 +243,8 @@ public class LogInSystem : MonoBehaviour
                 return;
 
             _outputTxt.text = exists
-                ? "이미 사용 중인 이메일입니다."
-                : "사용 가능한 이메일입니다.";
+                ? "\uC774\uBBF8 \uC0AC\uC6A9 \uC911\uC778 \uC774\uBA54\uC77C\uC785\uB2C8\uB2E4."
+                : "\uC0AC\uC6A9 \uAC00\uB2A5\uD55C \uC774\uBA54\uC77C\uC785\uB2C8\uB2E4.";
         });
     }
 
@@ -272,9 +307,8 @@ public class LogInSystem : MonoBehaviour
     private void AutoWirePagesIfNeeded()
     {
         if (_uiLoginPage == null)
-            _uiLoginPage = GameObject.Find("UI_LogInPage");
+            Debug.LogWarning($"[LogInSystem] {nameof(_uiLoginPage)} is not assigned in Inspector.");
 
         if (_uiJoinPage == null)
-            _uiJoinPage = GameObject.Find("UI_JoinPage");
+            Debug.LogWarning($"[LogInSystem] {nameof(_uiJoinPage)} is not assigned in Inspector.");
     }
-}
