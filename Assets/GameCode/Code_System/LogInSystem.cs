@@ -312,3 +312,5 @@ public class LogInSystem : MonoBehaviour
         if (_uiJoinPage == null)
             Debug.LogWarning($"[LogInSystem] {nameof(_uiJoinPage)} is not assigned in Inspector.");
     }
+
+}
