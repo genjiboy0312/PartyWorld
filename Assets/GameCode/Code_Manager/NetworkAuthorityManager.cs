@@ -83,8 +83,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
     {
-        // 씬에 미배치된 경우에도 네트워크 권위 매니저를 1개만 보장
-        if (Object.FindAnyObjectByType<NetworkAuthorityManager>() != null)
+        // 씬에 배치되지 않아도 NetworkAuthorityManager 인스턴스를 1개 보장
+        if (Instance != null)
             return;
 
         GameObject go = new GameObject(nameof(NetworkAuthorityManager));
