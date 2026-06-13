@@ -1,0 +1,12 @@
+{
+  "id": "T-cd42e6bc-4aff-41d8-b2c6-e0031ae4b476",
+  "subject": "NetworkAuthorityManager 마스터 이탈 처리",
+  "description": "OnMasterClientSwitched 콜백 구현. 새 마스터가 로비 카운트다운/로딩 게이트/상태 복구를 이어받도록 처리",
+  "status": "completed",
+  "activeForm": "마스터 이탈 처리 대기 중",
+  "blocks": [
+    "T-62ac4103-f441-4841-87a3-ec8cea7b75f6"
+  ],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}

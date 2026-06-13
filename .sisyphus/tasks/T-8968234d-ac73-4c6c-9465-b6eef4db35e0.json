@@ -1,0 +1,12 @@
+{
+  "id": "T-8968234d-ac73-4c6c-9465-b6eef4db35e0",
+  "subject": "PlatformQualityManager 구현",
+  "description": "기기 사양에 따라 Quality Settings 레벨을 자동 설정하는 매니저 생성. GPU/메모리/RAM 기준 분기",
+  "status": "completed",
+  "activeForm": "PlatformQualityManager 구현 대기 중",
+  "blocks": [
+    "T-62ac4103-f441-4841-87a3-ec8cea7b75f6"
+  ],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}

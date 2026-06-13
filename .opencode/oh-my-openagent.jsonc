@@ -1,0 +1,4 @@
+{
+  // Keep this file schema-compatible with oh-my-openagent v4.3.0.
+  // From this repo root, the harness discovers .opencode/skills and .opencode/commands automatically.
+}

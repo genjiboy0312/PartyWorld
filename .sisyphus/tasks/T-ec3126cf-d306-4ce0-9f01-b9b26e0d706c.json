@@ -1,0 +1,12 @@
+{
+  "id": "T-ec3126cf-d306-4ce0-9f01-b9b26e0d706c",
+  "subject": "GameCode.asmdef 생성",
+  "description": "GameCode 폴더에 Assembly Definition File 생성. Photon, Firebase 등 참조 설정 필요",
+  "status": "completed",
+  "activeForm": "GameCode.asmdef 생성 대기 중",
+  "blocks": [
+    "T-62ac4103-f441-4841-87a3-ec8cea7b75f6"
+  ],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}

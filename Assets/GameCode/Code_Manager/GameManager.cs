@@ -42,8 +42,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string _waitingRoomSceneName = "Scene_WaitingRoom";
     [SerializeField] private string _lobbySceneName = "Scene_Lobby";
     [SerializeField] private string _loadingSceneName = "Scene_Loading";
-    [SerializeField] private string _resultSceneName = "";
-    [SerializeField] private string _mapScenePrefix = "Scene_Map";
+    [SerializeField] private string _resultSceneName = "Scene_Result";
 
     // 옵저버 패턴
     private event Action<GameState> _onGameStateChange;
@@ -107,6 +106,19 @@ public class GameManager : MonoBehaviour
 
     public void StartGame() => SetGameState(GameState.Playing);
     public void GameOver() => SetGameState(GameState.GameOver);
+
+    // ──────────────────────────────────────────────
+    // Round System Integration
+    // ──────────────────────────────────────────────
+    /// RoundManager가 준비되었음을 알림 (마스터 클라이언트가 로드 완료 집계 후 호출)
+    public static void NotifyRoundContainerReady() { }
+
+    /// 모든 라운드가 종료되면 Result 씬으로 전환
+    public void OnRoundSessionComplete()
+    {
+        SetGameState(GameState.Result);
+        PhotonNetwork.LoadLevel(_resultSceneName);
+    }
 
     public void InitializeChatManager()
     {

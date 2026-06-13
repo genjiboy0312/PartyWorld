@@ -1,0 +1,12 @@
+{
+  "id": "T-289e90db-4392-434e-ae4b-82f4eeeead82",
+  "subject": "Photon 네트워크 파라미터 모바일 최적화",
+  "description": "모바일 환경에 맞게 SendRate/SerializationRate 조정 및 연결 품질 기반 적응 로직 추가",
+  "status": "completed",
+  "activeForm": "Photon 파라미터 최적화 대기 중",
+  "blocks": [
+    "T-62ac4103-f441-4841-87a3-ec8cea7b75f6"
+  ],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}

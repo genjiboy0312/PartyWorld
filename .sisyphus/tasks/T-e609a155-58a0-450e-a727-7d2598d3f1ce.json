@@ -1,0 +1,12 @@
+{
+  "id": "T-e609a155-58a0-450e-a727-7d2598d3f1ce",
+  "subject": "UnityAgent.md 업데이트",
+  "description": "APR 컨트롤러, 캐릭터 스폰 파이프라인, 최신 코딩 컨벤션 반영",
+  "status": "completed",
+  "activeForm": "UnityAgent.md 업데이트 대기 중",
+  "blocks": [
+    "T-62ac4103-f441-4841-87a3-ec8cea7b75f6"
+  ],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}

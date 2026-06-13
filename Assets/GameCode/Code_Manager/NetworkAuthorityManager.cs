@@ -90,6 +90,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         GameObject go = new GameObject(nameof(NetworkAuthorityManager));
         go.AddComponent<NetworkAuthorityManager>();
+        go.AddComponent<RoundManager>();
     }
 
     private void Awake()
@@ -542,8 +543,10 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         }
 
         if (scene.name.StartsWith(_mapScenePrefix, StringComparison.OrdinalIgnoreCase))
+        {
             TrySpawnLocalPlayerForMap();
-
+            InitializeRoundManagerForMap(scene.name);
+        }
         if (!PhotonNetwork.IsMasterClient)
             return;
 
@@ -560,6 +563,17 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
             return;
         }
+    }
+
+    private void InitializeRoundManagerForMap(string mapSceneName)
+    {
+        if (RoundManager.Instance == null)
+        {
+            Debug.LogWarning("[NetworkAuthorityManager] RoundManager not found. Creating one.");
+            gameObject.AddComponent<RoundManager>();
+        }
+
+        RoundManager.Instance.InitializeRoundSession(mapSceneName);
     }
 
     private IEnumerator LoadingGateToMap()
@@ -945,6 +959,10 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
             _localSpawnedPlayer = null;
         }
+
+        // RoundManager 세션 정리
+        if (RoundManager.Instance != null)
+            RoundManager.Instance.CleanupSession();
 
         PhotonNetwork.LoadLevel(_roomLobbySceneName);
     }

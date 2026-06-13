@@ -1,0 +1,9 @@
+{
+  "id": "T-cfd61bb8-dbb5-45e7-ba0e-bb114e1681fb",
+  "subject": "GameCode 전체 코드 분석 및 위험 요소 수정",
+  "description": "GameCode 폴더의 모든 .cs 파일을 분석하여 MVP 패턴 정합성, 이벤트 안전성, null 안전성, Find* API 잔여, Observer 패턴 활용도를 검사하고 위험 요소 수정",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}

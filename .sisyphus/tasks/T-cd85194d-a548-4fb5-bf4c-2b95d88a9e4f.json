@@ -1,0 +1,10 @@
+{
+  "id": "T-cd85194d-a548-4fb5-bf4c-2b95d88a9e4f",
+  "subject": "Fix Find* API usage in GameManager and NetworkAuthorityManager",
+  "description": "Replace FindAnyObjectByType calls with proper patterns and fix ChatManager double-subscription bug",
+  "status": "completed",
+  "activeForm": "Fixing Find* API usages",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}
