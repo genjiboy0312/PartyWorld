@@ -66,16 +66,10 @@ This is also the negative-path contract: unsupported tiers such as `experimental
 
 ## Change discipline
 
-When support levels or flagship workflows change, update these files together:
+When support levels or flagship workflows change, update these three files together:
 
 1. `.opencode/reference/capability-matrix.json`
 2. `.opencode/reference/support-policy.md`
 3. `.opencode/reference/workflow-catalog.md`
-4. `.opencode/reference/workflows/*.md`
-5. `.opencode/reference/validate-opencode-bundle.sh`
-6. `README.md`
-7. `CHANGELOG.md`
 
-When public release or support wording changes, keep the capability matrix, support policy, workflow catalog, workflow proof docs, validator, README, and CHANGELOG aligned in the same change set.
-
-Do not add new support tiers casually. Do not widen the initial flagship workflow set beyond the frozen four without making the manifest, policy, catalog, workflow proof docs, validator, README, and CHANGELOG agree in the same change set.
+Do not add new support tiers casually. Do not widen the initial flagship workflow set beyond the frozen four without making the manifest, policy, catalog, and validator agree in the same change set.

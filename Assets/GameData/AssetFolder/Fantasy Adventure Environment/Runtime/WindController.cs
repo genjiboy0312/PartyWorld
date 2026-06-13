@@ -86,7 +86,7 @@ namespace FAE
                 }
                 else
                 {
-                    windZone = FindObjectOfType<WindZone>();
+                    windZone = FindFirstObjectByType<WindZone>();
                 }
             }
         }
@@ -179,7 +179,7 @@ namespace FAE
         [MenuItem("GameObject/3D Object/FAE Wind Controller")]
         private static void NewMenuOption()
         {
-            WindController currentWindController = GameObject.FindObjectOfType<WindController>();
+            WindController currentWindController = GameObject.FindFirstObjectByType<WindController>();
             if (currentWindController != null)
             {
                 if (EditorUtility.DisplayDialog("FAE Wind Controller", "A WindController object already exists in your scene", "Create anyway", "Cancel"))

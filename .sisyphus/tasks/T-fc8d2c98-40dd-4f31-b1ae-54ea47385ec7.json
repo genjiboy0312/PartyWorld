@@ -1,0 +1,10 @@
+{
+  "id": "T-fc8d2c98-40dd-4f31-b1ae-54ea47385ec7",
+  "subject": "Restore top-down 3D Canvas camera",
+  "description": "Inspect the 3D editing/device placement scene camera setup and Pointcloud Canvas creation flow, correct the 3D Canvas camera to the intended top-down view, restore Pointcloud Object creation if broken, and verify the result.",
+  "status": "in_progress",
+  "activeForm": "Checking open scenes and pointcloud canvas state",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_22d72b73effezsK0WzxCeBTcjj"
+}

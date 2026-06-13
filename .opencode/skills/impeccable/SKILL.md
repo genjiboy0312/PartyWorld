@@ -1,157 +1,138 @@
 ---
 name: impeccable
-description: Use when the user wants to design, redesign, shape, critique, audit, polish, clarify, distill, harden, optimize, adapt, animate, colorize, extract, or otherwise improve a frontend interface. Covers websites, landing pages, dashboards, product UI, app shells, components, forms, settings, onboarding, and empty states. Handles UX review, visual hierarchy, information architecture, cognitive load, accessibility, performance, responsive behavior, theming, anti-patterns, typography, fonts, spacing, layout, alignment, color, motion, micro-interactions, UX copy, error states, edge cases, i18n, and reusable design systems or tokens. Also use for bland designs that need to become bolder or more delightful, loud designs that should become quieter, live browser iteration on UI elements, or ambitious visual effects that should feel technically extraordinary. Not for backend-only or non-UI tasks.
-version: 3.1.1
+description: Distinctive anti-slop UI and UX umbrella skill for web and mobile work. Use for design direction, context gathering, anti-pattern avoidance, or to work across the full local 23-skill impeccable family, especially audit, critique, polish, typeset, colorize, and adapt.
+license: Apache 2.0
+argument-hint: "[craft|teach|extract]"
 user-invocable: true
-argument-hint: "[craft|shape · audit|critique · animate|bolder|colorize|delight|layout|overdrive|quieter|typeset · adapt|clarify|distill · harden|onboard|optimize|polish · teach|document|extract|live] [target]"
-license: Apache 2.0. Based on Anthropic's frontend-design skill. See NOTICE.md for attribution.
-allowed-tools:
-  - Bash(npx impeccable *)
 ---
 
-Designs and iterates production-grade frontend interfaces. Real working code, committed design choices, exceptional craft.
+# Impeccable
 
-## Setup
+This vendorized pack adapts the upstream `pbakaus/impeccable` skill family into one local-integrated 23-skill layer for the local OpenCode and Oh My OpenAgent workflow.
 
-Before any design work or file edits:
+Defer route choice and lane selection to `../../reference/routing-matrix.md`.
 
-1. Load context (PRODUCT.md / DESIGN.md) through the `/impeccable` command runtime.
-2. Identify the register and load the matching register reference (brand.md or product.md).
-3. **If the user invoked a sub-command (e.g. `craft`, `shape`, `audit`), load its reference file too.** This is non-negotiable: `craft` without `craft.md` loaded means you'll skip the shape-and-confirm step the user expects.
+Treat `impeccable` as a supplementary layer on top of `frontend-web` and `mobile-app`, not as a replacement for those domain packs, not as a routing authority of its own, and not as a starting route.
 
-Skipping these produces generic output that ignores the project.
+## What this skill is for
 
-### 1. Context gathering
+Use `impeccable` when UI work has already been routed through `frontend-web` or `mobile-app` and needs a stronger point of view across the broader local family:
 
-Two files, case-insensitive. The loader looks at the project root by default and falls back to `.agents/context/` and `docs/` if the root is clean. Override with `IMPECCABLE_CONTEXT_DIR=path/to/dir` (absolute or relative to cwd).
+- design context gathering,
+- anti-slop direction setting,
+- distinctive typography, color, and spatial decisions,
+- structured critique or quality review,
+- or a finishing pass before shipping.
 
-- **PRODUCT.md**: required. Users, brand, tone, anti-references, strategic principles.
-- **DESIGN.md**: optional, strongly recommended. Colors, typography, elevation, components.
+The most common companion flows in this local-integrated family are:
 
-The `/impeccable` runtime loads both files before command execution and returns JSON context. Consume the full runtime context when it is present in the session. Never pipe context output through `head`, `tail`, `grep`, or `jq`. The context's `contextDir` field tells you where the files were resolved from.
+- `audit`
+- `critique`
+- `polish`
+- `typeset`
+- `colorize`
+- `adapt`
 
-If the output is already in this session's conversation history, don't re-run. Exceptions requiring a fresh load: you just ran `/impeccable teach` or `/impeccable document` (they rewrite the files), or the user manually edited one.
+The wider imported family also includes focused craft and reference skills plus lightweight deprecated wrappers kept for completeness only. Those wrappers are present so the local bundle stays source-complete, but they are not primary routing choices and should be treated as redirects to `impeccable` or `impeccable teach` as applicable.
 
-`/impeccable live` already warms context through the live facade. If you've run `/impeccable live`, don't request a second context load this session.
+`visual-engineering` is the preferred harness starting category for web/mobile UI work, and `frontend-ui-ux` remains a supporting upstream helper for stronger product, layout, or interaction judgment. This pack stays supplementary and refinement-only within that route.
 
-If PRODUCT.md is missing, empty, or placeholder (`[TODO]` markers, <200 chars): run `/impeccable teach`, then resume the user's original task with the fresh context. If the original task was `/impeccable craft`, resume into `/impeccable shape` before any implementation work.
+## Context gathering protocol
 
-If DESIGN.md is missing: nudge once per session (*"Run `/impeccable document` for more on-brand output"*), then proceed.
+Design quality collapses when the model guesses audience, tone, or product intent from code alone.
 
-### 2. Register
+Before doing design work, confirm at least these inputs:
 
-Every design task is **brand** (marketing, landing, campaign, long-form content, portfolio: design IS the product) or **product** (app UI, admin, dashboard, tool: design SERVES the product).
+- target audience,
+- primary use cases,
+- brand personality or tone,
+- accessibility or platform constraints.
 
-Identify before designing. Priority: (1) cue in the task itself ("landing page" vs "dashboard"); (2) the surface in focus (the page, file, or route being worked on); (3) `register` field in PRODUCT.md. First match wins.
+Use this order:
 
-If PRODUCT.md lacks the `register` field (legacy), infer it once from its "Users" and "Product Purpose" sections, then cache the inferred value for the session. Suggest the user run `/impeccable teach` to add the field explicitly.
+1. If the current instructions already include a design context, use it.
+2. Otherwise read `.impeccable.md` from the project root if it exists.
+3. If neither source exists, run `impeccable teach` and gather the missing context directly.
 
-Load the matching reference: [reference/brand.md](reference/brand.md) or [reference/product.md](reference/product.md). The shared design laws below apply to both.
+Do not infer brand personality from implementation details alone.
 
-## Shared design laws
+## Shared anti-slop source
 
-Apply to every design, both registers. Match implementation complexity to the aesthetic vision: maximalism needs elaborate code, minimalism needs precision. Interpret creatively. Vary across projects; never converge on the same choices. Claude is capable of extraordinary work. Don't hold back.
+Treat [`../../reference/design-anti-slop.md`](../../reference/design-anti-slop.md) as the canonical shared anti-slop ban list for this bundle and this entire local `impeccable` family.
 
-### Color
-
-- Use OKLCH. Reduce chroma as lightness approaches 0 or 100; high chroma at extremes looks garish.
-- Never use `#000` or `#fff`. Tint every neutral toward the brand hue (chroma 0.005–0.01 is enough).
-- Pick a **color strategy** before picking colors. Four steps on the commitment axis:
-  - **Restrained**: tinted neutrals + one accent ≤10%. Product default; brand minimalism.
-  - **Committed**: one saturated color carries 30–60% of the surface. Brand default for identity-driven pages.
-  - **Full palette**: 3–4 named roles, each used deliberately. Brand campaigns; product data viz.
-  - **Drenched**: the surface IS the color. Brand heroes, campaign pages.
-- The "one accent ≤10%" rule is Restrained only. Committed / Full palette / Drenched exceed it on purpose. Don't collapse every design to Restrained by reflex.
-
-### Theme
-
-Dark vs. light is never a default. Not dark "because tools look cool dark." Not light "to be safe."
-
-Before choosing, write one sentence of physical scene: who uses this, where, under what ambient light, in what mood. If the sentence doesn't force the answer, it's not concrete enough. Add detail until it does.
-
-"Observability dashboard" does not force an answer. "SRE glancing at incident severity on a 27-inch monitor at 2am in a dim room" does. Run the sentence, not the category.
+- Do not restate or override that file as a second canonical source.
+- Use the local references below to apply the shared bans with better design judgment in typography, color, spacing, motion, responsive behavior, and writing.
+- Keep any extra local guidance here supplementary to the shared bundle-level bans.
 
 ### Typography
 
-- Cap body line length at 65–75ch.
-- Hierarchy through scale + weight contrast (≥1.25 ratio between steps). Avoid flat scales.
+- Avoid default-looking type stacks and monoculture font choices.
+- Build clear hierarchy with strong size, weight, and spacing contrast.
+- Keep body copy readable, bounded, and intentional.
 
-### Layout
+See `reference/typography.md`.
 
-- Vary spacing for rhythm. Same padding everywhere is monotony.
-- Cards are the lazy answer. Use them only when they're truly the best affordance. Nested cards are always wrong.
-- Don't wrap everything in a container. Most things don't need one.
+### Color and contrast
 
-### Motion
+- Use purposeful palettes with tinted neutrals and clear contrast.
+- Avoid generic purple-blue AI palette defaults and overly harsh pure-black or pure-white usage.
 
-- Don't animate CSS layout properties.
-- Ease out with exponential curves (ease-out-quart / quint / expo). No bounce, no elastic.
+See `reference/color-and-contrast.md`.
 
-### Absolute bans
+### Space and composition
 
-Match-and-refuse. If you're about to write any of these, rewrite the element with different structure.
+- Vary spacing rhythm on purpose.
+- Avoid wrapping every section in nested cards.
+- Break grids intentionally, not accidentally.
 
-- **Side-stripe borders.** `border-left` or `border-right` greater than 1px as a colored accent on cards, list items, callouts, or alerts. Never intentional. Rewrite with full borders, background tints, leading numbers/icons, or nothing.
-- **Gradient text.** `background-clip: text` combined with a gradient background. Decorative, never meaningful. Use a single solid color. Emphasis via weight or size.
-- **Glassmorphism as default.** Blurs and glass cards used decoratively. Rare and purposeful, or nothing.
-- **The hero-metric template.** Big number, small label, supporting stats, gradient accent. SaaS cliché.
-- **Identical card grids.** Same-sized cards with icon + heading + text, repeated endlessly.
-- **Modal as first thought.** Modals are usually laziness. Exhaust inline / progressive alternatives first.
+See `reference/spatial-design.md`.
 
-### Copy
+### Motion and interaction
 
-- Every word earns its place. No restated headings, no intros that repeat the title.
-- **No em dashes.** Use commas, colons, semicolons, periods, or parentheses. Also not `--`.
+- Motion should clarify state change, not decorate emptiness.
+- Avoid bounce or elastic easing as a local motion guardrail.
+- Design loading, empty, error, and success states with the same care as the happy path.
 
-### The AI slop test
+See `reference/motion-design.md` and `reference/interaction-design.md`.
 
-If someone could look at this interface and say "AI made that" without doubt, it's failed. Cross-register failures are the absolute bans above. Register-specific failures live in each reference.
+### Responsive adaptation and copy
 
-**Category-reflex check.** Run at two altitudes; the second one catches what the first one misses.
+- Adapt experiences for the real device context instead of shrinking a desktop layout.
+- Keep copy short, precise, and specific to the product moment.
 
-- **First-order:** if someone could guess the theme + palette from the category alone ("observability → dark blue", "healthcare → white + teal", "finance → navy + gold", "crypto → neon on black"), it's the first training-data reflex. Rework the scene sentence and color strategy until the answer isn't obvious from the domain.
-- **Second-order:** if someone could guess the aesthetic family from category-plus-anti-references ("AI workflow tool that's not SaaS-cream → editorial-typographic", "fintech that's not navy-and-gold → terminal-native dark mode"), it's the trap one tier deeper. The first reflex was avoided; the second wasn't. Rework until both answers are not obvious. The brand register's [reflex-reject aesthetic lanes](reference/brand.md) list catches the currently-saturated families.
+See `reference/responsive-design.md` and `reference/ux-writing.md`.
 
-## Commands
+## Default operating mode
 
-| Command | Category | Description | Reference |
-|---|---|---|---|
-| `craft [feature]` | Build | Shape, then build a feature end-to-end | [reference/craft.md](reference/craft.md) |
-| `shape [feature]` | Build | Plan UX/UI before writing code | [reference/shape.md](reference/shape.md) |
-| `teach` | Build | Set up PRODUCT.md and DESIGN.md context | [reference/teach.md](reference/teach.md) |
-| `document` | Build | Generate DESIGN.md from existing project code | [reference/document.md](reference/document.md) |
-| `extract [target]` | Build | Pull reusable tokens and components into design system | [reference/extract.md](reference/extract.md) |
-| `critique [target]` | Evaluate | UX design review with heuristic scoring | [reference/critique.md](reference/critique.md) |
-| `audit [target]` | Evaluate | Technical quality checks (a11y, perf, responsive) | [reference/audit.md](reference/audit.md) |
-| `polish [target]` | Refine | Final quality pass before shipping | [reference/polish.md](reference/polish.md) |
-| `bolder [target]` | Refine | Amplify safe or bland designs | [reference/bolder.md](reference/bolder.md) |
-| `quieter [target]` | Refine | Tone down aggressive or overstimulating designs | [reference/quieter.md](reference/quieter.md) |
-| `distill [target]` | Refine | Strip to essence, remove complexity | [reference/distill.md](reference/distill.md) |
-| `harden [target]` | Refine | Production-ready: errors, i18n, edge cases | [reference/harden.md](reference/harden.md) |
-| `onboard [target]` | Refine | Design first-run flows, empty states, activation | [reference/onboard.md](reference/onboard.md) |
-| `animate [target]` | Enhance | Add purposeful animations and motion | [reference/animate.md](reference/animate.md) |
-| `colorize [target]` | Enhance | Add strategic color to monochromatic UIs | [reference/colorize.md](reference/colorize.md) |
-| `typeset [target]` | Enhance | Improve typography hierarchy and fonts | [reference/typeset.md](reference/typeset.md) |
-| `layout [target]` | Enhance | Fix spacing, rhythm, and visual hierarchy | [reference/layout.md](reference/layout.md) |
-| `delight [target]` | Enhance | Add personality and memorable touches | [reference/delight.md](reference/delight.md) |
-| `overdrive [target]` | Enhance | Push past conventional limits | [reference/overdrive.md](reference/overdrive.md) |
-| `clarify [target]` | Fix | Improve UX copy, labels, and error messages | [reference/clarify.md](reference/clarify.md) |
-| `adapt [target]` | Fix | Adapt for different devices and screen sizes | [reference/adapt.md](reference/adapt.md) |
-| `optimize [target]` | Fix | Diagnose and fix UI performance | [reference/optimize.md](reference/optimize.md) |
-| `live` | Iterate | Visual variant mode: pick elements in the browser, generate alternatives | [reference/live.md](reference/live.md) |
+When invoked without an argument, use this flow:
 
-Shortcut pinning is internal package management, not a user-facing Impeccable command.
+1. Confirm or gather design context.
+2. Pick a bold but coherent visual direction that fits the product.
+3. Load the shared anti-slop bans from [`../../reference/design-anti-slop.md`](../../reference/design-anti-slop.md) and the relevant local references for typography, color, spacing, interaction, motion, responsiveness, or writing.
+4. Route execution through `frontend-web` or `mobile-app` for actual implementation; do not start from `impeccable` itself.
+5. Use the focused local `impeccable` skills for targeted review or refinement, and treat any deprecated wrappers as redirects only.
 
-### Routing rules
+## Teach mode
 
-1. **No argument**: render the table above as the user-facing command menu, grouped by category. Ask what they'd like to do.
-2. **First word matches a command**: load its reference file and follow its instructions. Everything after the command name is the target.
-3. **First word doesn't match**: general design invocation. Apply the setup steps, shared design laws, and the loaded register reference, using the full argument as context.
+If invoked with `teach`, gather the missing design context and write or update a `## Design Context` section in `.impeccable.md` with:
 
-Setup (context gathering, register) is already loaded by then; sub-commands don't re-invoke `/impeccable`.
+- Users
+- Brand personality
+- Aesthetic direction
+- Design principles
 
-If the first word is `craft`, setup still runs first, but [reference/craft.md](reference/craft.md) owns the rest of the flow. If setup invokes `teach` as a blocker, finish teach, refresh context, then resume the original command and target.
+If file edits are not appropriate for the current task, return the exact markdown section and clearly mark it for later insertion.
 
-## Shortcut Management
+## Craft mode
 
-Standalone shortcuts that redirect `/<command>` to `/impeccable <command>` are an internal packaging concern. Do not create or remove top-level `pin` / `unpin` wrappers from agent instructions, and do not invoke the internal shortcut helper directly.
+If invoked with `craft`, follow `reference/craft.md`.
+
+## Extract mode
+
+If invoked with `extract`, follow `reference/extract.md`.
+
+## AI slop test
+
+If the result looks instantly machine-generated, it failed.
+
+The bar is not novelty for its own sake. The bar is a product surface with real intent, clear hierarchy, and enough taste that someone notices the design choices rather than the template.

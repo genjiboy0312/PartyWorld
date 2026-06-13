@@ -1,4 +1,9 @@
 {
-  // Keep this file schema-compatible with oh-my-openagent v4.3.0.
-  // From this repo root, the harness discovers .opencode/skills and .opencode/commands automatically.
+  // Phase 1 keeps the project-local bundle wiring narrow and structural.
+  // Canonical pluralized bundle roots live under this repo-local .opencode directory.
+  "paths": {
+    "skills": ["./skills"],
+    "commands": ["./commands"],
+    "reference": ["./reference"]
+  }
 }

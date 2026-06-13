@@ -31,7 +31,7 @@ public class PlayerView : MonoBehaviour
 
         //  혹시 모를 NavMeshAgent 제거
         var _agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (_agent != null) 
+        if (_agent != null)
             Destroy(_agent);
 
         if (Animator != null)
@@ -75,7 +75,7 @@ public class PlayerView : MonoBehaviour
 
     public void LookAt(Vector3 direction)
     {
-        if (_isDiving || direction == Vector3.zero) 
+        if (_isDiving || direction == Vector3.zero)
             return;
 
         Quaternion _targetRot = Quaternion.LookRotation(direction);
@@ -89,7 +89,7 @@ public class PlayerView : MonoBehaviour
     public void Jump(float jumpPower)
     {
         var _velocity = Rigidbody.linearVelocity;
-        _velocity.y = jumpPower * 10f;
+        _velocity.y = jumpPower;
         Rigidbody.linearVelocity = _velocity;
 
         Animator.SetTrigger("doJump");
@@ -217,7 +217,7 @@ public class PlayerView : MonoBehaviour
         Vector3 v = Rigidbody.linearVelocity;
         Vector3 planar = new Vector3(v.x, 0f, v.z);
         float speed = planar.magnitude;
-        bool isMoving = speed > 0.05f;
+        bool isMoving = speed > 0.1f; // 기준치 조정
 
         if (_hasIsWalkParam)
             Animator.SetBool(IsWalkParam, isMoving);

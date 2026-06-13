@@ -1,0 +1,10 @@
+{
+  "id": "T-38898b00-7ac4-4817-8c2c-6a74a2f34bb2",
+  "subject": "Analyze Player_Test01 movement lock",
+  "description": "Analyze Scene_R&D Player_Test01 object setup and related movement scripts to diagnose why it cannot move from its position.",
+  "status": "in_progress",
+  "activeForm": "Inspecting Player_Test01 directly with Unity MCP tools",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_2052faaaeffep64MiThEe1bTCD"
+}

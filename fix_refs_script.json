@@ -1,0 +1,6 @@
+{
+  "csharpCode": "using UnityEngine; using UnityEditor; using System.Reflection; public class FixPlayerReferences { public static string Execute() { GameObject player = GameObject.Find(\"Player_Test01\"); if (player == null) return \"Player_Test01 not found.\"; var presenter = player.GetComponent<PlayerPresenter>(); var rb = player.GetComponent<Rigidbody>(); if (presenter == null || rb == null) return \"Presenter or Rigidbody missing.\"; FieldInfo rbField = presenter.GetType().GetField(\"_rigidbody3D\", BindingFlags.NonPublic | BindingFlags.Instance); if (rbField == null) return \"_rigidbody3D field not found.\"; rbField.SetValue(presenter, rb); return $\"Successfully assigned Rigidbody to PlayerPresenter on {player.name}.\"; } }",
+  "isMethodBody": false,
+  "className": "FixPlayerReferences",
+  "methodName": "Execute"
+}

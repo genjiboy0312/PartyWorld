@@ -1,0 +1,11 @@
+{
+  "id": "T-c5630a80-86d5-49df-91af-1e5e675644f0",
+  "subject": "Search scripts for bootstrap/persistence patterns",
+  "description": "Inspect scripts for managers, bootstrap flows, DontDestroyOnLoad usage, additive scene loading, and persistent UI roots that could inform UI_PlayerController placement.",
+  "status": "completed",
+  "activeForm": "finished searching scripts for bootstrap patterns",
+  "blocks": [],
+  "blockedBy": [],
+  "repoURL": "C:\\PartyWorld",
+  "threadID": "ses_24c228a57ffeITDrVlWSR8ZKEH"
+}

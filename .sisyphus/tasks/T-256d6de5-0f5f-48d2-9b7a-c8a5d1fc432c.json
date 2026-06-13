@@ -1,0 +1,11 @@
+{
+  "id": "T-256d6de5-0f5f-48d2-9b7a-c8a5d1fc432c",
+  "subject": "Search scene and prefab assets for reusable roots",
+  "description": "Inspect scenes and prefabs for bootstrap scenes, persistent roots, reusable UI prefabs, and additive-loading patterns relevant to UI_PlayerController placement.",
+  "status": "completed",
+  "activeForm": "finished searching scene and prefab assets for reusable roots",
+  "blocks": [],
+  "blockedBy": [],
+  "repoURL": "C:\\PartyWorld",
+  "threadID": "ses_24c228a57ffeITDrVlWSR8ZKEH"
+}

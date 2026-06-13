@@ -1,15 +1,9 @@
 ---
 name: release-engineering
-description: "Planned adjacent, non-primary: Deliver versioning, changelog, publication, promotion, and rollback guidance for shipped artifacts without absorbing deployment or runtime operations."
-metadata:
-  surface: planned-adjacent
-  primary-route: "false"
-  support-tier: planned
+description: Deliver versioning, changelog, publication, promotion, and rollback guidance for shipped artifacts without absorbing deployment or runtime operations.
 ---
 
 # Release Engineering
-
-This pack's native-safe metadata marks it as `surface: planned-adjacent`, `primary-route: false`, and `support-tier: planned`.
 
 Use this pack as a bounded planned adjacent, non-primary surface after `../../reference/routing-matrix.md` points here for versioned delivery work: SemVer policy, changelog and release-note flow, package or artifact publication, prerelease versus stable boundaries, promotion decisions, and rollback framing around shipped changes.
 

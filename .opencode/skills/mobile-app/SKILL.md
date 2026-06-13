@@ -11,8 +11,6 @@ Defer route choice and lane selection to `../../reference/routing-matrix.md`. Fo
 
 This pack covers both cross-platform and native overlays. Start from the product and device constraints first, then choose the overlay that best matches the codebase. Deprecated wrappers stay non-primary.
 
-When a mobile UI request asks for a specific feel, DESIGN.md references can support visual-language inspiration and token/pattern extraction through `../../reference/design-md-selection-protocol.md` and `../../reference/design-md-catalog.md`. Read the project root `DESIGN.md` first when present, keep `mobile-app` primary, and treat the DESIGN.md layer as supplementary reference material, not a route or helper.
-
 For setup posture, prefer refining an existing project in place. Treat direct `create` / `init` / `new` flows as greenfield-only and use them only when explicitly requested. Defer the full setup policy to `../../reference/project-setup-policy.md`.
 
 ## Core focus
@@ -21,7 +19,6 @@ For setup posture, prefer refining an existing project in place. Treat direct `c
 - Keep navigation, state ownership, and async behavior explicit.
 - Treat startup time, memory, battery, and frame stability as first-class quality bars.
 - Respect platform conventions instead of flattening iOS and Android into one lowest-common-denominator UX.
-- Prefer project tokens, platform conventions, and root `DESIGN.md` before adapting external DESIGN.md references.
 - Pair with `architecture-integration` when contract, auth, or sync rules shape the app.
 
 ## Shared mobile standards
@@ -34,13 +31,11 @@ For setup posture, prefer refining an existing project in place. Treat direct `c
 
 ## Default workflow
 
-1. Identify the dominant platform surface, project design system, and project root `DESIGN.md` when present.
-2. If a named external feel remains useful, follow `../../reference/design-md-selection-protocol.md` and keep any catalog example supplementary to the project design system.
-3. Select the nearest overlay in `reference/`.
-4. Map navigation, state, sync, permissions, and device capability needs before implementation.
-5. Implement primary flows first, then edge states, then performance and platform polish.
-6. Add the curated `impeccable` layer when visual refinement or anti-slop review is explicitly needed.
-7. Run `review-work` after significant mobile changes.
+1. Identify the dominant platform surface and select the nearest overlay in `reference/`.
+2. Map navigation, state, sync, permissions, and device capability needs before implementation.
+3. Implement primary flows first, then edge states, then performance and platform polish.
+4. Add the curated `impeccable` layer when visual refinement or anti-slop review is explicitly needed.
+5. Run `review-work` after significant mobile changes.
 
 ## Collaboration in this repo
 

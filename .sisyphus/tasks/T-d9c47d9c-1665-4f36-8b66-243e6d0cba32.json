@@ -1,0 +1,10 @@
+{
+  "id": "T-d9c47d9c-1665-4f36-8b66-243e6d0cba32",
+  "subject": "Remove PlayerPresenter main joint dependency",
+  "description": "Remove _mainJoint field and related setup from PlayerPresenter, then verify Unity compilation.",
+  "status": "completed",
+  "activeForm": "Removed PlayerPresenter main joint dependency and verified compilation",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_2052faaaeffep64MiThEe1bTCD"
+}

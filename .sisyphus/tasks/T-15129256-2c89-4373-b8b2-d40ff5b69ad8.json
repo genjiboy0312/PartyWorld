@@ -1,0 +1,10 @@
+{
+  "id": "T-15129256-2c89-4373-b8b2-d40ff5b69ad8",
+  "subject": "Identify local ViewQuery references",
+  "description": "Search this Unity project and package cache for ViewQuery usages and adjacent usings to understand how com.ivanmurzak.unity.mcp references it.",
+  "status": "completed",
+  "activeForm": "Identifying local ViewQuery references",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_2054eb5cfffeSh4R1Te4Lpae8h"
+}

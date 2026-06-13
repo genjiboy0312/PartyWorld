@@ -1,0 +1,11 @@
+{
+  "id": "T-52cb3f36-8ed5-4354-a17e-1fe84ffdf76f",
+  "subject": "Analyze UI_PlayerController reuse",
+  "description": "Investigate how UI_PlayerController is currently placed and referenced across scenes, then recommend a reusable Unity architecture for prototype scenes.",
+  "status": "completed",
+  "activeForm": "Completed UI_PlayerController reuse analysis",
+  "blocks": [],
+  "blockedBy": [],
+  "owner": "Sisyphus",
+  "threadID": "ses_24c233a67ffelZ5cUtpH5DyC1N"
+}

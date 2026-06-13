@@ -18,16 +18,6 @@ Use this file as the shared source of truth for release-ready QA thresholds. Pac
 - Keep raw evidence attached to the work: screenshots, browser snapshots, logs, Lighthouse output, vulnerability reports, and concise pass or fail notes.
 - Measure against real flows and real environments that match the change risk.
 
-## DESIGN.md reference evidence
-
-When UI work uses external DESIGN.md reference material, evidence must show how the reference was interpreted instead of copied:
-
-1. Record the selected slug from `.opencode/reference/design-md-catalog.md`, plus whether it was primary or secondary.
-2. List the transferable patterns extracted from the reference, such as density, hierarchy, contrast, interaction tone, or component affordance.
-3. Describe the adaptations made for the user's product, existing tokens, components, content, and platform conventions.
-4. Include anti-copying checks for trademark, brand, logos, trade dress, proprietary type, exact layouts, screenshots, and marketing copy.
-5. Include accessibility checks for semantics, keyboard use, focus order, labels, contrast, and motion where relevant.
-
 ## Evidence checklist
 
 1. Functional flow evidence for the highest-risk user journeys.

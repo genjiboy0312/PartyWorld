@@ -1,0 +1,41 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "sllm": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "\uC0AC\uB0B4 AI \uC11C\uBC84",
+      "options": {
+        "baseURL": "http://172.25.249.44:50002/v1"
+      },
+      "models": {
+        "qwen3:14b": {
+          "name": "Qwen3 8B (tools\u002Bthinking)",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "qwen2.5-coder:14b": {
+          "name": "Qwen2.5-Coder 14B",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+  "model": "sllm/qwen3:14b",
+  "small_model": "sllm/qwen3:14b",
+  "plugin": [
+    "oh-my-openagent"
+  ],
+  "share": "disabled",
+  "mcp": {
+    "ai-game-developer": {
+      "enabled": true,
+      "type": "remote",
+      "url": "http://localhost:20573"
+    }
+  }
+}

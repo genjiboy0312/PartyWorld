@@ -1,0 +1,6 @@
+{
+  "csharpCode": "using UnityEngine; using UnityEditor; using System.Text; public class MovementBlockAnalysis { public static string Execute() { GameObject player = GameObject.Find(\"Player_Test01\"); if (player == null) return \"Player_Test01 not found.\"; StringBuilder sb = new StringBuilder(); sb.AppendLine($\"--- Block Analysis for {player.name} ---\"); var rb = player.GetComponent<Rigidbody>(); if (rb != null) { sb.AppendLine($\"[Rigidbody] isKinematic: {rb.isKinematic}\"); sb.AppendLine($\"[Rigidbody] constraints: {rb.constraints}\"); sb.AppendLine($\"[Rigidbody] linearDamping: {rb.linearDamping}\"); } var joint = player.GetComponent<ConfigurableJoint>(); if (joint != null) { sb.AppendLine($\"[Joint] Found ConfigurableJoint!\"); sb.AppendLine($\"[Joint] xMotion: {joint.xMotion}\"); sb.AppendLine($\"[Joint] yMotion: {joint.yMotion}\"); sb.AppendLine($\"[Joint] zMotion: {joint.zMotion}\"); } var colliders = player.GetComponents<Collider>(); sb.AppendLine($\"[Colliders] Count: {colliders.Length}\"); foreach(var col in colliders) { sb.AppendLine($\" - {col.GetType().Name} (IsTrigger: {col.isTrigger})\"); } return sb.ToString(); } }",
+  "isMethodBody": false,
+  "className": "MovementBlockAnalysis",
+  "methodName": "Execute"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "T-39f7a731-ba74-49e4-9e27-59555e994566",
+  "subject": "PlayerPresenter 이동 로직 수정",
+  "description": "PlayerPresenter에서 ground check serialized 필드를 제거하고 일반적인 velocity 기반 캐릭터 이동 방식으로 수정한 뒤 검증한다.",
+  "status": "completed",
+  "activeForm": "PlayerPresenter 이동 로직 수정을 완료함",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_200214cceffeTOE9z6ceGKmS2U"
+}

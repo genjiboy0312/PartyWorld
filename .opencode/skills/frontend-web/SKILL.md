@@ -11,8 +11,6 @@ Defer route choice and lane selection to `../../reference/routing-matrix.md`. Fo
 
 This is the general web UI pack for the repo. It is not limited to one framework. Use the overlays in `reference/` to tune decisions for a specific stack or browser-3D runtime while keeping the shared browser-quality bar intact and without creating separate top-level frontend packs or a new top-level 3D pack. When anti-slop design review matters, use `../../reference/design-anti-slop.md` as the shared ban list. Deprecated wrappers stay non-primary here too.
 
-When a web UI request asks for a specific feel, DESIGN.md references can support visual-language inspiration and token/pattern extraction through `../../reference/design-md-selection-protocol.md` and `../../reference/design-md-catalog.md`. Read the project root `DESIGN.md` first when present, keep `frontend-web` primary, and treat the DESIGN.md layer as supplementary reference material, not a route or helper.
-
 For setup posture, prefer refining an existing project in place. Treat direct `create` / `init` / `new` flows as greenfield-only and use them only when explicitly requested. Defer the full setup policy to `../../reference/project-setup-policy.md`.
 
 ## Core focus
@@ -28,7 +26,6 @@ For setup posture, prefer refining an existing project in place. Treat direct `c
 
 - Keep TypeScript strict where the project uses it.
 - Reuse the design system and established component patterns before inventing one-off UI.
-- Prefer project tokens, components, and root `DESIGN.md` before adapting external DESIGN.md references.
 - Make loading, empty, error, and success states intentional.
 - Keep forms explicit about validation, latency, and recovery.
 - Measure bundle, image, and rendering cost on user-facing paths.
@@ -37,12 +34,11 @@ For setup posture, prefer refining an existing project in place. Treat direct `c
 
 ## Default workflow
 
-1. Inspect the existing UI patterns, component boundaries, design tokens, and project root `DESIGN.md` when present.
-2. If a named external feel remains useful, follow `../../reference/design-md-selection-protocol.md` and keep any catalog example supplementary to the project design system.
-3. Choose the closest overlay from `reference/nextjs.md`, `reference/react-web.md`, `reference/vue-nuxt.md`, `reference/svelte-astro.md`, `reference/angular.md`, `reference/browser-3d-platform.md`, `reference/threejs-react-three-fiber.md`, `reference/babylon-playcanvas.md`, `reference/shader-material-workflows.md`, or `reference/gltf-asset-pipeline.md`.
-4. Implement structure first, then state flow, then accessibility and performance details.
-5. Add `impeccable`, `audit`, `critique`, `polish`, `typeset`, `colorize`, or `adapt` only when the request clearly needs that layer.
-6. Run `review-work` after substantial UI changes.
+1. Inspect the existing UI patterns, component boundaries, and design tokens.
+2. Choose the closest overlay from `reference/nextjs.md`, `reference/react-web.md`, `reference/vue-nuxt.md`, `reference/svelte-astro.md`, `reference/angular.md`, `reference/browser-3d-platform.md`, `reference/threejs-react-three-fiber.md`, `reference/babylon-playcanvas.md`, `reference/shader-material-workflows.md`, or `reference/gltf-asset-pipeline.md`.
+3. Implement structure first, then state flow, then accessibility and performance details.
+4. Add `impeccable`, `audit`, `critique`, `polish`, `typeset`, `colorize`, or `adapt` only when the request clearly needs that layer.
+5. Run `review-work` after substantial UI changes.
 
 ## Collaboration in this repo
 

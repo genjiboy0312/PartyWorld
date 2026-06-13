@@ -1,14 +1,15 @@
 ---
 name: extract
-description: "Compatibility wrapper: Redirect to `/impeccable extract`."
-metadata:
-  surface: compatibility-wrapper
-  primary-route: "false"
-  runtime-grant: "false"
+description: "Deprecated upstream wrapper kept for completeness. Not a primary route. Use `impeccable extract` to pull stable shared components, tokens, and interaction patterns into the local design system."
 ---
 
 # Extract
 
-Compatibility wrapper: this local compatibility wrapper stays callable as a non-primary alias for existing users. It is not a primary route and does not carry runtime grants.
+This deprecated wrapper is kept so the local `impeccable` family stays complete.
 
-Redirect to `/impeccable extract`.
+Use `impeccable extract` instead when the goal is to:
+- identify repeated UI patterns that are truly reusable now,
+- extract stable components or tokens into shared layers,
+- and migrate one-off implementations to the shared version.
+
+Keep `extract` present for completeness only. Do not do extraction work from this wrapper itself.

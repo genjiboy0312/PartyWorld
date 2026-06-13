@@ -21,10 +21,13 @@ EditorBuildSettings:
     path: Assets/GameData/Scenes/Scene_Loading.unity
     guid: 42a9afc7c4e5a8a41b376947fb08ac89
   - enabled: 1
-    path: Assets/GameData/Scenes/Scene_Map01.unity
+    path: Assets/GameData/Scenes/Scene_RunningMap.unity
     guid: ab7f2b28c2b5d0d4b972f1942395b5ab
   - enabled: 1
     path: Assets/GameData/Scenes/Scene_Result.unity
     guid: 4538230612a847998840e958bd4de366
+  - enabled: 1
+    path: Assets/GameData/Scenes/Scene_HexagonMap.unity
+    guid: b9dde5f75d34eb74689fa6d5e3e17602
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

@@ -1,0 +1,12 @@
+{
+  "id": "T-3d14fda1-9ae4-4650-8d0c-d1eb9420e39a",
+  "subject": "Check known MCP missing type issues",
+  "description": "Look for known com.ivanmurzak.unity.mcp reports or code changes related to missing ViewQuery or package dependencies.",
+  "status": "completed",
+  "activeForm": "Checking known MCP missing type issues",
+  "blocks": [],
+  "blockedBy": [
+    "T-d463191d-3938-48d1-99ab-3a06d906fbba"
+  ],
+  "threadID": "ses_2054eb5cfffeSh4R1Te4Lpae8h"
+}

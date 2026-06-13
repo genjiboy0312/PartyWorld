@@ -609,7 +609,7 @@ namespace FAE
         void LightSetup()
         {
             //Set up lighting for a proper albedo color
-            lights = FindObjectsOfType<Light>();
+            lights = FindObjectsByType<Light>(FindObjectsSortMode.None);
             foreach (Light light in lights)
             {
                 if (light.type == LightType.Directional)

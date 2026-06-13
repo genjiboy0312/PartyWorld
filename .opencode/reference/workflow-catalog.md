@@ -58,20 +58,3 @@ Each workflow file under `.opencode/reference/workflows/` is a compact proof con
 5. and its evidence path contract.
 
 That keeps the catalog compact while preserving a stable inventory the workflow docs can elaborate without changing the frozen four-workflow set.
-
-## Evidence freshness contract
-
-Any workflow proof, release proof, or evidence summary that claims current release status or current workflow status must expose these literal fields so validators and reviewers can inspect freshness without guessing:
-
-1. `workflow_id`
-2. `route`
-3. `support_level`
-4. `generated_at`
-5. `validated_at`
-6. `toolkit_version`
-7. `validator_command`
-8. `source_files`
-
-Freshness is machine-checkable. Evidence is stale if `toolkit_version` does not match the current `VERSION`, if it was generated before the current `VERSION` became the local version source of truth, or if `generated_at` predates changed workflow or support docs listed in `source_files`. Workflow and support source files include `.opencode/reference/workflow-catalog.md`, `.opencode/reference/workflows/*.md`, `.opencode/reference/support-policy.md`, and `.opencode/reference/capability-matrix.json`.
-
-Historical evidence under `.sisyphus/evidence/` does not need these fields unless it claims current release status or current workflow status.

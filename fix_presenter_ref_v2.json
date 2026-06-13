@@ -1,0 +1,13 @@
+{
+  "componentRef": {
+    "instanceID": 148320
+  },
+  "pathPatches": [
+    {
+      "path": "_rigidbody3D",
+      "value": {
+        "instanceID": 147814
+      }
+    }
+  ]
+}

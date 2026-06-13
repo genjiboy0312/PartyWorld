@@ -1,14 +1,13 @@
 ---
 name: teach-impeccable
-description: "Compatibility wrapper: Redirect to `/impeccable teach`."
-metadata:
-  surface: compatibility-wrapper
-  primary-route: "false"
-  runtime-grant: "false"
+description: "Deprecated upstream wrapper kept for completeness only. Not a primary routing choice. Redirect to `impeccable teach` instead."
+user-invocable: true
 ---
 
 # Teach Impeccable
 
-Compatibility wrapper: this local compatibility wrapper stays callable as a non-primary alias for existing users. It is not a primary route and does not carry runtime grants.
+This deprecated wrapper is kept only for completeness in the local `impeccable` family.
 
-Redirect to `/impeccable teach`.
+Redirect to `impeccable teach` instead to gather or update the project's design context.
+
+Keep `teach-impeccable` present for completeness only. Do not run a separate teach workflow from `teach-impeccable`; treat it as a redirect to `impeccable teach`.

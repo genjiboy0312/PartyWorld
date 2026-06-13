@@ -1,15 +1,9 @@
 ---
 name: developer-experience
-description: "Planned adjacent, non-primary: Improve contributor inner loops, onboarding, local setup ergonomics, and fast feedback without absorbing CI, deployment, or runtime operations."
-metadata:
-  surface: planned-adjacent
-  primary-route: "false"
-  support-tier: planned
+description: Improve contributor inner loops, onboarding, local setup ergonomics, and fast feedback without absorbing CI, deployment, or runtime operations.
 ---
 
 # Developer Experience
-
-This pack's native-safe metadata marks it as `surface: planned-adjacent`, `primary-route: false`, and `support-tier: planned`.
 
 Use this pack as a bounded planned adjacent surface after `../../reference/routing-matrix.md` points here for contributor-facing workflow work: onboarding, local setup contracts, repo ergonomics, package and workspace conventions, fast feedback loops, and review norms that shape the pre-merge inner loop.
 

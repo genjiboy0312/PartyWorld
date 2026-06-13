@@ -65,7 +65,7 @@ namespace Photon.Pun.Demo.Procedural
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<WorldGenerator>();
+                    instance = FindFirstObjectByType<WorldGenerator>();
                 }
 
                 return instance;

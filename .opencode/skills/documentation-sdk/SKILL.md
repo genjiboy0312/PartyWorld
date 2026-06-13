@@ -1,15 +1,9 @@
 ---
 name: documentation-sdk
-description: "Planned adjacent, non-primary: Deliver API and SDK-facing documentation guidance for design-first contracts, generated references, examples, and release-adjacent doc updates without widening into generic product docs."
-metadata:
-  surface: planned-adjacent
-  primary-route: "false"
-  support-tier: planned
+description: Deliver API and SDK-facing documentation guidance for design-first contracts, generated references, examples, and release-adjacent doc updates without widening into generic product docs.
 ---
 
 # Documentation SDK
-
-This pack's native-safe metadata marks it as `surface: planned-adjacent`, `primary-route: false`, and `support-tier: planned`.
 
 Use this pack as a bounded planned adjacent surface after `../../reference/routing-matrix.md` points here for API and SDK documentation work: source-of-truth contracts, reference docs, OpenAPI-driven content, examples and snippets, generated SDK surfaces, and release-adjacent documentation updates.
 

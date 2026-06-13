@@ -76,7 +76,7 @@ namespace Photon.Pun.UtilityScripts
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<PhotonTeamsManager>();
+                    instance = FindFirstObjectByType<PhotonTeamsManager>();
                     if (instance == null)
                     {
                         GameObject obj = new GameObject();
