@@ -25,9 +25,6 @@ public class GameManager : MonoBehaviour
         if (Instance != null)
             return;
 
-        if (FindAnyObjectByType<GameManager>() != null)
-            return;
-
         GameObject go = new GameObject(nameof(GameManager));
         go.AddComponent<GameManager>();
     }
@@ -109,17 +106,12 @@ public class GameManager : MonoBehaviour
 
     public void InitializeChatManager()
     {
+        // ChatManager는 자신의 Awake에서 GameManager.Instance를 통해 직접 구독하므로
+        // GameManager는 중복 구독 방지를 위해 참조 정리만 수행
         if (_chatMgr != null)
         {
             _onGameStateChange -= _chatMgr.OnGameStateChange;
             _chatMgr = null;
-        }
-
-        _chatMgr = FindAnyObjectByType<ChatManager>();
-
-        if (_chatMgr != null)
-        {
-            _onGameStateChange += _chatMgr.OnGameStateChange;
         }
     }
 
