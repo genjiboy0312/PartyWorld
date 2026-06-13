@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
 
 public enum GameState
 {
@@ -44,6 +45,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string _loadingSceneName = "Scene_Loading";
     [SerializeField] private string _resultSceneName = "Scene_Result";
 
+    [SerializeField] private string _mapScenePrefix = "Scene_Map";
     // 옵저버 패턴
     private event Action<GameState> _onGameStateChange;
 

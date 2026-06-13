@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 using PhotonHashtable = ExitGames.Client.Photon.Hashtable;
 using EventCode = System.Byte;
+using ExitGames.Client.Photon;
 
 public class RoundManager : MonoBehaviour, IOnEventCallback
 {
@@ -140,7 +141,7 @@ public class RoundManager : MonoBehaviour, IOnEventCallback
         _isRoundActive = false;
 
         // 게임 모드 결정 (현재는 Scene_Map prefix 기반. 나중에 확장)
-        _currentGameMode = ResolveGameMode(mapSceneName);
+        _currentGameMode = GetGameModeFromScene(mapSceneName);
         _roundTimeLimit = ResolveTimeLimit(_currentGameMode);
 
         Debug.Log($"[RoundManager] Round {_currentRoundIndex + 1}/{_totalRounds} initializing. " +
@@ -679,7 +680,7 @@ public class RoundManager : MonoBehaviour, IOnEventCallback
     // ──────────────────────────────────────────────
     // Helpers
     // ──────────────────────────────────────────────
-    private GameMode ResolveGameMode(string sceneName)
+    private GameMode GetGameModeFromScene(string sceneName)
     {
         // Scene naming convention:
         // Scene_Map_Race_*, Scene_Map_Survive_*, Scene_Map_Score_*, Scene_Map_Team_*
