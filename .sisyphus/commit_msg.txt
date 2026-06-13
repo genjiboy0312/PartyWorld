@@ -1,0 +1,20 @@
+﻿step14: RoundManager 생성 및 Phase 1 라운드 시스템 인프라 구현
+
+- RoundManager.cs 신규: RaiseEvent 기반 라운드 생명주기 관리자 (EVENT_START_ROUND=20~24)
+  - 라운드 시작/종료 타이머, IntroSequence
+  - 결승선 통과/낙사 제거 이벤트 처리 (마스터 라우팅)
+  - Race/Survival 모드별 EndRound 조건 평가
+  - 순위/스코어 산출 및 직렬화
+  - PostRoundSequence로 멀티라운드/ResultScene 전환
+  - CleanupSession으로 세션 종료 시 전체 상태 초기화
+
+- NetworkAuthorityManager.cs 수정:
+  - Bootstrap: RoundManager 컴포넌트 자동 추가 (DontDestroyOnLoad)
+  - OnSceneLoaded: 맵 씬 진입 시 InitializeRoundManagerForMap 호출
+  - InitializeRoundManagerForMap 신규 메서드
+  - ReturnToLobby: CleanupSession 호출로 세션 정리
+
+- GameManager.cs 수정:
+  - _resultSceneName 기본값 Scene_Result
+  - NotifyRoundContainerReady / OnRoundSessionComplete 추가
+  - StartGame/GameOver 단축 메서드 추가

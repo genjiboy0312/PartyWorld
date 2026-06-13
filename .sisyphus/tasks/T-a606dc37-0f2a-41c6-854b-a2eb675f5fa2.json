@@ -1,0 +1,10 @@
+{
+  "id": "T-a606dc37-0f2a-41c6-854b-a2eb675f5fa2",
+  "subject": "Create Scene_Result prototype",
+  "description": "Create Scene_Result.unity YAML file and .meta file based on Scene_Loading template, with result-themed UI",
+  "status": "completed",
+  "activeForm": "Creating Scene_Result prototype",
+  "blocks": [],
+  "blockedBy": [],
+  "threadID": "ses_13fec512affeNRs4UD261ag6tS"
+}
