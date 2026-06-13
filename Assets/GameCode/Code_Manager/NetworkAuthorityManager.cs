@@ -51,6 +51,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [SerializeField] private string _loadingSceneName = "Scene_Loading";
     [SerializeField] private string _mapSceneName = "Scene_Map01";
     [SerializeField] private List<string> _mapSceneNames = new List<string>();
+    [SerializeField] private string _mapScenePrefix = "Scene_Map";
 
     [Header("Character Spawn")]
     [SerializeField] private CharacterCatalog _characterCatalog;
@@ -514,7 +515,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if (scene.name.StartsWith("Scene_Map"))
+        if (scene.name.StartsWith(_mapScenePrefix, StringComparison.OrdinalIgnoreCase))
             TrySpawnLocalPlayerForMap();
 
         if (!PhotonNetwork.IsMasterClient)
