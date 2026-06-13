@@ -50,18 +50,6 @@ public class FollowCamera : MonoBehaviour
             Rigidbody rb = _playerTransform.GetComponentInChildren<Rigidbody>();
             if (rb != null)
                 _lastFacingY = _playerTransform.eulerAngles.y;
-            return;
-        }
-
-        PhotonView[] views = FindObjectsByType<PhotonView>(FindObjectsSortMode.None);
-        for (int i = 0; i < views.Length; i++)
-        {
-            if (views[i].IsMine && views[i].GetComponent<Rigidbody>() != null)
-            {
-                _playerTransform = views[i].transform;
-                _lastFacingY = _playerTransform.eulerAngles.y;
-                return;
-            }
         }
     }
 }
