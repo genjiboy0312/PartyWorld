@@ -17,11 +17,7 @@ public class DataManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
     {
-        // 씬에 배치되지 않아도 인스턴스를 1개 보장
         if (Instance != null)
-            return;
-
-        if (FindAnyObjectByType<DataManager>() != null)
             return;
 
         GameObject go = new GameObject(nameof(DataManager));
