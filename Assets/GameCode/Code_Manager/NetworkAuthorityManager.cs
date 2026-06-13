@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using System.IO;
 using ExitGames.Client.Photon;
 using Photon.Pun;
@@ -425,7 +426,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        PhotonNetwork.NickName = $"Dev_{Random.Range(1000, 9999)}";
+        PhotonNetwork.NickName = $"Dev_{UnityEngine.Random.Range(1000, 9999)}";
     }
 
     private string ResolveSelectedCharacterId()
@@ -700,7 +701,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
 
         List<string> candidates = GetCandidateMapSceneNames();
-        string selected = candidates.Count > 0 ? candidates[Random.Range(0, candidates.Count)] : _mapSceneName;
+        string selected = candidates.Count > 0 ? candidates[UnityEngine.Random.Range(0, candidates.Count)] : _mapSceneName;
 
         PhotonHashtable props = new PhotonHashtable
         {
