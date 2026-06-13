@@ -62,8 +62,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [SerializeField] private Vector3 _fallbackSpawnStep = new Vector3(1.5f, 0f, 0f);
 
     [Header("Networking")]
-    [SerializeField] private int _sendRate = 60;
-    [SerializeField] private int _serializationRate = 60;
+    [SerializeField] private int _sendRate = 20;
+    [SerializeField] private int _serializationRate = 20;
     [SerializeField] private float _loadingGateDelaySeconds = 0.25f;
 
     [Header("Lobby Countdown")]
@@ -476,6 +476,32 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     {
         if (!PhotonNetwork.IsMasterClient)
             return;
+    }
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        base.OnMasterClientSwitched(newMasterClient);
+
+        Debug.Log($"[NetworkAuthorityManager] Master switched to {newMasterClient.NickName} (Actor={newMasterClient.ActorNumber})");
+
+        if (!PhotonNetwork.InRoom)
+            return;
+
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // 로비: 전체 Ready 상태에 따라 카운트다운 재평가
+        if (sceneName == _roomLobbySceneName)
+        {
+            EvaluateLobbyCountdown();
+            return;
+        }
+
+        // 로딩 게이트: 새 마스터가 모든 플레이어 도착 확인 후 맵 전환
+        if (sceneName == _loadingSceneName && _loadingGateCoroutine == null)
+        {
+            if (AreAllPlayersInScene(_loadingSceneName))
+                _loadingGateCoroutine = StartCoroutine(LoadingGateToMap());
+        }
     }
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, PhotonHashtable changedProps)
