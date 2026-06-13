@@ -11,16 +11,11 @@ public class AudioManager : MonoBehaviour
     {
         if (Instance != null)
             return;
-        
-        if (FindAnyObjectByType<AudioManager>() != null)
-            return;
 
         GameObject go = new GameObject(nameof(AudioManager));
         go.AddComponent<AudioSource>(); // Music Source
         go.AddComponent<AudioSource>(); // SFX Source
         go.AddComponent<AudioManager>();
-        
-        // AudioManager에 필요한 AudioSource 2개를 동적으로 추가
     }
 
     [Header("Sound 설정")]
