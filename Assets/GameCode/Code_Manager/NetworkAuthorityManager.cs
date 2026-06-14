@@ -58,6 +58,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     private string _roomLobbySceneName;
     private string _loadingSceneName;
 
+    [SerializeField] private string _mapScenePrefix = "Scene_Map";
+
     [Header("Character Spawn")]
     [SerializeField] private CharacterCatalog _characterCatalog;
     [SerializeField] private List<CharacterSpawnEntry> _characterSpawnEntries = new List<CharacterSpawnEntry>();

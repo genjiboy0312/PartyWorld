@@ -56,9 +56,7 @@ public class GameManager : MonoBehaviour
     private string _resultSceneName;
     private HashSet<string> _mapSceneNames = new HashSet<string>();
 
-    [SerializeField] private string _mapScenePrefix = "Scene_Map";
 
-    [SerializeField] private string _mapScenePrefix = "Scene_Map";
     // 옵저버 패턴
     private event Action<GameState> _onGameStateChange;
 

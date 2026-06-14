@@ -1,6 +1,7 @@
 {
     "name": "GameCode",
     "references": [
+        "Unity.TextMeshPro",
         "PhotonUnityNetworking",
         "PhotonRealtime"
     ],
