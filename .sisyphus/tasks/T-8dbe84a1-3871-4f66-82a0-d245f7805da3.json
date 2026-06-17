@@ -1,0 +1,11 @@
+{
+  "id": "T-8dbe84a1-3871-4f66-82a0-d245f7805da3",
+  "subject": "Fix GameManager bootstrap lifecycle",
+  "description": "Remove blank BeforeSceneLoad manager creation for inspector-configured managers, preserve first-scene GameManager and NetworkAuthorityManager as singletons, move PlatformQualityManager/RoundManager attachment into Awake, and verify diagnostics/build as available.",
+  "status": "completed",
+  "activeForm": "updating manager lifecycle",
+  "blocks": [],
+  "blockedBy": [],
+  "owner": "Hephaestus",
+  "threadID": "ses_12b8ad931ffePBAz4LMVsXjPZs"
+}

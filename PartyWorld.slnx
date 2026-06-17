@@ -1,6 +1,6 @@
 ﻿<Solution>
-  <Project Path="PhotonChat.csproj" />
   <Project Path="com.IvanMurzak.Unity.MCP.Runtime.csproj" />
+  <Project Path="PhotonChat.csproj" />
   <Project Path="com.IvanMurzak.Unity.MCP.Editor.Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="com.IvanMurzak.Unity.MCP.Editor.csproj" />

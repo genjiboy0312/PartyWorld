@@ -88,18 +88,6 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     public GameObject LocalSpawnedPlayer => _localSpawnedPlayer;
     private bool _characterCatalogTriedLoad;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Bootstrap()
-    {
-        // 씬에 배치되지 않아도 NetworkAuthorityManager 인스턴스를 1개 보장
-        if (Instance != null)
-            return;
-
-        GameObject go = new GameObject(nameof(NetworkAuthorityManager));
-        go.AddComponent<NetworkAuthorityManager>();
-        go.AddComponent<RoundManager>();
-    }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -110,6 +98,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        EnsureRoundManager();
 
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.GameVersion = _gameVersion;
@@ -124,6 +113,14 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         _waitingRoomSceneName = _waitingRoomScene?.SceneName ?? "";
         _roomLobbySceneName = _roomLobbyScene?.SceneName ?? "";
         _loadingSceneName = _loadingScene?.SceneName ?? "";
+    }
+
+    private void EnsureRoundManager()
+    {
+        if (RoundManager.Instance != null || GetComponent<RoundManager>() != null)
+            return;
+
+        gameObject.AddComponent<RoundManager>();
     }
 
     public override void OnEnable()

@@ -20,21 +20,6 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Bootstrap()
-    {
-        // 씬에 배치되지 않아도 GameManager 인스턴스를 1개 보장
-        if (Instance != null)
-            return;
-
-        GameObject go = new GameObject(nameof(GameManager));
-        go.AddComponent<GameManager>();
-
-        // 플랫폼 품질 관리자 초기화 (GameManager와 동일한 GameObject에 추가)
-        if (PlatformQualityManager.Instance == null)
-            go.AddComponent<PlatformQualityManager>();
-    }
-
     [SerializeField] private GameState _currentGameState = GameState.Title;
     [SerializeField] private static int _stage;
 
@@ -86,6 +71,7 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        EnsurePlatformQualityManager();
 
         _stage = 1;
 
@@ -112,6 +98,14 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
         InitializeChatManager();
         SyncStateByScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void EnsurePlatformQualityManager()
+    {
+        if (PlatformQualityManager.Instance != null || GetComponent<PlatformQualityManager>() != null)
+            return;
+
+        gameObject.AddComponent<PlatformQualityManager>();
     }
 
     private void OnDestroy()

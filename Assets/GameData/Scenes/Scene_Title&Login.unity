@@ -1302,7 +1302,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da0394a02e7369e48bcf113f0190f314, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lootType: 0
   _txt: {fileID: 301366567}
 --- !u!1 &323264086
 GameObject:
@@ -3650,13 +3649,13 @@ MonoBehaviour:
     _sceneName: Scene_Loading
     _sceneAsset: {fileID: 102900000, guid: 42a9afc7c4e5a8a41b376947fb08ac89, type: 3}
   _resultScene:
-    _sceneName: 
-    _sceneAsset: {fileID: 0}
+    _sceneName: Scene_Result
+    _sceneAsset: {fileID: 102900000, guid: 4538230612a847998840e958bd4de366, type: 3}
   _mapScenes:
   - _sceneName: Scene_Map01
     _sceneAsset: {fileID: 102900000, guid: ab7f2b28c2b5d0d4b972f1942395b5ab, type: 3}
-  - _sceneName: Scene_HexagonMap
-    _sceneAsset: {fileID: 102900000, guid: b9dde5f75d34eb74689fa6d5e3e17602, type: 3}
+  - _sceneName: Scene_Loading
+    _sceneAsset: {fileID: 102900000, guid: 42a9afc7c4e5a8a41b376947fb08ac89, type: 3}
 --- !u!1 &1498404807
 GameObject:
   m_ObjectHideFlags: 0
@@ -4857,7 +4856,8 @@ MonoBehaviour:
   - _sceneName: Scene_Map01
     _sceneAsset: {fileID: 102900000, guid: ab7f2b28c2b5d0d4b972f1942395b5ab, type: 3}
   - _sceneName: Scene_HexagonMap
-    _sceneAsset: {fileID: 102900000, guid: b9dde5f75d34eb74689fa6d5e3e17602, type: 3}
+    _sceneAsset: {fileID: 102900000, guid: 8b2356ef41741ac48b5d10f3246b9e2d, type: 3}
+  _mapScenePrefix: Scene_Map
   _characterCatalog: {fileID: 0}
   _characterSpawnEntries: []
   _defaultCharacterId: bear_base

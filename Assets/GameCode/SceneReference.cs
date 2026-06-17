@@ -5,9 +5,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-/// <summary>
-/// 씬 참조를 에디터에서 드래그 앤 드롭으로 설정할 수 있게 하는 래퍼
-/// </summary>
+// 씬 참조를 에디터에서 드래그 앤 드롭으로 설정할 수 있게 하는 래퍼
 [Serializable]
 public class SceneReference
 {
@@ -28,9 +26,7 @@ public class SceneReference
 #endif
 }
 
-/// <summary>
-/// SceneReference의 커스텀 에디터 드로워 (드래그 앤 드롭 지원)
-/// </summary>
+// SceneReference의 커스텀 에디터 드로워 (드래그 앤 드롭 지원)
 #if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(SceneReference))]
 public class SceneReferenceDrawer : PropertyDrawer

@@ -1,0 +1,11 @@
+{
+  "id": "T-845fba8a-f3ab-4203-9eaa-10a47581ee20",
+  "subject": "Assess GameManager SceneReference usage",
+  "description": "Find the GameManager script, inspect SceneReference declarations/usages, and determine whether the field is needed or removable.",
+  "status": "completed",
+  "activeForm": "checking GameManager SceneReference usage",
+  "blocks": [],
+  "blockedBy": [],
+  "owner": "Hephaestus",
+  "threadID": "ses_12b8ad931ffePBAz4LMVsXjPZs"
+}

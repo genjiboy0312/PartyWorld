@@ -1,0 +1,11 @@
+{
+  "id": "T-d5edbddc-f32e-4ee3-8956-23efb3813f20",
+  "subject": "Recommend GameManager bootstrap fix",
+  "description": "Analyze current GameManager bootstrap versus Scene_Title&Login inspector-assigned instance and recommend the safest Unity lifecycle change.",
+  "status": "in_progress",
+  "activeForm": "analyzing GameManager bootstrap options",
+  "blocks": [],
+  "blockedBy": [],
+  "owner": "Hephaestus",
+  "threadID": "ses_12b8ad931ffePBAz4LMVsXjPZs"
+}
