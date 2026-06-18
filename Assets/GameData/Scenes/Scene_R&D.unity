@@ -2734,17 +2734,17 @@ Transform:
   - {fileID: 2144234889}
   m_Father: {fileID: 625927953}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &839077766 stripped
+--- !u!114 &839077770 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2498935398298098137, guid: f2c153013c223f741af6a11ce490684a, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1020198003896270701, guid: f2c153013c223f741af6a11ce490684a, type: 3}
   m_PrefabInstance: {fileID: 7658880130553256130}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2323bb2be43f18749b80a6caa98915a2, type: 3}
+  m_Script: {fileID: 11500000, guid: bd3fb0c6ff799224590a5a7e3449570b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: GameCode::JoyStickController
 --- !u!1 &847695169
 GameObject:
   m_ObjectHideFlags: 0
@@ -3559,8 +3559,8 @@ MonoBehaviour:
   _view: {fileID: 1144128343}
   _pv: {fileID: 1144128342}
   _followCamera: {fileID: 808868492}
-  _playerController: {fileID: 839077766}
-  _cameraController: {fileID: 1559817838}
+  _playerController: {fileID: 839077770}
+  _cameraController: {fileID: 1559817842}
   _btnJump: {fileID: 738925254}
   _btnDive: {fileID: 883691639}
   _btnDash: {fileID: 0}
@@ -4633,17 +4633,17 @@ Transform:
   - {fileID: 2049130830}
   m_Father: {fileID: 148514145}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1559817838 stripped
+--- !u!114 &1559817842 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5109591834762784672, guid: f2c153013c223f741af6a11ce490684a, type: 3}
+  m_CorrespondingSourceObject: {fileID: 167611731123880309, guid: f2c153013c223f741af6a11ce490684a, type: 3}
   m_PrefabInstance: {fileID: 7658880130553256130}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2323bb2be43f18749b80a6caa98915a2, type: 3}
+  m_Script: {fileID: 11500000, guid: f7214316ef5cf054a97126827e9c5476, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: GameCode::CameraStickController
 --- !u!1 &1562166266
 GameObject:
   m_ObjectHideFlags: 0
@@ -5025,7 +5025,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1734694138}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f9f51e48a0742149b785746a6cde166, type: 3}
   m_Name: 
@@ -5437,8 +5437,8 @@ MonoBehaviour:
   _view: {fileID: 1857756276}
   _pv: {fileID: 1857756275}
   _followCamera: {fileID: 0}
-  _playerController: {fileID: 0}
-  _cameraController: {fileID: 0}
+  _playerController: {fileID: 839077770}
+  _cameraController: {fileID: 1559817842}
   _btnJump: {fileID: 738925254}
   _btnDive: {fileID: 883691639}
   _btnDash: {fileID: 0}
@@ -10504,8 +10504,8 @@ MonoBehaviour:
   _view: {fileID: 4827948848203112482}
   _pv: {fileID: 4827948848203112479}
   _followCamera: {fileID: 0}
-  _playerController: {fileID: 0}
-  _cameraController: {fileID: 0}
+  _playerController: {fileID: 839077770}
+  _cameraController: {fileID: 1559817842}
   _btnJump: {fileID: 738925254}
   _btnDive: {fileID: 883691639}
   _btnDash: {fileID: 0}
@@ -14929,11 +14929,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2695084941921832666, guid: f2c153013c223f741af6a11ce490684a, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0.000020345053
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2695084941921832666, guid: f2c153013c223f741af6a11ce490684a, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 3.2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2799319528405230151, guid: f2c153013c223f741af6a11ce490684a, type: 3}
       propertyPath: m_Text
@@ -14950,6 +14950,10 @@ PrefabInstance:
     - target: {fileID: 3260179875827076716, guid: f2c153013c223f741af6a11ce490684a, type: 3}
       propertyPath: m_SizeDelta.y
       value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 3260179875827076716, guid: f2c153013c223f741af6a11ce490684a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -350
       objectReference: {fileID: 0}
     - target: {fileID: 3480514207338887482, guid: f2c153013c223f741af6a11ce490684a, type: 3}
       propertyPath: m_Pivot.x
@@ -15094,6 +15098,10 @@ PrefabInstance:
     - target: {fileID: 7833383632705937473, guid: f2c153013c223f741af6a11ce490684a, type: 3}
       propertyPath: m_SizeDelta.y
       value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 7833383632705937473, guid: f2c153013c223f741af6a11ce490684a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -350
       objectReference: {fileID: 0}
     - target: {fileID: 8429033965084131046, guid: f2c153013c223f741af6a11ce490684a, type: 3}
       propertyPath: m_Sprite
