@@ -4,7 +4,7 @@
 
 `PartyWorld` Unity 프로젝트의 **변경 로그, 최근 작업 내역, 공지 사항**을 기록합니다.
 
-**마지막 업데이트**: 2026-06-13
+**마지막 업데이트**: 2026-06-18
 
 ---
 
@@ -100,6 +100,15 @@
 
 ---
 
+### 2026-06-18 - [Refactor: Controller.cs 분리 (JoyStick/CameraStick)]
+- **변경 내용**:
+  - `Controller.cs` 하나로 두 스틱(BackGround_JoyStick, BackGround_CameraStick)을 처리하던 구조를 분리
+  - `JoyStickController.cs` 생성: 이동 전용, 버튼 참조 제거
+  - `CameraStickController.cs` 생성: eventData.delta 기반 카메라 제어, sensitivity 필드
+  - `PlayerPresenter.cs` 수정: Controller → JoyStickController/CameraStickController 타입 변경, 이동 방향 Camera-Relative로 수정
+  - `UI_PlayerController.prefab` 수정: 새 스크립트 할당
+- **영향 범위**: Controller.cs, JoyStickController.cs, CameraStickController.cs, PlayerPresenter.cs, UI_PlayerController.prefab
+- **관련 이슈**: 두 스틱 방향 상충 문제 해결, 이동 방향이 카메라 시점 기준으로 동작하도록 개선
 ### 2026-04-13 - [Fix: 워크플로우 스텝 건너뛰기] ← 레거시 기록 (이전 프로젝트 컨텍스트)
 
 과거 BIM/GIS 웹 에디터 프로젝트의 작업 기록입니다. Unity 프로젝트와 무관하며 참고용으로 보관합니다.
@@ -109,8 +118,8 @@
 ## 4) 현재 작업 상태
 
 | 우선순위 | 작업 | 상태 |
-|---------|------|------|
-| 🔴 P0 | MyAIAgent 문서 체계 Unity/모바일로 정리 | ✅ 완료 |
-| 🟡 P1 | UnityAgent.md 업데이트 (최신 코드 반영) | ⏳ 대기 |
-| 🟡 P1 | 모바일 최적화 (성능/해상도/터치 입력) | ⏳ 계획 수립 전 |
-| 🟢 P2 | 네트워크 안정성 개선 | ⏳ 계획 수립 전 |
+|| 🔴 P0 | MyAIAgent 문서 체계 Unity/모바일로 정리 | ✅ 완료 |
+|| 🟡 P1 | UnityAgent.md 업데이트 (최신 코드 반영) | ⏳ 대기 |
+|| 🟡 P1 | 모바일 최적화 (성능/해상도/터치 입력) | ⏳ 계획 수립 전 |
+|| 🟢 P2 | 네트워크 안정성 개선 | ⏳ 계획 수립 전 |
+|| 🟡 P1 | Controller.cs 분리 리팩터링 (JoyStick/CameraStick + Camera-Relative) | ✅ 완료 |
