@@ -1,25 +1,25 @@
 using UnityEngine;
+using System.Linq;
 
 /// <summary>
 /// Hex-A-Gone 스타일 육각형 타일
 /// - 플레이어가 밟으면 내구도가 감소
-/// - 내구도에 따라 색상이 변화 (Green → Yellow → Orange → Red)
+/// - 내구도에 따라 머티리얼이 교체 (Green → Lime → Yellow → Orange → Red)
 /// - 내구도 0 → 타일이 가라앉음
-/// </summary>
 public class HexTile : MonoBehaviour
 {
     [Header("Tile Settings")]
-    [SerializeField] private int _maxDurability = 3;
+    [SerializeField] private int _maxDurability = 5;
     [SerializeField] private float _sinkDelay = 2f;
     [SerializeField] private float _sinkSpeed = 0.5f;
     [SerializeField] private float _sinkDepth = 5f;
 
-    [Header("Materials (색상 변화용)")]
+    [Header("Materials (내구도별 머티리얼)")]
     [SerializeField] private Material _greenMaterial;
+    [SerializeField] private Material _limeMaterial;
     [SerializeField] private Material _yellowMaterial;
     [SerializeField] private Material _orangeMaterial;
     [SerializeField] private Material _redMaterial;
-
     [Header("Audio")]
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private AudioClip _stepSound;
@@ -67,6 +67,16 @@ public class HexTile : MonoBehaviour
     }
 
     /// <summary>
+    /// 최대 내구도 설정 (HexArenaManager에서 층별 호출)
+    /// </summary>
+    public void SetMaxDurability(int durability)
+    {
+        _maxDurability = Mathf.Max(0, durability);
+        _currentDurability = _maxDurability;
+        UpdateMaterial();
+    }
+
+    /// <summary>
     /// 네트워크에서 받은 상태 적용
     /// </summary>
     public void ApplyNetworkState(int durability)
@@ -80,13 +90,25 @@ public class HexTile : MonoBehaviour
     /// </summary>
     private void LoadMaterials()
     {
-        // Resources/Materials에서 머티리얼 로드
-        Material[] materials = Resources.LoadAll<Material>("Materials/");
+        // 프리팹에 Serialize된 머티리얼 참조 사용
+        // 실패 시 Resources/Materials에서 로드 시도
+        if (_greenMaterial != null && _limeMaterial != null && _yellowMaterial != null && _orangeMaterial != null && _redMaterial != null)
+        {
+            return;
+        }
 
+        Material[] materials = Resources.LoadAll<Material>("Materials/");
         foreach (Material mat in materials)
         {
+            bool nameMatch = mat.name.Contains("Green") || mat.name.Contains("Lime") ||
+                              mat.name.Contains("Yellow") ||
+                              mat.name.Contains("Orange") || mat.name.Contains("Red");
+            if (!nameMatch) continue;
+
             if (mat.name.Contains("Green") && _greenMaterial == null)
                 _greenMaterial = mat;
+            else if (mat.name.Contains("Lime") && _limeMaterial == null)
+                _limeMaterial = mat;
             else if (mat.name.Contains("Yellow") && _yellowMaterial == null)
                 _yellowMaterial = mat;
             else if (mat.name.Contains("Orange") && _orangeMaterial == null)
@@ -95,15 +117,17 @@ public class HexTile : MonoBehaviour
                 _redMaterial = mat;
         }
 
-        // 없으면 동적 생성
+        // 최종 폴백: 단색 머티리얼
         if (_greenMaterial == null)
-            _greenMaterial = CreateSolidMaterial(new Color(0.2f, 0.8f, 0.2f));
+            _greenMaterial = CreateSimpleMaterial(new Color(0.48f, 0.78f, 0.64f));
+        if (_limeMaterial == null)
+            _limeMaterial = CreateSimpleMaterial(new Color(0.66f, 0.84f, 0.54f));
         if (_yellowMaterial == null)
-            _yellowMaterial = CreateSolidMaterial(new Color(0.9f, 0.9f, 0.2f));
+            _yellowMaterial = CreateSimpleMaterial(new Color(0.96f, 0.90f, 0.64f));
         if (_orangeMaterial == null)
-            _orangeMaterial = CreateSolidMaterial(new Color(0.9f, 0.5f, 0.2f));
+            _orangeMaterial = CreateSimpleMaterial(new Color(0.96f, 0.72f, 0.48f));
         if (_redMaterial == null)
-            _redMaterial = CreateSolidMaterial(new Color(0.9f, 0.2f, 0.2f));
+            _redMaterial = CreateSimpleMaterial(new Color(0.91f, 0.51f, 0.48f));
     }
 
     private void Update()
@@ -229,35 +253,34 @@ public class HexTile : MonoBehaviour
     /// </summary>
     private void UpdateMaterial()
     {
-        if (_renderer == null)
-            return;
+        if (_renderer == null) _renderer = GetComponent<Renderer>();
+        if (_renderer == null) return;
 
-        Material targetMaterial = _greenMaterial;
+        Material targetMaterial;
 
-        if (_isSunk)
-        {
-            // 사라진 상태
-            targetMaterial = _redMaterial;
-        }
-        else if (_currentDurability <= 0)
+        if (_isSinking || _isSunk)
         {
             targetMaterial = _redMaterial;
         }
-        else if (_currentDurability == 1)
+        else if (_currentDurability >= 4)
         {
-            targetMaterial = _redMaterial;
-        }
-        else if (_currentDurability == 2)
-        {
-            targetMaterial = _orangeMaterial;
+            targetMaterial = _greenMaterial;
         }
         else if (_currentDurability == 3)
         {
+            targetMaterial = _limeMaterial;
+        }
+        else if (_currentDurability == 2)
+        {
             targetMaterial = _yellowMaterial;
+        }
+        else if (_currentDurability == 1)
+        {
+            targetMaterial = _orangeMaterial;
         }
         else
         {
-            targetMaterial = _greenMaterial;
+            targetMaterial = _redMaterial;
         }
 
         _renderer.material = targetMaterial;
@@ -297,10 +320,7 @@ public class HexTile : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 솔리드 컬러 머티리얼 동적 생성
-    /// </summary>
-    private Material CreateSolidMaterial(Color color)
+    private Material CreateSimpleMaterial(Color color)
     {
         Material mat = new Material(Shader.Find("Standard"));
         mat.color = color;

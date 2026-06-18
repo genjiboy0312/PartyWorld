@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 503e1142f12539648b43f0a299feeb95, type: 2}
+  - {fileID: 2100000, guid: 8683f23373858d24ea177c3864a5b757, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -105,14 +105,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d0296100ee2a094b8c8ac1a19568185, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HexTile
-  _maxDurability: 3
+  _maxDurability: 5
   _sinkDelay: 2
   _sinkSpeed: 0.5
   _sinkDepth: 5
-  _greenMaterial: {fileID: 0}
-  _yellowMaterial: {fileID: 0}
-  _orangeMaterial: {fileID: 0}
-  _redMaterial: {fileID: 0}
+  _greenMaterial: {fileID: 2100000, guid: 8683f23373858d24ea177c3864a5b757, type: 2}
+  _limeMaterial: {fileID: 2100000, guid: 69c463ee1c2d987428c12365a6a23a10, type: 2}
+  _yellowMaterial: {fileID: 2100000, guid: e692ef0cc0586f846ae50c1e3c37ff67, type: 2}
+  _orangeMaterial: {fileID: 2100000, guid: 7fdd08b6a2ef5f84e9477942085fa641, type: 2}
+  _redMaterial: {fileID: 2100000, guid: 5b7aef8c35b68234381c1de233216d10, type: 2}
   _audioSource: {fileID: 0}
   _stepSound: {fileID: 0}
   _sinkSound: {fileID: 0}

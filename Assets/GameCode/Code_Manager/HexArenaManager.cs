@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
 using Photon.Pun;
@@ -6,6 +7,7 @@ using Photon.Realtime;
 /// <summary>
 /// 육각형 타일들의 물리적 상태와 플레이어 생존을 관리하는 아레나 매니저
 /// </summary>
+[ExecuteAlways]
 public class HexArenaManager : MonoBehaviourPunCallbacks
 {
     public static HexArenaManager Instance { get; private set; }
@@ -51,7 +53,9 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
             return;
         }
         Instance = this;
-    }
+        if (!Application.isPlaying)
+            InitializeTiles();
+        }
 
     private void Start()
     {
@@ -64,6 +68,22 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
         {
             _hexTiles.Clear();
             _hexTiles.AddRange(_tileContainer.GetComponentsInChildren<HexTile>());
+
+            // 층별로 내구도 차등 적용
+            // 맨 위층 = Green (내구도 4), 아래로 갈수록 감소
+            var floorGroups = _hexTiles
+                .GroupBy(t => Mathf.Round(t.transform.position.y * 10f) / 10f)
+                .OrderByDescending(g => g.Key)
+                .ToList();
+
+            for (int i = 0; i < floorGroups.Count; i++)
+            {
+                int floorDurability = Mathf.Max(0, 4 - i);
+                foreach (var tile in floorGroups[i])
+                {
+                    tile.SetMaxDurability(floorDurability);
+                }
+            }
 
             for (int i = 0; i < _hexTiles.Count; i++)
             {
