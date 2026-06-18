@@ -14,8 +14,8 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     [SerializeField] private FollowCamera _followCamera;
 
     [Header("Settings Controller")]
-    [SerializeField] private Controller _playerController;
-    [SerializeField] private Controller _cameraController;
+    [SerializeField] private JoyStickController _playerController;
+    [SerializeField] private CameraStickController _cameraController;
     [SerializeField] private Button _btnJump;
     [SerializeField] private Button _btnDive;
     [SerializeField] private Button _btnDash;       //  Dash Attack
@@ -117,27 +117,18 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
 
         if (_cameraController != null)
         {
-            h += _cameraController.InputHorizontal();
-            v += _cameraController.InputVertical();
+            Vector2 delta = _cameraController.GetDelta();
+            h += delta.x;
+            v += delta.y;
         }
-
-        float arrowH = (Input.GetKey(KeyCode.RightArrow) ? 1f : 0f) + (Input.GetKey(KeyCode.LeftArrow) ? -1f : 0f);
-        float arrowV = (Input.GetKey(KeyCode.UpArrow) ? 1f : 0f) + (Input.GetKey(KeyCode.DownArrow) ? -1f : 0f);
-
-        if (_cameraController != null)
-        {
-            if (Mathf.Abs(arrowH) > 0.01f || Mathf.Abs(arrowV) > 0.01f)
-                _cameraController.SetJoystickInput(new Vector2(arrowH, arrowV));
-            else if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f)
-                _cameraController.ResetJoystick();
-        }
-
-        h += arrowH;
-        v += arrowV;
 
         if (Mathf.Abs(h) > 0.01f || Mathf.Abs(v) > 0.01f)
         {
             _followCamera.AddRotation(h, v);
+        }
+        else if (_cameraController != null)
+        {
+            _cameraController.ResetDelta();
         }
     }
 
@@ -146,28 +137,11 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         float h = 0f;
         float v = 0f;
 
-        // 조이스틱 입력 합산
         if (_playerController != null)
         {
             h += _playerController.InputHorizontal();
             v += _playerController.InputVertical();
         }
-
-        // 키보드 입력
-        float wasdH = (Input.GetKey(KeyCode.D) ? 1f : 0f) + (Input.GetKey(KeyCode.A) ? -1f : 0f);
-        float wasdV = (Input.GetKey(KeyCode.W) ? 1f : 0f) + (Input.GetKey(KeyCode.S) ? -1f : 0f);
-
-        // UI 동기화
-        if (_playerController != null)
-        {
-            if (Mathf.Abs(wasdH) > 0.01f || Mathf.Abs(wasdV) > 0.01f)
-                _playerController.SetJoystickInput(new Vector2(wasdH, wasdV));
-            else if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f)
-                _playerController.ResetJoystick();
-        }
-
-        h += wasdH;
-        v += wasdV;
 
         _inputH = Mathf.Clamp(h, -1f, 1f);
         _inputV = Mathf.Clamp(v, -1f, 1f);
@@ -190,13 +164,27 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
 
     private void UpdateVelocityMovement()
     {
-        Vector3 moveDir = new Vector3(_inputH, 0, _inputV).normalized;
-
-        if (moveDir.sqrMagnitude > 0.01f)
+        Vector3 inputDir = new Vector3(_inputH, 0, _inputV);
+        if (inputDir.sqrMagnitude <= 0.01f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
-            _rigidbody3D.MoveRotation(Quaternion.Slerp(_rigidbody3D.rotation, targetRotation, Time.fixedDeltaTime * 15f));
+            if (_rigidbody3D != null)
+            {
+                Vector3 zeroVelocity = _rigidbody3D.linearVelocity;
+                zeroVelocity.x = 0f;
+                zeroVelocity.z = 0f;
+                _rigidbody3D.linearVelocity = zeroVelocity;
+            }
+            return;
         }
+
+        Transform cameraTransform = _followCamera != null ? _followCamera.transform : Camera.main.transform;
+        Vector3 camForward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
+        Vector3 camRight = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
+
+        Vector3 moveDir = (camForward * inputDir.z + camRight * inputDir.x).normalized;
+
+        Quaternion targetRotation = Quaternion.LookRotation(moveDir);
+        _rigidbody3D.MoveRotation(Quaternion.Slerp(_rigidbody3D.rotation, targetRotation, Time.fixedDeltaTime * 15f));
 
         Vector3 targetVelocity = moveDir * (_model != null ? _model.Speed : 10f);
         Vector3 velocityChange = (targetVelocity - _rigidbody3D.linearVelocity);

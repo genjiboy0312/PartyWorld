@@ -552,7 +552,7 @@ GameObject:
   - component: {fileID: 7833383632705937473}
   - component: {fileID: 8694209791062777861}
   - component: {fileID: 8490737205289097107}
-  - component: {fileID: 2498935398298098137}
+  - component: {fileID: 1020198003896270701}
   m_Layer: 0
   m_Name: BackGround_JoyStick
   m_TagString: Untagged
@@ -618,7 +618,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &2498935398298098137
+--- !u!114 &1020198003896270701
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -627,13 +627,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2182781415396281577}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2323bb2be43f18749b80a6caa98915a2, type: 3}
+  m_Script: {fileID: 11500000, guid: bd3fb0c6ff799224590a5a7e3449570b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: GameCode::JoyStickController
   _joyStickBackground: {fileID: 8490737205289097107}
   _joyStickImage: {fileID: 1610429373671093411}
-  _jumpBtn: {fileID: 4331553685921151692}
-  _diveBtn: {fileID: 3126799596837947780}
 --- !u!1 &2520962855313299402
 GameObject:
   m_ObjectHideFlags: 0
@@ -645,7 +643,7 @@ GameObject:
   - component: {fileID: 3260179875827076716}
   - component: {fileID: 3036164761528816714}
   - component: {fileID: 8429033965084131046}
-  - component: {fileID: 5109591834762784672}
+  - component: {fileID: 167611731123880309}
   m_Layer: 0
   m_Name: BackGround_CameraStick
   m_TagString: Untagged
@@ -711,7 +709,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &5109591834762784672
+--- !u!114 &167611731123880309
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -720,13 +718,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2520962855313299402}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2323bb2be43f18749b80a6caa98915a2, type: 3}
+  m_Script: {fileID: 11500000, guid: f7214316ef5cf054a97126827e9c5476, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: GameCode::CameraStickController
   _joyStickBackground: {fileID: 8429033965084131046}
   _joyStickImage: {fileID: 267726196705332924}
-  _jumpBtn: {fileID: 4331553685921151692}
-  _diveBtn: {fileID: 3126799596837947780}
+  _sensitivity: 0.5
 --- !u!1 &2619148930484720220
 GameObject:
   m_ObjectHideFlags: 0

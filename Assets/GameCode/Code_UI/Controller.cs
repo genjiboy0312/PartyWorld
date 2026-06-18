@@ -2,10 +2,6 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-/// <summary>
-/// 해당 스크립트는 UI에 직접적으로 넣어서 사용해야함
-/// 
-/// </summary>
 public class Controller : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
 {
     [Header("Setting JoyStick")]
