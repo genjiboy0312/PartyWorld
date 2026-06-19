@@ -15,13 +15,14 @@ public class RaceStageManager : MonoBehaviourPunCallbacks
     [Header("Game Settings")]
     [SerializeField] private float _gameDuration = 300f; // 5분
     [SerializeField] private bool _isGameStarted = false;
+    [SerializeField] private string _returnSceneName = "Scene_WaitingRoom";
     [SerializeField] private bool _isGameEnded = false;
 
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI _timerText;
     [SerializeField] private GameObject _resultPanel;
     [SerializeField] private TextMeshProUGUI _winnerText;
-
+    [SerializeField] private TextMeshProUGUI _rankText;
     [Header("Player Tracking")]
     private List<Player> _rankings = new List<Player>();
     private float _elapsedTime = 0f;
@@ -161,18 +162,47 @@ public class RaceStageManager : MonoBehaviourPunCallbacks
 
     private void UpdateUI()
     {
+        float remain = Mathf.Max(0, _gameDuration - _elapsedTime);
+        int min = Mathf.FloorToInt(remain / 60f);
+        int sec = Mathf.FloorToInt(remain % 60f);
+        string timeStr = $"{min:D2}:{sec:D2}";
+
         if (_timerText != null)
         {
-            float remain = Mathf.Max(0, _gameDuration - _elapsedTime);
-            int min = Mathf.FloorToInt(remain / 60f);
-            int sec = Mathf.FloorToInt(remain % 60f);
-            _timerText.text = $"{min:D2}:{sec:D2}";
+            _timerText.text = timeStr;
+            // Change color based on remaining time
+            if (remain < 10f)
+                _timerText.color = Color.red;
+            else if (remain < 30f)
+                _timerText.color = Color.yellow;
+            else
+                _timerText.color = Color.white;
+        }
+
+        if (_rankText != null)
+        {
+            int totalPlayers = PhotonNetwork.InRoom ? PhotonNetwork.PlayerList.Length : 1;
+            int finishedCount = _rankings.Count;
+            int localActor = PhotonNetwork.LocalPlayer.ActorNumber;
+            int localRank = -1;
+            for (int i = 0; i < _rankings.Count; i++)
+            {
+                if (_rankings[i].ActorNumber == localActor)
+                {
+                    localRank = i + 1;
+                    break;
+                }
+            }
+            if (localRank > 0)
+                _rankText.text = $"{localRank}위 / {totalPlayers}명";
+            else
+                _rankText.text = $"완주자 {finishedCount} / {totalPlayers}명";
         }
     }
 
     public void ReturnToLobby()
     {
-        if (PhotonNetwork.InRoom) PhotonNetwork.LoadLevel("Scene_Lobby");
-        else UnityEngine.SceneManagement.SceneManager.LoadScene("Scene_Lobby");
+        if (PhotonNetwork.InRoom) PhotonNetwork.LoadLevel(_returnSceneName);
+        else UnityEngine.SceneManagement.SceneManager.LoadScene(_returnSceneName);
     }
 }

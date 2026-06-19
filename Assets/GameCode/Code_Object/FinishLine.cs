@@ -31,8 +31,15 @@ public class FinishLine : MonoBehaviour
 
         Debug.Log($"[FinishLine] Player {actorNumber} finished!");
 
-        // Report to RoundManager
-        RoundManager.Instance?.ReportPlayerFinished(actorNumber);
+        // Report to RaceStageManager (preferred) or RoundManager
+        if (RaceStageManager.Instance != null)
+        {
+            RaceStageManager.Instance.PlayerReachedFinishLine(PhotonNetwork.LocalPlayer);
+        }
+        else if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.ReportPlayerFinished(actorNumber);
+        }
 
         // Disable local player control on finish
         if (_disablePlayerOnFinish)
