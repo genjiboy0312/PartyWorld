@@ -1,6 +1,5 @@
 using Photon.Pun;
 using Photon.Realtime;
-using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
@@ -13,7 +12,8 @@ public class LobbyUIController : MonoBehaviour
     [SerializeField] private Text _statusText;
     [SerializeField] private Text _countdownText;
     [SerializeField] private Text _playerCountText;
-    [SerializeField] private Text _playerListText;
+    [SerializeField] private RectTransform _playerListContent;
+    [SerializeField] private GameObject _playerEntryTemplate;
 
     [Header("Countdown Effect")]
     [SerializeField] private bool _hideCountdownWhenInactive = true;
@@ -92,28 +92,59 @@ public class LobbyUIController : MonoBehaviour
 
     private void UpdatePlayerList()
     {
-        if (_playerListText == null)
+        if (_playerListContent == null)
             return;
 
-        if (!PhotonNetwork.InRoom)
+        // 기존 플레이어 엔트리 제거
+        foreach (Transform child in _playerListContent)
         {
-            _playerListText.text = string.Empty;
-            return;
+            if (child.gameObject == _playerEntryTemplate)
+                continue;
+            Destroy(child.gameObject);
         }
+
+        if (!PhotonNetwork.InRoom)
+            return;
 
         Player[] players = PhotonNetwork.PlayerList;
         System.Array.Sort(players, (a, b) => a.ActorNumber.CompareTo(b.ActorNumber));
 
-        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < players.Length; i++)
         {
             string name = string.IsNullOrWhiteSpace(players[i].NickName) ? $"Player_{players[i].ActorNumber}" : players[i].NickName;
-            sb.Append(name);
-            if (i < players.Length - 1)
-                sb.Append('\n');
-        }
 
-        _playerListText.text = sb.ToString();
+            GameObject entry;
+            if (_playerEntryTemplate != null)
+            {
+                entry = Instantiate(_playerEntryTemplate, _playerListContent);
+                entry.SetActive(true);
+            }
+            else
+            {
+                entry = new GameObject($"PlayerEntry_{players[i].ActorNumber}");
+                entry.transform.SetParent(_playerListContent, false);
+                var text = entry.AddComponent<Text>();
+                text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                text.fontSize = 20;
+                text.color = Color.white;
+            }
+
+            Text entryText = entry.GetComponentInChildren<Text>();
+            if (entryText != null)
+            {
+                entryText.text = name;
+
+                // Ready 상태에 따라 텍스트 색상 변경
+                bool isReady = false;
+                if (players[i].CustomProperties != null &&
+                    players[i].CustomProperties.TryGetValue("ready", out object raw) &&
+                    raw is bool b)
+                {
+                    isReady = b;
+                }
+                entryText.color = isReady ? Color.green : Color.white;
+            }
+        }
     }
 
     private void UpdateCountdown()
