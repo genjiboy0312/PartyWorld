@@ -155,7 +155,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
             var response = new Tool_GameObject().ModifyComponent(
                 gameObjectRef: new GameObjectRef(go.GetInstanceID()),
                 componentRef: new ComponentRef { TypeName = typeof(SolarSystem).FullName! },
-                pathPatches: new List<PathPatch>
+                pathPatches: new PathPatchList
                 {
                     new PathPatch
                     {
@@ -196,7 +196,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
             var response = new Tool_GameObject().ModifyComponent(
                 gameObjectRef: new GameObjectRef(go.GetInstanceID()),
                 componentRef: new ComponentRef { TypeName = typeof(SolarSystem).FullName! },
-                pathPatches: new List<PathPatch>
+                pathPatches: new PathPatchList
                 {
                     new PathPatch
                     {
@@ -226,7 +226,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
             var response = new Tool_GameObject().ModifyComponent(
                 gameObjectRef: new GameObjectRef(go.GetInstanceID()),
                 componentRef: new ComponentRef { TypeName = typeof(SolarSystem).FullName! },
-                pathPatches: new List<PathPatch>
+                pathPatches: new PathPatchList
                 {
                     new PathPatch
                     {
@@ -269,7 +269,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
             var go = new GameObject("OldName");
             var response = new Tool_Object().Modify(
                 new ObjectRef(go),
-                pathPatches: new List<PathPatch>
+                pathPatches: new PathPatchList
                 {
                     new PathPatch
                     {
@@ -290,13 +290,13 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
             var go2 = new GameObject("Second");
 
             var refs = new GameObjectRefList { new GameObjectRef(go1.GetInstanceID()), new GameObjectRef(go2.GetInstanceID()) };
-            var perGo = new List<List<PathPatch>?>
+            var perGo = new PathPatchesPerGameObjectList
             {
-                new List<PathPatch>
+                new PathPatchList
                 {
                     new PathPatch { Path = "name", Value = SerializedMember.FromValue<string>(Reflector, "FirstRenamed") }
                 },
-                new List<PathPatch>
+                new PathPatchList
                 {
                     new PathPatch { Path = "name", Value = SerializedMember.FromValue<string>(Reflector, "SecondRenamed") }
                 }
@@ -394,7 +394,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
             var response = new Tool_GameObject().ModifyComponent(
                 gameObjectRef: new GameObjectRef(go.GetInstanceID()),
                 componentRef: new ComponentRef { TypeName = typeof(SolarSystem).FullName! },
-                pathPatches: new List<PathPatch>
+                pathPatches: new PathPatchList
                 {
                     null!,
                     new PathPatch
@@ -451,7 +451,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
                 gameObjectRef: new GameObjectRef(go.GetInstanceID()),
                 componentRef: new ComponentRef { TypeName = typeof(SolarSystem).FullName! },
                 componentDiff: diff,
-                pathPatches: new List<PathPatch>
+                pathPatches: new PathPatchList
                 {
                     new PathPatch
                     {
@@ -475,9 +475,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.Tests
             var go2 = new GameObject("Second");
             var refs = new GameObjectRefList { new GameObjectRef(go1.GetInstanceID()), new GameObjectRef(go2.GetInstanceID()) };
 
-            var perGo = new List<List<PathPatch>?>
+            var perGo = new PathPatchesPerGameObjectList
             {
-                new List<PathPatch>
+                new PathPatchList
                 {
                     new PathPatch { Path = "name", Value = SerializedMember.FromValue<string>(Reflector, "Solo") }
                 }
