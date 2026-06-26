@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 
-public class LobbyPlayerSpawner : MonoBehaviour
+public class WaitingRoomPlayerSpawner : MonoBehaviour
 {
     [SerializeField] private Transform _fallbackSpawnPoint;
     [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
