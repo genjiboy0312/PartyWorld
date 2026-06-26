@@ -82,6 +82,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     private Coroutine _loadingGateCoroutine;
     private bool _quickPlayRequested;
+    private bool _createRoomRequested;
     private bool _issuedLoadingForThisCountdown;
     private Coroutine _quickPlayWatchCoroutine;
     private GameObject _localSpawnedPlayer;
@@ -151,6 +152,14 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         TryStartDebugQuickPlay(SceneManager.GetActiveScene().name);
     }
 
+    public void RequestCreateRoom(string roomName, RoomOptions options)
+    {
+        _createRoomRequested = true;
+        ConnectIfNeeded();
+        PhotonNetwork.CreateRoom(roomName, options);
+        Debug.Log($"[NetworkAuthorityManager] RequestCreateRoom(roomName={roomName})");
+    }
+
     public void StartQuickPlay()
     {
         // 사용자가 명시적으로 QuickPlay를 눌렀을 때만 매칭을 시작
@@ -167,8 +176,14 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             Debug.Log($"[NetworkAuthorityManager] StartQuickPlay while in room -> LeaveRoom (room={PhotonNetwork.CurrentRoom?.Name})");
             PhotonNetwork.LeaveRoom();
         }
+        else if (PhotonNetwork.InLobby)
+        {
+            // 로비에 있으면 TryJoinRandomOrCreateRoom가 동작하지 않으므로 먼저 로비를 나감
+            Debug.Log("[NetworkAuthorityManager] StartQuickPlay while in lobby -> LeaveLobby");
+            PhotonNetwork.LeaveLobby();
+        }
         else if (PhotonNetwork.IsConnectedAndReady)
-            TryJoinRandomOrCreateRoom();
+            TryQuickPlayJoin();
 
         Debug.Log($"[NetworkAuthorityManager] StartQuickPlay (state={PhotonNetwork.NetworkClientState}, inRoom={PhotonNetwork.InRoom}, inLobby={PhotonNetwork.InLobby})");
 
@@ -184,7 +199,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
 
         if (PhotonNetwork.IsConnectedAndReady && !PhotonNetwork.InRoom)
-            TryJoinRandomOrCreateRoom();
+            TryQuickPlayJoin();
 
         Debug.Log($"[NetworkAuthorityManager] OnLeftRoom (state={PhotonNetwork.NetworkClientState}, inRoom={PhotonNetwork.InRoom})");
     }
@@ -289,7 +304,10 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         if (!_autoMatchmake && !_quickPlayRequested)
             return;
 
-        TryJoinRandomOrCreateRoom();
+        if (_quickPlayRequested)
+            TryQuickPlayJoin();
+        else
+            TryJoinRandomOrCreateRoom();
         Debug.Log($"[NetworkAuthorityManager] OnConnectedToMaster (state={PhotonNetwork.NetworkClientState}, inRoom={PhotonNetwork.InRoom}, inLobby={PhotonNetwork.InLobby})");
     }
 
@@ -300,10 +318,19 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        // 랜덤 조인 실패 시 룸 생성으로 폴백(빠른 매칭)
         if (!_autoMatchmake && !_quickPlayRequested)
             return;
 
+        if (_quickPlayRequested)
+        {
+            // QuickPlay는 방 생성 없이 실패 처리
+            Debug.Log($"[NetworkAuthorityManager] OnJoinRandomFailed (quick play - no room available): {message}");
+            _quickPlayRequested = false;
+            StopQuickPlayWatch();
+            return;
+        }
+
+        // _autoMatchmake: 랜덤 조인 실패 시 룸 생성으로 폴백
         RoomOptions options = new RoomOptions
         {
             MaxPlayers = _maxPlayers,
@@ -323,12 +350,14 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        // 생성 실패 시 상태를 로그로 남기고 재시도 대기
+        // 생성 실패 시 상태를 로그로 남기고 _createRoomRequested 초기화
+        _createRoomRequested = false;
         Debug.LogWarning($"[NetworkAuthorityManager] OnCreateRoomFailed (code={returnCode}, msg={message}, state={PhotonNetwork.NetworkClientState})");
     }
 
     public override void OnJoinedRoom()
     {
+        Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom ENTER (autoMatchmake={_autoMatchmake}, quickPlayRequested={_quickPlayRequested}, createRoomRequested={_createRoomRequested}, scene={SceneManager.GetActiveScene().name})");
         bool joinedForMatchmaking = _autoMatchmake || _quickPlayRequested;
         // 룸 입장 직후: Ready/Scene 프로퍼티를 초기화(동기화 게이트 기반)
         SetLocalPlayerProperty(PLAYER_PROP_READY, false);
@@ -338,15 +367,15 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         if (!string.IsNullOrWhiteSpace(selectedCharacterId))
             SetLocalPlayerProperty(PLAYER_PROP_CHARACTER_ID, selectedCharacterId);
 
-        // 룸에 들어오면 “룸 로비” 씬으로 통일(전원 같은 공간에서 Ready/미니게임)
-        if (joinedForMatchmaking && SceneManager.GetActiveScene().name != _roomLobbySceneName)
-            PhotonNetwork.LoadLevel(_roomLobbySceneName);
+        // 룸에 들어오면 WaitingRoom 씬으로 통일(전원 같은 공간에서 Ready/미니게임)
+        if ((joinedForMatchmaking || _createRoomRequested) && SceneManager.GetActiveScene().name != _waitingRoomSceneName)
+            PhotonNetwork.LoadLevel(_waitingRoomSceneName);
 
         // 매칭 요청은 1회성으로 처리
         _quickPlayRequested = false;
-
-        if (joinedForMatchmaking)
-            Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_roomLobbySceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
+        _createRoomRequested = false;
+        if (joinedForMatchmaking || _createRoomRequested)
+            Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_waitingRoomSceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
         else
             Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom (no scene load) (room={PhotonNetwork.CurrentRoom?.Name})");
 
@@ -354,6 +383,13 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         // 매칭 감시 코루틴 정리
         StopQuickPlayWatch();
+    }
+
+    public override void OnLeftLobby()
+    {
+        // QuickPlay 요청 중 로비를 나간 후 ConnectedToMaster 상태에서 매칭 시작
+        if (_quickPlayRequested && PhotonNetwork.IsConnectedAndReady && !PhotonNetwork.InRoom)
+            TryQuickPlayJoin();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
@@ -382,6 +418,19 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         };
 
         PhotonNetwork.JoinRandomOrCreateRoom(roomOptions: options);
+    }
+
+    private void TryQuickPlayJoin()
+    {
+        ClientState state = PhotonNetwork.NetworkClientState;
+
+        if (state == ClientState.Joining || state == ClientState.ConnectingToGameServer || state == ClientState.Leaving)
+            return;
+        if (state != ClientState.ConnectedToMasterServer)
+            return;
+
+        // 빠른 매칭: 생성된 방 중 랜덤으로만 입장, 방이 없으면 실패
+        PhotonNetwork.JoinRandomRoom();
     }
 
     private IEnumerator WatchQuickPlay()
