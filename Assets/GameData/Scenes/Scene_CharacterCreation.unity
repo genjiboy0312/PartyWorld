@@ -627,7 +627,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!21 &258290546
+--- !u!21 &250404607
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
@@ -663,12 +663,12 @@ Material:
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
     - _UIRound_FadeDir: 1
-    - _UIRound_FadeStrength: 0.7
+    - _UIRound_FadeStrength: 0.6
     - _UIRound_Feather: 1
-    - _UIRound_Radius: 10
+    - _UIRound_Radius: 24
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _UIRound_Size: {r: 600, g: 100, b: 0, a: 0}
+    - _UIRound_Size: {r: 250, g: 300, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &264141757
@@ -750,50 +750,6 @@ MonoBehaviour:
     m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: SELECT
---- !u!21 &371640704
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UICornerFadeMask_Runtime
-  m_Shader: {fileID: 4800000, guid: 5ec74984884aa284190e2edc1d901ca1, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _ColorMask: 15
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _UIRound_FadeDir: 1
-    - _UIRound_FadeStrength: 0.6
-    - _UIRound_Feather: 1
-    - _UIRound_Radius: 24
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _UIRound_Size: {r: 250, g: 300, b: 0, a: 0}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &468780257
 GameObject:
   m_ObjectHideFlags: 0
@@ -2135,6 +2091,7 @@ GameObject:
   - component: {fileID: 1421941345}
   - component: {fileID: 1421941344}
   - component: {fileID: 1421941343}
+  - component: {fileID: 1421941346}
   m_Layer: 5
   m_Name: Btn_Select
   m_TagString: Untagged
@@ -2244,6 +2201,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1421941341}
   m_CullTransparentMesh: 1
+--- !u!114 &1421941346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421941341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d0469aa2626aca45aa785883180ca8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameCode::RoundedCornerImage
+  _corners:
+    topLeft: 1
+    topRight: 1
+    bottomLeft: 1
+    bottomRight: 1
+  _cornerRadius: 5
+  _segments: 32
 --- !u!1 &1440253171
 GameObject:
   m_ObjectHideFlags: 0
@@ -2712,6 +2688,50 @@ MonoBehaviour:
   _characterName: Set_Character03
   _characterExplain: 
   _characterPrefab: {fileID: 3499011036621755863, guid: 644c6953bdca88a48aac1890041cf82a, type: 3}
+--- !u!21 &1714753415
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UICornerFadeMask_Runtime
+  m_Shader: {fileID: 4800000, guid: 5ec74984884aa284190e2edc1d901ca1, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ColorMask: 15
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UIRound_FadeDir: 1
+    - _UIRound_FadeStrength: 0.7
+    - _UIRound_Feather: 1
+    - _UIRound_Radius: 10
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _UIRound_Size: {r: 600, g: 100, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1814452417
 GameObject:
   m_ObjectHideFlags: 0
@@ -2923,7 +2943,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
-  m_Material: {fileID: 258290546}
+  m_Material: {fileID: 1714753415}
   m_Color: {r: 1, g: 1, b: 1, a: 0.3529412}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -3200,7 +3220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
-  m_Material: {fileID: 371640704}
+  m_Material: {fileID: 250404607}
   m_Color: {r: 1, g: 1, b: 1, a: 0.2901961}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
