@@ -55,7 +55,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             [Description("Optional. Per-GameObject list of path-scoped patches routed through Reflector.TryModifyAt. " +
                 "Outer index aligns with 'gameObjectRefs'; inner list contains {path, value} entries. " +
                 "Pass null or omit for GameObjects that should not receive path patches.")]
-            List<List<PathPatch>?>? pathPatchesPerGameObject = null,
+            PathPatchesPerGameObjectList? pathPatchesPerGameObject = null,
             [Description("Optional. Per-GameObject JSON Merge Patch (RFC 7396, extended with [i]/[key] keys) " +
                 "routed through Reflector.TryPatch. Outer index aligns with 'gameObjectRefs'. " +
                 "Pass null or omit for GameObjects that should not receive a JSON patch.")]

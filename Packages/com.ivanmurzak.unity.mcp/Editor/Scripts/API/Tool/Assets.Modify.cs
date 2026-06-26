@@ -51,7 +51,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             [Description("Optional. The asset content. It overrides the existing asset content (legacy path).")]
             SerializedMember? content = null,
             [Description("Optional. List of path-scoped patches routed through Reflector.TryModifyAt.")]
-            List<PathPatch>? pathPatches = null,
+            PathPatchList? pathPatches = null,
             [Description("Optional. JSON Merge Patch (RFC 7396, extended with [i]/[key] keys) routed through " +
                 "Reflector.TryPatch.")]
             string? jsonPatch = null

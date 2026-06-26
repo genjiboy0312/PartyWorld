@@ -55,7 +55,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             [Description("Optional. List of path-scoped patches routed through Reflector.TryModifyAt. " +
                 "Each entry targets one field/element/entry by path. " +
                 "Path syntax: 'fieldName', 'nested/field', 'arrayField/[i]', 'dictField/[key]'.")]
-            List<PathPatch>? pathPatches = null,
+            PathPatchList? pathPatches = null,
             [Description("Optional. JSON Merge Patch (RFC 7396, extended with [i]/[key] keys) routed through " +
                 "Reflector.TryPatch. Allows multiple fields at any depth to be updated in a single call. " +
                 "Use '$type' for compatible-subtype replacement.")]

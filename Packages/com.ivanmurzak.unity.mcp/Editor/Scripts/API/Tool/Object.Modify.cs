@@ -52,7 +52,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
                 "Any unknown or invalid fields and properties will be reported in the response.")]
             SerializedMember? objectDiff = null,
             [Description("Optional. List of path-scoped patches routed through Reflector.TryModifyAt.")]
-            List<PathPatch>? pathPatches = null,
+            PathPatchList? pathPatches = null,
             [Description("Optional. JSON Merge Patch (RFC 7396, extended with [i]/[key] keys) routed through " +
                 "Reflector.TryPatch.")]
             string? jsonPatch = null
