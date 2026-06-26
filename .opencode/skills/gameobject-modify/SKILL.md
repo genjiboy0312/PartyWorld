@@ -64,7 +64,7 @@ Read the /unity-initial-setup skill for detailed installation instructions.
       "$ref": "#/$defs/com.IvanMurzak.ReflectorNet.Model.SerializedMemberList"
     },
     "pathPatchesPerGameObject": {
-      "$ref": "#/$defs/System.Collections.Generic.List<System.Collections.Generic.List<AIGD.PathPatch>>"
+      "$ref": "#/$defs/AIGD.PathPatchesPerGameObjectList"
     },
     "jsonPatchesPerGameObject": {
       "$ref": "#/$defs/System.Collections.Generic.List<System.String>"
@@ -157,11 +157,12 @@ Read the /unity-initial-setup skill for detailed installation instructions.
       ],
       "additionalProperties": false
     },
-    "System.Collections.Generic.List<AIGD.PathPatch>": {
+    "AIGD.PathPatchList": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/AIGD.PathPatch"
-      }
+      },
+      "description": "List of path-scoped patches routed through Reflector.TryModifyAt."
     },
     "AIGD.PathPatch": {
       "type": "object",
@@ -176,11 +177,13 @@ Read the /unity-initial-setup skill for detailed installation instructions.
         }
       }
     },
-    "System.Collections.Generic.List<System.Collections.Generic.List<AIGD.PathPatch>>": {
+    "AIGD.PathPatchesPerGameObjectList": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/System.Collections.Generic.List<AIGD.PathPatch>"
-      }
+        "$ref": "#/$defs/AIGD.PathPatchList",
+        "description": "List of path-scoped patches routed through Reflector.TryModifyAt."
+      },
+      "description": "Per-GameObject list of path-scoped patch lists. Outer index aligns with 'gameObjectRefs'; inner list contains {path, value} entries."
     },
     "System.Collections.Generic.List<System.String>": {
       "type": "array",

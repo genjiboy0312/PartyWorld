@@ -64,7 +64,7 @@ Read the /unity-initial-setup skill for detailed installation instructions.
       "$ref": "#/$defs/com.IvanMurzak.ReflectorNet.Model.SerializedMember"
     },
     "pathPatches": {
-      "$ref": "#/$defs/System.Collections.Generic.List<AIGD.PathPatch>"
+      "$ref": "#/$defs/AIGD.PathPatchList"
     },
     "jsonPatch": {
       "type": "string"
@@ -154,11 +154,12 @@ Read the /unity-initial-setup skill for detailed installation instructions.
         }
       }
     },
-    "System.Collections.Generic.List<AIGD.PathPatch>": {
+    "AIGD.PathPatchList": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/AIGD.PathPatch"
-      }
+      },
+      "description": "List of path-scoped patches routed through Reflector.TryModifyAt."
     }
   },
   "required": [
