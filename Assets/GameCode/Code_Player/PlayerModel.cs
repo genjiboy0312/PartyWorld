@@ -7,6 +7,7 @@ public class PlayerModel
     // --- 이벤트 (옵저버 패턴) ---
     public event Action<bool> OnJumpStateChanged;
     public event Action<bool> OnDiveStateChanged;
+    public event Action<bool> OnDashStateChanged;
     public event Action<bool> OnGrapStateChanged;
     public event Action<float> OnSpeedChanged;
 
@@ -14,6 +15,10 @@ public class PlayerModel
     [SerializeField] private float _speed = 2f;
     [SerializeField] private float _jumpPower = 20f;
     [SerializeField] private float _diveForce = 20f;
+
+    [Header("Dash Settings")]
+    [SerializeField] private float _dashDelay = 1f;
+    private float _dashCooldownTimer;
 
     [Header("Status (Read Only)")]
     [SerializeField] private bool _isJump;
@@ -34,6 +39,11 @@ public class PlayerModel
 
     public float JumpPower => _jumpPower;
     public float DiveForce => _diveForce;
+    public float DashDelay => _dashDelay;
+    public float DashCooldownRemaining => _dashCooldownTimer;
+    public float DashCooldownProgress => _dashDelay > 0f ? 1f - _dashCooldownTimer / _dashDelay : 1f;
+    public void SetDashCooldown() => _dashCooldownTimer = _dashDelay;
+    public void TickDashCooldown(float delta) => _dashCooldownTimer = Mathf.Max(0f, _dashCooldownTimer - delta);
 
     public bool IsJump
     {
@@ -65,7 +75,7 @@ public class PlayerModel
         {
             if (_isDash == value) return;
             _isDash = value;
-            SafeInvoke(OnGrapStateChanged, _isDash);
+            SafeInvoke(OnDashStateChanged, _isDash);
         }
     }
 
@@ -77,7 +87,7 @@ public class PlayerModel
 
     public bool CanJump() => !_isJump && !_isDash;
     public bool CanDive() => !_isDive;
-    public bool CanDash() => !_isJump && !_isDive && !_isDash;
+    public bool CanDash() => !_isJump && !_isDive && !_isDash && _dashCooldownTimer <= 0f;
 
     public void ResetStates()
     {
