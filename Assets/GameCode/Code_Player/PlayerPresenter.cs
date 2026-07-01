@@ -19,7 +19,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     [SerializeField] private Button _btnJump;
     [SerializeField] private Button _btnDive;
     [SerializeField] private Button _btnDash;       //  Dash Attack
-
+    [SerializeField] private Image _dashCooldownImage;  // Dash 재사용 대기시간 오버레이
     [Header("Movement Setting")]
     [SerializeField] private Rigidbody _rigidbody3D;
     bool _isGrounded = false;
@@ -54,6 +54,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
             if (_view != null) _view.SetModel(_model);
             _model.OnJumpStateChanged += OnJumpStateChanged;
             _model.OnDiveStateChanged += OnDiveStateChanged;
+            _model.OnDashStateChanged += OnDashStateChanged;
             _model.OnGrapStateChanged += OnGrapStateChanged;
         }
 
@@ -91,6 +92,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         {
             _model.OnJumpStateChanged -= OnJumpStateChanged;
             _model.OnDiveStateChanged -= OnDiveStateChanged;
+            _model.OnDashStateChanged -= OnDashStateChanged;
             _model.OnGrapStateChanged -= OnGrapStateChanged;
         }
     }
@@ -106,8 +108,30 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         {
             InterpolateNetworkTransform();
         }
+
+        // 대시 쿨다운 틱 (로컬/원격 모두 UI 업데이트 필요)
+        if (_model != null)
+        {
+            _model.TickDashCooldown(Time.deltaTime);
+            UpdateDashCooldownUI();
+        }
     }
 
+    private void UpdateDashCooldownUI()
+    {
+        bool onCooldown = _model != null && !_model.CanDash();
+
+        if (_dashCooldownImage != null)
+            _dashCooldownImage.fillAmount = onCooldown ? _model.DashCooldownProgress : 0f;
+
+        if (_btnDash != null)
+        {
+            var rawImage = _btnDash.GetComponent<UnityEngine.UI.RawImage>();
+            if (rawImage != null)
+                rawImage.color = onCooldown ? new Color(0.3f, 0.3f, 0.3f, 1f) : Color.white;
+            _btnDash.interactable = !onCooldown;
+        }
+    }
     private void HandleCameraInput()
     {
         if (_followCamera == null) return;
@@ -153,7 +177,6 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         if (Input.GetKeyDown(KeyCode.LeftShift)) Dive();
         if (Input.GetKeyDown(KeyCode.LeftControl)) Dash();
     }
-
     private void FixedUpdate()
     {
         if (HasLocalControl && _rigidbody3D != null && !_rigidbody3D.isKinematic)
@@ -222,8 +245,11 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     // 대시
     private void Dash() 
     { 
-        if (_model != null && !_isDashing) 
+        if (_model != null && _model.CanDash()) 
         {
+            if (_view != null) _view.DashAnimation();
+            _model.IsDash = true;
+            _model.SetDashCooldown();
             StartCoroutine(DashCoroutine());
         }
     }
@@ -231,9 +257,37 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     private System.Collections.IEnumerator DashCoroutine()
     {
         _isDashing = true;
-        _rigidbody3D.AddForce(transform.forward * _dashForce, ForceMode.Impulse);
-        yield return new WaitForSeconds(0.3f);
+        Vector3 dashDir = transform.forward;
+        float _holdTime = 0.35f;
+        float _totalTime = 0.65f;
+        float _elapsed = 0f;
+
+        // 초기 AddForce 점진 가속
+        _rigidbody3D.linearVelocity = Vector3.zero;
+        _rigidbody3D.AddForce(dashDir * _dashForce * 5f, ForceMode.Acceleration);
+
+        while (_elapsed < _totalTime)
+        {
+            if (_elapsed < _holdTime)
+            {
+                // AddForce 지속 가속
+                _rigidbody3D.AddForce(dashDir * 100f, ForceMode.Acceleration);
+            }
+            else
+            {
+                // 저항력으로 부드러운 감속
+                Vector3 planarVel = new Vector3(_rigidbody3D.linearVelocity.x, 0f, _rigidbody3D.linearVelocity.z);
+                _rigidbody3D.AddForce(-planarVel * 2f, ForceMode.Acceleration);
+            }
+            // Y축 속도 고정
+            _rigidbody3D.linearVelocity = new Vector3(_rigidbody3D.linearVelocity.x, 0f, _rigidbody3D.linearVelocity.z);
+
+            _elapsed += Time.deltaTime;
+            yield return null;
+        }
+
         _isDashing = false;
+        if (_model != null) _model.IsDash = false;
     }
 
     // 다이브
@@ -242,7 +296,7 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         if (_model != null && _model.CanDive()) 
         {
             _model.IsDive = true;
-            // 필요 시 뷰 호출: _view.Dive(_model.DiveForce);
+            if (_view != null) _view.Dive(transform.forward, _model.DiveForce);
         }
     }
 
@@ -257,7 +311,15 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
 
     private void OnCollisionEnter(Collision collision)
     {
+        bool wasGrounded = _isGrounded;
         UpdateGroundedState(collision);
+
+        // 착지 감지: 공중에서 땅에 닿으면 점프/대시 상태 리셋
+        if (!wasGrounded && _isGrounded && _model != null)
+        {
+            _model.IsJump = false;
+            _model.IsDash = false;
+        }
 
         // 대시 중 충돌 시 상대방 밀쳐내기
         if (_isDashing && collision.gameObject.CompareTag("Player"))
@@ -283,7 +345,6 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         {
             _groundColliders.Add(collision.collider);
             _isGrounded = true;
-            if (_model != null) _model.IsJump = false;
         }
     }
 
@@ -323,4 +384,5 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     private void OnDiveStateChanged(bool isDive) { }
     private void OnGrapStateChanged(bool isGrap) { }
     private void OnSpeedChanged(float newSpeed) { }
+    private void OnDashStateChanged(bool isDash) { }
 }
