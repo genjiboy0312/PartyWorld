@@ -43,6 +43,18 @@ public class PlatformQualityManager : MonoBehaviour
         Debug.Log($"[PlatformQualityManager] Tier={CurrentTier}, RAM={SystemInfo.systemMemorySize}MB, GPU mem={SystemInfo.graphicsMemorySize}MB, CPUs={SystemInfo.processorCount}");
     }
 
+    /// <summary>
+    /// Manually override quality tier (called by UI).
+    /// </summary>
+    public void SetQualityOverride(DeviceTier tier)
+    {
+        _forceTier = true;
+        _forcedTier = tier;
+        CurrentTier = tier;
+        ApplyQuality(tier);
+        Debug.Log($"[PlatformQualityManager] Override set to {tier}");
+    }
+
     private DeviceTier DetectTier()
     {
         if (_forceTier)
