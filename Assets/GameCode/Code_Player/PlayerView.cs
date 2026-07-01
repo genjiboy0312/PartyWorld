@@ -13,6 +13,7 @@ public class PlayerView : MonoBehaviour
     private Coroutine _currentDiveCoroutine;
     private WaitForFixedUpdate _waitForFixedUpdate;
     private bool _isDiving;
+    private Vector3 _diveDirection;
 
     // Model 참조 추가
     private PlayerModel _model;
@@ -101,19 +102,21 @@ public class PlayerView : MonoBehaviour
             StopCoroutine(_currentDiveCoroutine);
 
         _isDiving = true;
-        Animator.SetTrigger("doDash");
+        _diveDirection = new Vector3(direction.x, 0f, direction.z).normalized;
+        Animator.SetTrigger("doDive");
 
         Rigidbody.useGravity = false;
-
-        Vector3 _horizontalDirection = new Vector3(direction.x, 0f, direction.z).normalized;
         Rigidbody.linearVelocity = Vector3.zero;
-        Rigidbody.AddForce(_horizontalDirection * force * 10f, ForceMode.VelocityChange);
-
+        Rigidbody.AddForce(_diveDirection * force * 5f, ForceMode.Acceleration);
         _targetVelocity = Vector3.zero;
 
         _currentDiveCoroutine = StartCoroutine(DiveRoutine());
 
-        Debug.Log($"Dive 시작! 방향: {_horizontalDirection}, 힘: {force}");
+        Debug.Log($"Dive 시작! 방향: {_diveDirection}, 힘: {force}");
+    }
+    public void DashAnimation()
+    {
+        Animator.SetTrigger("doDash");
     }
     public void Grap()
     {
@@ -122,16 +125,25 @@ public class PlayerView : MonoBehaviour
     }
     private IEnumerator DiveRoutine()
     {
-        float _duration = 0.5f;
+        float _duration = 0.6f;
         float _elapsed = 0f;
+        float _holdTime = 0.35f;
 
         while (_elapsed < _duration)
         {
-            var _velocity = Rigidbody.linearVelocity;
-            _velocity.x *= 0.95f;
-            _velocity.z *= 0.95f;
-            _velocity.y = 0f;
-            Rigidbody.linearVelocity = _velocity;
+            if (_elapsed < _holdTime)
+            {
+                // AddForce 점진 가속 — 부드러운 전진
+                Rigidbody.AddForce(_diveDirection * 100f, ForceMode.Acceleration);
+            }
+            else
+            {
+                // 저항력으로 부드러운 감속
+                Vector3 planarVel = new Vector3(Rigidbody.linearVelocity.x, 0f, Rigidbody.linearVelocity.z);
+                Rigidbody.AddForce(-planarVel * 2f, ForceMode.Acceleration);
+            }
+            // Y축 속도 고정 (중력 끈 상태)
+            Rigidbody.linearVelocity = new Vector3(Rigidbody.linearVelocity.x, 0f, Rigidbody.linearVelocity.z);
 
             _elapsed += Time.fixedDeltaTime;
             yield return _waitForFixedUpdate;
@@ -142,7 +154,6 @@ public class PlayerView : MonoBehaviour
         _isDiving = false;
         _currentDiveCoroutine = null;
 
-        // Model의 IsDive도 false로 설정
         if (_model != null)
             _model.IsDive = false;
 
