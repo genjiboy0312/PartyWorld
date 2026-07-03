@@ -1,8 +1,6 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
-using System.IO;
-using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
@@ -12,28 +10,11 @@ using PhotonHashtable = ExitGames.Client.Photon.Hashtable;
 
 public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 {
-    [System.Serializable]
-    private struct CharacterSpawnEntry
-    {
-        public string characterId;
-        public string prefabName;
-    }
-
     public static NetworkAuthorityManager Instance { get; private set; }
 
     private const string DEBUG_PREF_AUTO_QUICKPLAY = "PW_DEBUG_AUTO_QUICKPLAY";
     private const string DEBUG_PREF_FORCE_NICKNAME = "PW_DEBUG_FORCE_NICKNAME";
-    private const string PREF_SELECTED_CHARACTER_ID = "PW_SELECTED_CHARACTER_ID";
-    private const string PREF_SELECTED_CHARACTER_PREFAB = "PW_SELECTED_CHARACTER_PREFAB";
-    private const string CHARACTER_CATALOG_RESOURCE_PATH = "CharacterCatalog";
-
     private const string PLAYER_PROP_READY = "ready";
-    private const string PLAYER_PROP_SCENE = "scene";
-    private const string PLAYER_PROP_CHARACTER_ID = "characterId";
-    private const string ROOM_PROP_SELECTED_MAP = "selectedMap";
-    private const string ROOM_PROP_COUNTDOWN_ACTIVE = "lobbyCountdownActive";
-    private const string ROOM_PROP_COUNTDOWN_START_TIME = "lobbyCountdownStartTime";
-    private const string ROOM_PROP_COUNTDOWN_DURATION = "lobbyCountdownDuration";
 
     [Header("Connection")]
     [SerializeField] private bool _autoConnect = false;
@@ -45,49 +26,40 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     [SerializeField] private bool _isRoomOpen = true;
     [SerializeField] private bool _isRoomVisible = true;
 
-    [Header("Scenes")]
-    [SerializeField] private SceneReference _titleScene = new SceneReference();
-    [SerializeField] private SceneReference _waitingRoomScene = new SceneReference();
-    [SerializeField] private SceneReference _roomLobbyScene = new SceneReference();
-    [SerializeField] private SceneReference _loadingScene = new SceneReference();
-    [SerializeField] private List<SceneReference> _playMapScenes = new List<SceneReference>();
+    [SerializeField, HideInInspector] private SceneReference _titleScene = new SceneReference();
+    [SerializeField, HideInInspector] private SceneReference _waitingRoomScene = new SceneReference();
+    [SerializeField, HideInInspector] private SceneReference _roomLobbyScene = new SceneReference();
+    [SerializeField, HideInInspector] private SceneReference _loadingScene = new SceneReference();
+    [SerializeField, HideInInspector] private List<SceneReference> _playMapScenes = new List<SceneReference>();
+    [SerializeField, HideInInspector] private string _mapScenePrefix = "Scene_Map";
 
-    // 런타임용 문자열 캐시
-    private string _titleSceneName;
-    private string _waitingRoomSceneName;
-    private string _roomLobbySceneName;
-    private string _loadingSceneName;
-
-    [SerializeField] private string _mapScenePrefix = "Scene_Map";
-
-    [Header("Character Spawn")]
-    [SerializeField] private CharacterCatalog _characterCatalog;
-    [SerializeField] private List<CharacterSpawnEntry> _characterSpawnEntries = new List<CharacterSpawnEntry>();
-    [SerializeField] private string _defaultCharacterId = "bear_base";
-    [SerializeField] private string _defaultPlayerPrefabName = "Player_Test01";
-    [SerializeField] private Vector3 _fallbackSpawnPosition = Vector3.zero;
-    [SerializeField] private Vector3 _fallbackSpawnStep = new Vector3(1.5f, 0f, 0f);
+    [SerializeField, HideInInspector] private CharacterCatalog _characterCatalog;
+    [SerializeField, HideInInspector] private List<CharacterSpawnEntry> _characterSpawnEntries = new List<CharacterSpawnEntry>();
+    [SerializeField, HideInInspector] private string _defaultCharacterId = "bear_base";
+    [SerializeField, HideInInspector] private string _defaultPlayerPrefabName = "Player_Test01";
+    [SerializeField, HideInInspector] private Vector3 _fallbackSpawnPosition = Vector3.zero;
+    [SerializeField, HideInInspector] private Vector3 _fallbackSpawnStep = new Vector3(1.5f, 0f, 0f);
 
     [Header("Networking")]
     [SerializeField] private int _sendRate = 20;
     [SerializeField] private int _serializationRate = 20;
-    [SerializeField] private float _loadingGateDelaySeconds = 0.25f;
+    [SerializeField, HideInInspector] private float _loadingGateDelaySeconds = 0.25f;
 
-    [Header("Lobby Countdown")]
-    [SerializeField] private float _lobbyCountdownSeconds = 5f;
+    [SerializeField, HideInInspector] private float _lobbyCountdownSeconds = 5f;
 
     [Header("Debug/Retry")]
     [SerializeField] private float _joinTimeoutSeconds = 10f;
     [SerializeField] private float _retryDelaySeconds = 1.5f;
 
-    private Coroutine _loadingGateCoroutine;
+    private LobbyCountdownManager _lobbyCountdown;
+    private SceneTransitionManager _sceneTransition;
+    private CharacterSpawnManager _characterSpawn;
+
     private bool _quickPlayRequested;
     private bool _createRoomRequested;
-    private bool _issuedLoadingForThisCountdown;
     private Coroutine _quickPlayWatchCoroutine;
-    private GameObject _localSpawnedPlayer;
-    public GameObject LocalSpawnedPlayer => _localSpawnedPlayer;
-    private bool _characterCatalogTriedLoad;
+
+    public GameObject LocalSpawnedPlayer => _characterSpawn != null ? _characterSpawn.LocalSpawnedPlayer : null;
 
     private void Awake()
     {
@@ -101,6 +73,31 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         DontDestroyOnLoad(gameObject);
         EnsureRoundManager();
 
+        _lobbyCountdown = gameObject.GetOrAddComponent<LobbyCountdownManager>();
+        _sceneTransition = gameObject.GetOrAddComponent<SceneTransitionManager>();
+        _characterSpawn = gameObject.GetOrAddComponent<CharacterSpawnManager>();
+
+        _characterSpawn.Configure(
+            _characterCatalog,
+            _characterSpawnEntries,
+            _defaultCharacterId,
+            _defaultPlayerPrefabName,
+            _fallbackSpawnPosition,
+            _fallbackSpawnStep);
+
+        _sceneTransition.Configure(
+            this,
+            _characterSpawn,
+            _titleScene,
+            _waitingRoomScene,
+            _roomLobbyScene,
+            _loadingScene,
+            _playMapScenes,
+            _mapScenePrefix,
+            _loadingGateDelaySeconds);
+
+        _lobbyCountdown.Configure(this, _sceneTransition, _lobbyCountdownSeconds);
+
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.GameVersion = _gameVersion;
 
@@ -108,12 +105,6 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             PhotonNetwork.SendRate = _sendRate;
         if (_serializationRate > 0)
             PhotonNetwork.SerializationRate = _serializationRate;
-
-        // SceneReference에서 문자열 캐시 생성
-        _titleSceneName = _titleScene?.SceneName ?? "";
-        _waitingRoomSceneName = _waitingRoomScene?.SceneName ?? "";
-        _roomLobbySceneName = _roomLobbyScene?.SceneName ?? "";
-        _loadingSceneName = _loadingScene?.SceneName ?? "";
     }
 
     private void EnsureRoundManager()
@@ -246,40 +237,12 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
     public bool TryGetLobbyCountdownRemaining(out float remainingSeconds, out bool isActive)
     {
+        if (_lobbyCountdown != null)
+            return _lobbyCountdown.TryGetLobbyCountdownRemaining(out remainingSeconds, out isActive);
+
         remainingSeconds = 0f;
         isActive = false;
-
-        if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
-            return false;
-
-        PhotonHashtable props = PhotonNetwork.CurrentRoom.CustomProperties as PhotonHashtable;
-        if (props == null)
-            return false;
-
-        if (!props.TryGetValue(ROOM_PROP_COUNTDOWN_ACTIVE, out object activeRaw) || activeRaw is not bool active)
-            return false;
-
-        if (!props.TryGetValue(ROOM_PROP_COUNTDOWN_START_TIME, out object startRaw) || startRaw is not double startTime)
-            return false;
-
-        if (!props.TryGetValue(ROOM_PROP_COUNTDOWN_DURATION, out object durRaw))
-            return false;
-
-        float durationSeconds = durRaw switch
-        {
-            float f => f,
-            double d => (float)d,
-            int i => i,
-            _ => 0f
-        };
-
-        isActive = active;
-        if (!isActive)
-            return true;
-
-        double now = PhotonNetwork.Time;
-        remainingSeconds = Mathf.Max(0f, durationSeconds - (float)(now - startTime));
-        return true;
+        return false;
     }
 
     public void RequestStartMatch()
@@ -294,8 +257,23 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         if (!AreAllPlayersReady())
             return;
 
-        SelectAndStoreRandomMap();
-        PhotonNetwork.LoadLevel(_loadingSceneName);
+        _sceneTransition?.RequestStartMatch();
+    }
+
+    public GameObject SpawnLocalSelectedCharacter(Vector3 position, Quaternion rotation, bool forceRespawn)
+    {
+        return _characterSpawn != null
+            ? _characterSpawn.SpawnLocalSelectedCharacter(position, rotation, forceRespawn)
+            : null;
+    }
+
+    public void ReturnToLobby()
+    {
+        if (!PhotonNetwork.InRoom)
+            return;
+
+        _characterSpawn?.CleanupLocalSpawnedPlayer();
+        _sceneTransition?.ReturnToLobby();
     }
 
     public override void OnConnectedToMaster()
@@ -359,27 +337,25 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
     {
         Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom ENTER (autoMatchmake={_autoMatchmake}, quickPlayRequested={_quickPlayRequested}, createRoomRequested={_createRoomRequested}, scene={SceneManager.GetActiveScene().name})");
         bool joinedForMatchmaking = _autoMatchmake || _quickPlayRequested;
+        bool shouldLoadWaitingRoom = joinedForMatchmaking || _createRoomRequested;
+
         // 룸 입장 직후: Ready/Scene 프로퍼티를 초기화(동기화 게이트 기반)
         SetLocalPlayerProperty(PLAYER_PROP_READY, false);
-        SetLocalPlayerProperty(PLAYER_PROP_SCENE, SceneManager.GetActiveScene().name);
-
-        string selectedCharacterId = ResolveSelectedCharacterId();
-        if (!string.IsNullOrWhiteSpace(selectedCharacterId))
-            SetLocalPlayerProperty(PLAYER_PROP_CHARACTER_ID, selectedCharacterId);
+        _sceneTransition?.MarkLocalPlayerScene(SceneManager.GetActiveScene().name);
+        _characterSpawn?.SyncLocalSelectedCharacterProperty(this);
 
         // 룸에 들어오면 WaitingRoom 씬으로 통일(전원 같은 공간에서 Ready/미니게임)
-        if ((joinedForMatchmaking || _createRoomRequested) && SceneManager.GetActiveScene().name != _waitingRoomSceneName)
-            PhotonNetwork.LoadLevel(_waitingRoomSceneName);
+        _sceneTransition?.LoadWaitingRoomIfNeeded(shouldLoadWaitingRoom);
 
         // 매칭 요청은 1회성으로 처리
         _quickPlayRequested = false;
         _createRoomRequested = false;
-        if (joinedForMatchmaking || _createRoomRequested)
-            Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_waitingRoomSceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
+        if (shouldLoadWaitingRoom)
+            Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom -> LoadLevel({_sceneTransition?.WaitingRoomSceneName}) (room={PhotonNetwork.CurrentRoom?.Name})");
         else
             Debug.Log($"[NetworkAuthorityManager] OnJoinedRoom (no scene load) (room={PhotonNetwork.CurrentRoom?.Name})");
 
-        _localSpawnedPlayer = null;
+        _characterSpawn?.ResetLocalSpawnedPlayerReference();
 
         // 매칭 감시 코루틴 정리
         StopQuickPlayWatch();
@@ -487,22 +463,6 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         PhotonNetwork.NickName = $"Dev_{UnityEngine.Random.Range(1000, 9999)}";
     }
 
-    private string ResolveSelectedCharacterId()
-    {
-        if (DataManager.Instance != null &&
-            DataManager.Instance.CurrentUserData != null &&
-            !string.IsNullOrWhiteSpace(DataManager.Instance.CurrentUserData.selectedCharacterId))
-        {
-            return DataManager.Instance.CurrentUserData.selectedCharacterId;
-        }
-
-        string savedId = PlayerPrefs.GetString(PREF_SELECTED_CHARACTER_ID, string.Empty);
-        if (!string.IsNullOrWhiteSpace(savedId))
-            return savedId;
-
-        return string.Empty;
-    }
-
     private void TryStartDebugQuickPlay(string sceneName)
     {
         // 에디터/개발 빌드에서만 디버그 매칭을 허용
@@ -516,7 +476,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
 
         // WaitingRoom/룸 로비에서만 자동 매칭(맵/로딩에서의 재매칭 방지)
-        if (sceneName != _waitingRoomSceneName && sceneName != _roomLobbySceneName)
+        if (_sceneTransition == null ||
+            (sceneName != _sceneTransition.WaitingRoomSceneName && sceneName != _sceneTransition.RoomLobbySceneName))
             return;
 
         // 이미 룸이 있으면 아무것도 하지 않음
@@ -525,7 +486,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         // 디버그 닉네임 강제 옵션
         if (PlayerPrefs.GetInt(DEBUG_PREF_FORCE_NICKNAME, 0) == 1)
-            PhotonNetwork.NickName = $"Dev_{System.Environment.UserName}";
+            PhotonNetwork.NickName = $"Dev_{Environment.UserName}";
 
         Debug.Log($"[NetworkAuthorityManager] Debug Auto QuickPlay -> StartQuickPlay (scene={sceneName})");
         StartQuickPlay();
@@ -544,56 +505,52 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         Debug.Log($"[NetworkAuthorityManager] Master switched to {newMasterClient.NickName} (Actor={newMasterClient.ActorNumber})");
 
-        if (!PhotonNetwork.InRoom)
+        if (!PhotonNetwork.InRoom || _sceneTransition == null)
             return;
 
         string sceneName = SceneManager.GetActiveScene().name;
 
         // 로비/웨이팅룸: 전체 Ready 상태에 따라 카운트다운 재평가
-        if (sceneName == _roomLobbySceneName || sceneName == _waitingRoomSceneName)
+        if (_sceneTransition.IsLobbyScene(sceneName))
         {
-            EvaluateLobbyCountdown();
+            _lobbyCountdown?.EvaluateLobbyCountdown();
             return;
         }
 
         // 로딩 게이트: 새 마스터가 모든 플레이어 도착 확인 후 맵 전환
-        if (sceneName == _loadingSceneName && _loadingGateCoroutine == null)
-        {
-            if (AreAllPlayersInScene(_loadingSceneName))
-                _loadingGateCoroutine = StartCoroutine(LoadingGateToMap());
-        }
+        if (_sceneTransition.IsLoadingScene(sceneName))
+            _sceneTransition.TryStartLoadingGateIfReady();
     }
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, PhotonHashtable changedProps)
     {
         // 로비 씬에서: Ready 변화에 따라 카운트다운 시작/취소(마스터만)
-        if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient || _sceneTransition == null)
             return;
 
         string sceneName = SceneManager.GetActiveScene().name;
 
         // 로비/웨이팅룸 씬에서: Ready 변화에 따라 카운트다운 시작/취소(마스터만)
-        if (sceneName == _roomLobbySceneName || sceneName == _waitingRoomSceneName)
+        if (_sceneTransition.IsLobbyScene(sceneName))
         {
-            EvaluateLobbyCountdown();
+            _lobbyCountdown?.EvaluateLobbyCountdown();
             return;
         }
 
         // 로딩 씬에서: 모든 플레이어가 로딩 씬에 도착하면 맵으로 전환(마스터만)
-        if (sceneName != _loadingSceneName)
+        if (!_sceneTransition.IsLoadingScene(sceneName))
             return;
 
-        if (_loadingGateCoroutine == null && AreAllPlayersInScene(_loadingSceneName))
-            _loadingGateCoroutine = StartCoroutine(LoadingGateToMap());
+        _sceneTransition.TryStartLoadingGateIfReady();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // 씬 도착을 플레이어 프로퍼티로 남겨서 “모두 도착” 게이트에 사용
         if (PhotonNetwork.InRoom)
-            SetLocalPlayerProperty(PLAYER_PROP_SCENE, scene.name);
+            _sceneTransition?.MarkLocalPlayerScene(scene.name);
 
-        SyncGameManagerState(scene.name);
+        _sceneTransition?.SyncGameManagerState(scene.name);
 
         if (!PhotonNetwork.InRoom)
         {
@@ -602,238 +559,16 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if (scene.name.StartsWith(_mapScenePrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            TrySpawnLocalPlayerForMap();
-            InitializeRoundManagerForMap(scene.name);
-        }
-        if (!PhotonNetwork.IsMasterClient)
+        _sceneTransition?.HandleSceneLoadedInRoom(scene.name);
+
+        if (!PhotonNetwork.IsMasterClient || _sceneTransition == null)
             return;
 
-        if (scene.name == _roomLobbySceneName || scene.name == _waitingRoomSceneName)
-        {
-            EvaluateLobbyCountdown();
-            return;
-        }
-
-        if (scene.name == _loadingSceneName)
-        {
-            if (_loadingGateCoroutine == null && AreAllPlayersInScene(_loadingSceneName))
-                _loadingGateCoroutine = StartCoroutine(LoadingGateToMap());
-
-            return;
-        }
+        if (_sceneTransition.IsLobbyScene(scene.name))
+            _lobbyCountdown?.EvaluateLobbyCountdown();
     }
 
-    private void InitializeRoundManagerForMap(string mapSceneName)
-    {
-        if (RoundManager.Instance == null)
-        {
-            Debug.LogWarning("[NetworkAuthorityManager] RoundManager not found. Creating one.");
-            gameObject.AddComponent<RoundManager>();
-        }
-
-        RoundManager.Instance.InitializeRoundSession(mapSceneName);
-    }
-
-    private IEnumerator LoadingGateToMap()
-    {
-        // 씬 로딩 직후 짧은 대기(프로퍼티/콜백 반영 시간 확보)
-        yield return new WaitForSeconds(_loadingGateDelaySeconds);
-
-        if (!PhotonNetwork.IsMasterClient)
-        {
-            _loadingGateCoroutine = null;
-            yield break;
-        }
-
-        if (!AreAllPlayersInScene(_loadingSceneName))
-        {
-            _loadingGateCoroutine = null;
-            yield break;
-        }
-
-        PhotonNetwork.LoadLevel(GetSelectedMapSceneName());
-        _loadingGateCoroutine = null;
-    }
-
-    private void EvaluateLobbyCountdown()
-    {
-        // 룸 로비에서 전원 Ready면 카운트다운을 시작하고, 깨지면 즉시 취소
-        if (!PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
-            return;
-
-        bool allReady = AreAllPlayersReady();
-
-        if (!allReady)
-        {
-            StopLobbyCountdown();
-            return;
-        }
-
-        StartLobbyCountdownIfNeeded();
-    }
-
-    private void StartLobbyCountdownIfNeeded()
-    {
-        // 이미 카운트다운이 켜져 있으면 중복 시작하지 않음
-        if (IsLobbyCountdownActive())
-            return;
-
-        _issuedLoadingForThisCountdown = false;
-
-        PhotonHashtable props = new PhotonHashtable
-        {
-            { ROOM_PROP_COUNTDOWN_ACTIVE, true },
-            { ROOM_PROP_COUNTDOWN_START_TIME, PhotonNetwork.Time },
-            { ROOM_PROP_COUNTDOWN_DURATION, _lobbyCountdownSeconds }
-        };
-
-        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-    }
-
-    private void StopLobbyCountdown()
-    {
-        // 카운트다운을 끄고, 다음 Ready 조합에서 다시 시작 가능하게 리셋
-        if (!IsLobbyCountdownActive())
-            return;
-
-        _issuedLoadingForThisCountdown = false;
-
-        PhotonHashtable props = new PhotonHashtable
-        {
-            { ROOM_PROP_COUNTDOWN_ACTIVE, false }
-        };
-
-        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-    }
-
-    private bool IsLobbyCountdownActive()
-    {
-        if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
-            return false;
-
-        PhotonHashtable props = PhotonNetwork.CurrentRoom.CustomProperties as PhotonHashtable;
-        if (props == null)
-            return false;
-
-        return props.TryGetValue(ROOM_PROP_COUNTDOWN_ACTIVE, out object raw) && raw is bool active && active;
-    }
-
-    private void Update()
-    {
-        // 마스터는 카운트다운 만료 시 로딩 씬으로 전환(한 번만)
-        if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
-            return;
-
-        string currentScene = SceneManager.GetActiveScene().name;
-        if (currentScene != _roomLobbySceneName && currentScene != _waitingRoomSceneName)
-            return;
-
-        if (_issuedLoadingForThisCountdown)
-            return;
-
-        if (!TryGetLobbyCountdownRemaining(out float remaining, out bool active))
-            return;
-
-        if (!active)
-            return;
-
-        if (remaining > 0f)
-            return;
-
-        if (!AreAllPlayersReady())
-        {
-            StopLobbyCountdown();
-            return;
-        }
-
-        _issuedLoadingForThisCountdown = true;
-        SelectAndStoreRandomMap();
-        PhotonNetwork.CurrentRoom.IsOpen = false;
-        PhotonNetwork.LoadLevel(_loadingSceneName);
-    }
-
-    private void SelectAndStoreRandomMap()
-    {
-        // 라운드 시작 직전에 맵을 1개 뽑아 룸 프로퍼티로 고정(전원 동일 맵 보장)
-        if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
-            return;
-
-        List<string> candidates = GetCandidateMapSceneNames();
-        if (candidates.Count == 0)
-        {
-            Debug.LogError("[NetworkAuthorityManager] No maps configured in _playMapScenes!");
-            return;
-        }
-
-        string selected = candidates[UnityEngine.Random.Range(0, candidates.Count)];
-
-        PhotonHashtable props = new PhotonHashtable
-        {
-            { ROOM_PROP_SELECTED_MAP, selected }
-        };
-
-        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-    }
-
-    private string GetSelectedMapSceneName()
-    {
-        // 룸 프로퍼티 기반으로 선택된 맵을 읽어옴(없으면 첫 번째 맵)
-        if (!PhotonNetwork.InRoom || PhotonNetwork.CurrentRoom == null)
-        {
-            List<string> candidates = GetCandidateMapSceneNames();
-            return candidates.Count > 0 ? candidates[0] : string.Empty;
-        }
-
-        if (PhotonNetwork.CurrentRoom.CustomProperties != null &&
-            PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(ROOM_PROP_SELECTED_MAP, out object raw) &&
-            raw is string sceneName &&
-            !string.IsNullOrWhiteSpace(sceneName))
-        {
-            return sceneName;
-        }
-
-        // 룸 프로퍼티에 없으면 첫 번째 맵 반환
-        List<string> fallbackCandidates = GetCandidateMapSceneNames();
-        return fallbackCandidates.Count > 0 ? fallbackCandidates[0] : string.Empty;
-    }
-
-    private List<string> GetCandidateMapSceneNames()
-    {
-        // 인스펙터에서 지정한 맵 리스트만 사용 (SceneReference)
-        List<string> candidates = new List<string>();
-
-        if (_playMapScenes != null)
-        {
-            for (int i = 0; i < _playMapScenes.Count; i++)
-            {
-                string sceneName = _playMapScenes[i]?.SceneName;
-                if (!string.IsNullOrWhiteSpace(sceneName))
-                    candidates.Add(sceneName);
-            }
-        }
-
-        return candidates;
-    }
-
-    private bool AreAllPlayersInScene(string sceneName)
-    {
-        // 로딩 게이트: 모든 플레이어의 scene 프로퍼티가 목표 씬인지 확인
-        if (!PhotonNetwork.InRoom)
-            return false;
-
-        foreach (Player p in PhotonNetwork.PlayerList)
-        {
-            string playerScene = GetString(p, PLAYER_PROP_SCENE, string.Empty);
-            if (playerScene != sceneName)
-                return false;
-        }
-
-        return true;
-    }
-
-    private void SetLocalPlayerProperty(string key, object value)
+    internal void SetLocalPlayerProperty(string key, object value)
     {
         // CustomProperties는 부분 업데이트(키 단위)로만 갱신
         if (PhotonNetwork.LocalPlayer == null)
@@ -843,7 +578,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
     }
 
-    private static bool GetBool(Player player, string key, bool defaultValue)
+    internal static bool GetBool(Player player, string key, bool defaultValue)
     {
         if (player == null || player.CustomProperties == null)
             return defaultValue;
@@ -854,7 +589,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         return raw is bool b ? b : defaultValue;
     }
 
-    private static string GetString(Player player, string key, string defaultValue)
+    internal static string GetString(Player player, string key, string defaultValue)
     {
         if (player == null || player.CustomProperties == null)
             return defaultValue;
@@ -864,160 +599,13 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         return raw as string ?? defaultValue;
     }
+}
 
-    private void SyncGameManagerState(string sceneName)
+internal static class GameObjectComponentExtensions
+{
+    internal static T GetOrAddComponent<T>(this GameObject gameObject) where T : Component
     {
-        // 씬 상태 매핑은 GameManager가 단일 책임으로 관리
-        GameManager gm = GameManager.Instance;
-        if (gm == null)
-            return;
-
-        gm.SyncStateByScene(sceneName);
-    }
-
-    private void TrySpawnLocalPlayerForMap()
-    {
-        if (!PhotonNetwork.InRoom || PhotonNetwork.LocalPlayer == null)
-            return;
-
-        Vector3 spawnPosition = _fallbackSpawnPosition;
-        spawnPosition += _fallbackSpawnStep * (PhotonNetwork.LocalPlayer.ActorNumber - 1);
-        SpawnLocalSelectedCharacter(spawnPosition, Quaternion.identity, true);
-    }
-
-    public GameObject SpawnLocalSelectedCharacter(Vector3 position, Quaternion rotation, bool forceRespawn)
-    {
-        if (!PhotonNetwork.InRoom || PhotonNetwork.LocalPlayer == null)
-            return null;
-
-        if (_localSpawnedPlayer != null)
-        {
-            if (!forceRespawn)
-                return _localSpawnedPlayer;
-
-            PhotonView view = _localSpawnedPlayer.GetComponent<PhotonView>();
-            if (view != null && view.IsMine)
-                PhotonNetwork.Destroy(_localSpawnedPlayer);
-
-            _localSpawnedPlayer = null;
-        }
-
-        string characterId = ResolveSelectedCharacterId();
-        string prefabName = ResolvePlayerPrefabName(characterId);
-        if (string.IsNullOrWhiteSpace(prefabName))
-        {
-            Debug.LogWarning("[NetworkAuthorityManager] prefabName is empty. check character spawn entries.");
-            return null;
-        }
-
-        string instantiateKey = ResolvePhotonPrefabKey(prefabName);
-        if (string.IsNullOrWhiteSpace(instantiateKey))
-        {
-            Debug.LogWarning($"[NetworkAuthorityManager] Photon prefab not found in Resources. prefabName={prefabName}");
-            return null;
-        }
-
-        try
-        {
-            _localSpawnedPlayer = PhotonNetwork.Instantiate(instantiateKey, position, rotation);
-            Debug.Log($"[NetworkAuthorityManager] Spawned player prefab={instantiateKey}, characterId={characterId}");
-            return _localSpawnedPlayer;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning($"[NetworkAuthorityManager] Spawn failed for prefab '{instantiateKey}': {e.Message}");
-            return null;
-        }
-    }
-
-    private string ResolvePlayerPrefabName(string characterId)
-    {
-        EnsureCharacterCatalogLoaded();
-
-        if (_characterCatalog != null)
-        {
-            GameObject catalogPrefab = _characterCatalog.GetPrefabOrDefault(characterId, _defaultCharacterId);
-            if (catalogPrefab != null)
-                return catalogPrefab.name;
-        }
-
-        if (!string.IsNullOrWhiteSpace(characterId) && _characterSpawnEntries != null)
-        {
-            for (int i = 0; i < _characterSpawnEntries.Count; i++)
-            {
-                CharacterSpawnEntry entry = _characterSpawnEntries[i];
-                if (string.Equals(entry.characterId, characterId, System.StringComparison.OrdinalIgnoreCase) &&
-                    !string.IsNullOrWhiteSpace(entry.prefabName))
-                    return entry.prefabName;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(_defaultCharacterId) && _characterSpawnEntries != null)
-        {
-            for (int i = 0; i < _characterSpawnEntries.Count; i++)
-            {
-                CharacterSpawnEntry entry = _characterSpawnEntries[i];
-                if (string.Equals(entry.characterId, _defaultCharacterId, System.StringComparison.OrdinalIgnoreCase) &&
-                    !string.IsNullOrWhiteSpace(entry.prefabName))
-                    return entry.prefabName;
-            }
-        }
-
-        string savedPrefab = PlayerPrefs.GetString(PREF_SELECTED_CHARACTER_PREFAB, string.Empty);
-        if (!string.IsNullOrWhiteSpace(savedPrefab))
-            return savedPrefab;
-
-        return _defaultPlayerPrefabName;
-    }
-
-    private void EnsureCharacterCatalogLoaded()
-    {
-        if (_characterCatalog != null || _characterCatalogTriedLoad)
-            return;
-
-        _characterCatalogTriedLoad = true;
-        _characterCatalog = Resources.Load<CharacterCatalog>(CHARACTER_CATALOG_RESOURCE_PATH);
-        if (_characterCatalog == null)
-            Debug.LogWarning("[NetworkAuthorityManager] CharacterCatalog not found in Resources/CharacterCatalog.");
-    }
-
-    private static string ResolvePhotonPrefabKey(string prefabName)
-    {
-        if (string.IsNullOrWhiteSpace(prefabName))
-            return string.Empty;
-
-        if (Resources.Load<GameObject>(prefabName) != null)
-            return prefabName;
-
-        string keyInCharacters = $"Characters/{prefabName}";
-        if (Resources.Load<GameObject>(keyInCharacters) != null)
-            return keyInCharacters;
-
-        string keyInPrefabsCharacters = $"Prefabs/Characters/{prefabName}";
-        if (Resources.Load<GameObject>(keyInPrefabsCharacters) != null)
-            return keyInPrefabsCharacters;
-
-        return string.Empty;
-    }
-
-    public void ReturnToLobby()
-    {
-        if (!PhotonNetwork.InRoom)
-            return;
-
-        if (_localSpawnedPlayer != null)
-        {
-            PhotonView view = _localSpawnedPlayer.GetComponent<PhotonView>();
-            if (view != null && view.IsMine)
-                PhotonNetwork.Destroy(_localSpawnedPlayer);
-
-            _localSpawnedPlayer = null;
-        }
-
-        // RoundManager 세션 정리
-        if (RoundManager.Instance != null)
-            RoundManager.Instance.CleanupSession();
-
-        PhotonNetwork.LoadLevel(_roomLobbySceneName);
+        T component = gameObject.GetComponent<T>();
+        return component != null ? component : gameObject.AddComponent<T>();
     }
 }
