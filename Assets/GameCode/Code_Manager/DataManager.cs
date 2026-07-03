@@ -64,9 +64,9 @@ public class DataManager : MonoBehaviour
         _currentUserData = new UserData();
     }
 
-    public void SaveData()
+    public async Task SaveDataAsync()
     {
-        SaveUserDataToFirebase();
+        await SaveUserDataToFirebaseAsync();
     }
 
     public bool TryGetUserProfilePath(string userId, out string profilePath)
@@ -133,34 +133,6 @@ public class DataManager : MonoBehaviour
         return true;
     }
 
-    public async void SaveUserDataToFirebase(Action<bool> onCompleted = null)
-    {
-        if (!TryBuildProfileSavePayload(out string profilePath, out string json))
-        {
-            onCompleted?.Invoke(false);
-            return;
-        }
-
-#if FIREBASE_DATABASE
-        try
-        {
-            DatabaseReference db = GetDatabaseReference(profilePath);
-            await db.SetRawJsonValueAsync(json);
-            Debug.Log($"[DataManager] Firebase 저장 완료: {profilePath}");
-            onCompleted?.Invoke(true);
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"[DataManager] Firebase 저장 실패: {e.Message}");
-            onCompleted?.Invoke(false);
-        }
-#else
-        Debug.LogWarning("[DataManager] Firebase Database SDK가 없어 실제 저장은 실행되지 않았습니다. (FIREBASE_DATABASE)");
-        Debug.Log($"[DataManager] Mock Save Path={profilePath}, JSON={json}");
-        onCompleted?.Invoke(false);
-#endif
-    }
-
     public async Task<bool> SaveUserDataToFirebaseAsync()
     {
         if (!TryBuildProfileSavePayload(out string profilePath, out string json))
@@ -188,54 +160,6 @@ public class DataManager : MonoBehaviour
 #endif
     }
 
-    public async void LoadUserDataFromFirebase(string userId, Action<bool> onCompleted = null)
-    {
-        if (!TryGetUserProfilePath(userId, out string profilePath))
-        {
-            Debug.LogWarning("[DataManager] userId가 비어 있어 Firebase 로드를 건너뜁니다.");
-            onCompleted?.Invoke(false);
-            return;
-        }
-
-#if FIREBASE_DATABASE
-        try
-        {
-            DatabaseReference db = GetDatabaseReference(profilePath);
-            DataSnapshot snapshot = await db.GetValueAsync();
-
-            if (snapshot == null || !snapshot.Exists)
-            {
-                _currentUserData = new UserData();
-                _currentUserData.userId = userId;
-                MarkLoginNow();
-                Debug.LogWarning($"[DataManager] Firebase 데이터 없음. 기본 UserData 생성: {profilePath}");
-                onCompleted?.Invoke(false);
-                return;
-            }
-
-            string json = snapshot.GetRawJsonValue();
-            bool loaded = LoadUserDataFromJson(json);
-
-            if (_currentUserData == null)
-                _currentUserData = new UserData();
-
-            _currentUserData.userId = userId;
-            MarkLoginNow();
-
-            Debug.Log($"[DataManager] Firebase 로드 완료: {profilePath}");
-            onCompleted?.Invoke(loaded);
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"[DataManager] Firebase 로드 실패: {e.Message}");
-            onCompleted?.Invoke(false);
-        }
-#else
-        Debug.LogWarning("[DataManager] Firebase Database SDK가 없어 실제 로드는 실행되지 않았습니다. (FIREBASE_DATABASE)");
-        Debug.Log($"[DataManager] Mock Load Path={profilePath}");
-        onCompleted?.Invoke(false);
-#endif
-    }
 
     public async Task<(bool success, bool loaded)> LoadUserDataFromFirebaseAsync(string userId)
     {

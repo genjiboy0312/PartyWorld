@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Firebase.Auth;
 using UnityEngine;
 
@@ -30,18 +31,15 @@ public class FirebaseAuthManager
     private SynchronizationContext _unityContext;
     private int _unityThreadId;
 
-    private void RunOnUnityThread(Action action)
+    // Unity 메인 스레드로 전환하는 awaiter
+    private Task SwitchToMainThreadAsync()
     {
-        if (action == null)
-            return;
-
         if (_unityContext == null || Environment.CurrentManagedThreadId == _unityThreadId)
-        {
-            action();
-            return;
-        }
+            return Task.CompletedTask;
 
-        _unityContext.Post(_ => action(), null);
+        var tcs = new TaskCompletionSource<bool>();
+        _unityContext.Post(_ => tcs.SetResult(true), null);
+        return tcs.Task;
     }
 
     public void Init()
@@ -61,187 +59,160 @@ public class FirebaseAuthManager
         _auth.StateChanged += OnAuthStateChanged;
     }
 
-    private void OnAuthStateChanged(object sender, EventArgs e)
+    private async void OnAuthStateChanged(object sender, EventArgs e)
     {
-        if (_unityContext != null && Environment.CurrentManagedThreadId != _unityThreadId)
+        try
         {
-            _unityContext.Post(_ => OnAuthStateChanged(sender, e), null);
-            return;
-        }
+            // Firebase 이벤트가 백그라운드 스레드에서도 발생할 수 있으므로 메인 스레드 보장
+            await SwitchToMainThreadAsync();
 
-        if (_auth == null)
-            return;
+            if (_auth == null)
+                return;
 
-        if (_auth.CurrentUser == _user)
-            return;
+            if (_auth.CurrentUser == _user)
+                return;
 
-        bool signedIn = _auth.CurrentUser != null;
+            bool signedIn = _auth.CurrentUser != null;
 
-        // 로그아웃 감지
-        if (!signedIn && _user != null)
-        {
-            Debug.Log("[FirebaseAuth] 유저 로그아웃 감지");
+            // 로그아웃 감지
+            if (!signedIn && _user != null)
+            {
+                Debug.Log("[FirebaseAuth] 유저 로그아웃 감지");
 
-            if (DataManager.Instance != null)
-                DataManager.Instance.ClearUserData();
+                if (DataManager.Instance != null)
+                    DataManager.Instance.ClearUserData();
 
-            _user = null;
-            _loginState?.Invoke(false);
-            return;
-        }
+                _user = null;
+                _loginState?.Invoke(false);
+                return;
+            }
 
-        _user = _auth.CurrentUser;
+            _user = _auth.CurrentUser;
 
-        if (!signedIn || _user == null)
-            return;
+            if (!signedIn || _user == null)
+                return;
 
-        Debug.Log($"[FirebaseAuth] 유저 로그인 성공: {_user.Email}");
+            Debug.Log($"[FirebaseAuth] 유저 로그인 성공: {_user.Email}");
 
-        if (DataManager.Instance != null)
-        {
+            if (DataManager.Instance == null)
+            {
+                _loginState?.Invoke(true);
+                return;
+            }
+
             string authNickname = _user.DisplayName;
 
             DataManager.Instance.CurrentUserData.userId = _user.UserId;
             DataManager.Instance.MarkLoginNow();
-            DataManager.Instance.LoadUserDataFromFirebase(_user.UserId, loaded =>
+
+            // async/await 방식으로 Firebase 데이터 로드
+            var (success, loaded) = await DataManager.Instance.LoadUserDataFromFirebaseAsync(_user.UserId);
+
+            if (DataManager.Instance == null)
             {
-                if (DataManager.Instance == null)
+                _loginState?.Invoke(true);
+                return;
+            }
+
+            string localNick = DataManager.Instance.CurrentUserData.nickname;
+            bool localMissing = string.IsNullOrWhiteSpace(localNick) || localNick == "NewPlayer";
+
+            if (localMissing && !string.IsNullOrWhiteSpace(_pendingNicknameForNewUser))
+            {
+                localNick = _pendingNicknameForNewUser;
+                localMissing = false;
+                DataManager.Instance.CurrentUserData.nickname = localNick;
+            }
+
+            if (!string.IsNullOrWhiteSpace(authNickname))
+            {
+                if (localMissing || !loaded)
                 {
-                    _loginState?.Invoke(true);
-                    return;
+                    DataManager.Instance.CurrentUserData.nickname = authNickname;
+                    await DataManager.Instance.SaveUserDataToFirebaseAsync();
                 }
 
-                string localNick = DataManager.Instance.CurrentUserData.nickname;
-                bool localMissing = string.IsNullOrWhiteSpace(localNick) || localNick == "NewPlayer";
+                _loginState?.Invoke(true);
+                return;
+            }
 
-                if (localMissing && !string.IsNullOrWhiteSpace(_pendingNicknameForNewUser))
-                {
-                    localNick = _pendingNicknameForNewUser;
-                    localMissing = false;
-                    DataManager.Instance.CurrentUserData.nickname = localNick;
-                }
+            if (localMissing)
+            {
+                _loginState?.Invoke(true);
+                return;
+            }
 
-                if (!string.IsNullOrWhiteSpace(authNickname))
-                {
-                    if (localMissing || !loaded)
-                    {
-                        DataManager.Instance.CurrentUserData.nickname = authNickname;
-                        DataManager.Instance.SaveUserDataToFirebase();
-                    }
+            // DisplayName 업데이트 (async/await)
+            UserProfile profile = new UserProfile { DisplayName = localNick };
+            try
+            {
+                await _user.UpdateUserProfileAsync(profile);
+                Debug.Log($"[FirebaseAuth] 닉네임 저장 완료: {localNick}");
+            }
+            catch (Exception profileEx)
+            {
+                Debug.LogWarning($"[FirebaseAuth] 닉네임(DisplayName) 저장 실패: {profileEx.Message}");
+            }
 
-                    _loginState?.Invoke(true);
-                    return;
-                }
-
-                if (localMissing)
-                {
-                    _loginState?.Invoke(true);
-                    return;
-                }
-
-                UserProfile profile = new UserProfile { DisplayName = localNick };
-                _user.UpdateUserProfileAsync(profile).ContinueWith(profileTask =>
-                {
-                    RunOnUnityThread(() =>
-                    {
-                        if (profileTask.IsCanceled || profileTask.IsFaulted)
-                        {
-                            Debug.LogWarning("[FirebaseAuth] 닉네임(DisplayName) 저장 실패: " + profileTask.Exception);
-                            _loginState?.Invoke(true);
-                            return;
-                        }
-
-                        Debug.Log($"[FirebaseAuth] 닉네임 저장 완료: {localNick}");
-                        DataManager.Instance.SaveUserDataToFirebase();
-                        _pendingNicknameForNewUser = null;
-                        _loginState?.Invoke(true);
-                    });
-                });
-            });
-
-            return;
+            await DataManager.Instance.SaveUserDataToFirebaseAsync();
+            _pendingNicknameForNewUser = null;
+            _loginState?.Invoke(true);
         }
-
-        _loginState?.Invoke(true);
+        catch (Exception ex)
+        {
+            Debug.LogError($"[FirebaseAuth] 인증 상태 변경 처리 중 오류: {ex.Message}");
+            _loginState?.Invoke(false);
+        }
     }
 
     public void Create(string email, string password) => Create(email, password, null);
 
     // 회원가입 + 닉네임 저장(프로필 DisplayName)
-    public void Create(string email, string password, string nickname)
+    public async void Create(string email, string password, string nickname)
     {
         _pendingNicknameForNewUser = nickname;
 
-        _auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
+        try
         {
-            RunOnUnityThread(() =>
+            var authResult = await _auth.CreateUserWithEmailAndPasswordAsync(email, password);
+            FirebaseUser newUser = authResult.User;
+            Debug.Log($"[FirebaseAuth] 회원가입 완료: {newUser.Email}");
+
+            string desiredNickname = nickname;
+            if (string.IsNullOrWhiteSpace(desiredNickname) && DataManager.Instance != null)
+                desiredNickname = DataManager.Instance.CurrentUserData.nickname;
+
+            if (!string.IsNullOrWhiteSpace(desiredNickname) && desiredNickname != "NewPlayer")
             {
-                if (task.IsCanceled)
-                {
-                    Debug.LogError("[FirebaseAuth] 회원가입 취소됨");
-                    _pendingNicknameForNewUser = null;
-                    return;
-                }
-                if (task.IsFaulted)
-                {
-                    Debug.LogError("[FirebaseAuth] 회원가입 실패: " + task.Exception);
-                    _pendingNicknameForNewUser = null;
-                    return;
-                }
+                if (DataManager.Instance != null)
+                    DataManager.Instance.CurrentUserData.nickname = desiredNickname;
 
-                FirebaseUser newUser = task.Result.User;
-                Debug.Log($"[FirebaseAuth] 회원가입 완료: {newUser.Email}");
+                UserProfile profile = new UserProfile { DisplayName = desiredNickname };
+                await newUser.UpdateUserProfileAsync(profile);
+                Debug.Log($"[FirebaseAuth] 닉네임 저장 완료: {desiredNickname}");
+            }
 
-                string desiredNickname = nickname;
-                if (string.IsNullOrWhiteSpace(desiredNickname) && DataManager.Instance != null)
-                    desiredNickname = DataManager.Instance.CurrentUserData.nickname;
-
-                if (!string.IsNullOrWhiteSpace(desiredNickname) && desiredNickname != "NewPlayer")
-                {
-                    if (DataManager.Instance != null)
-                        DataManager.Instance.CurrentUserData.nickname = desiredNickname;
-
-                    UserProfile profile = new UserProfile { DisplayName = desiredNickname };
-                    newUser.UpdateUserProfileAsync(profile).ContinueWith(profileTask =>
-                    {
-                        RunOnUnityThread(() =>
-                        {
-                            if (profileTask.IsCanceled || profileTask.IsFaulted)
-                            {
-                                Debug.LogWarning("[FirebaseAuth] 닉네임(DisplayName) 저장 실패: " + profileTask.Exception);
-                                return;
-                            }
-
-                            Debug.Log($"[FirebaseAuth] 닉네임 저장 완료: {desiredNickname}");
-                            _pendingNicknameForNewUser = null;
-                        });
-                    });
-                }
-            });
-        });
+            _pendingNicknameForNewUser = null;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[FirebaseAuth] 회원가입 실패: {ex.Message}");
+            _pendingNicknameForNewUser = null;
+        }
     }
 
-    public void LogIn(string email, string password)
+    public async void LogIn(string email, string password)
     {
-        _auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
+        try
         {
-            RunOnUnityThread(() =>
-            {
-                if (task.IsCanceled)
-                {
-                    Debug.LogError("[FirebaseAuth] 로그인 취소됨");
-                    return;
-                }
-                if (task.IsFaulted)
-                {
-                    Debug.LogError("[FirebaseAuth] 로그인 실패: " + task.Exception);
-                    return;
-                }
-
-                FirebaseUser newUser = task.Result.User;
-                Debug.Log($"[FirebaseAuth] 로그인 완료: {newUser.Email}");
-            });
-        });
+            var authResult = await _auth.SignInWithEmailAndPasswordAsync(email, password);
+            FirebaseUser newUser = authResult.User;
+            Debug.Log($"[FirebaseAuth] 로그인 완료: {newUser.Email}");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[FirebaseAuth] 로그인 실패: {ex.Message}");
+        }
     }
 
     public void LogOut()
@@ -250,35 +221,31 @@ public class FirebaseAuthManager
         Debug.Log("[FirebaseAuth] 로그아웃 명령 실행");
     }
 
-    public void CheckEmailExists(string email, Action<bool, bool> onCompleted)
+    public async void CheckEmailExists(string email, Action<bool, bool> onCompleted)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
-            RunOnUnityThread(() => onCompleted?.Invoke(false, false));
+            onCompleted?.Invoke(false, false);
             return;
         }
 
-        _auth.FetchProvidersForEmailAsync(email).ContinueWith((System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string>> task) =>
+        try
         {
-            RunOnUnityThread(() =>
+            var providers = await _auth.FetchProvidersForEmailAsync(email);
+            bool exists = false;
+            if (providers != null)
             {
-                if (task.IsCanceled || task.IsFaulted)
+                using (var e = providers.GetEnumerator())
                 {
-                    Debug.LogWarning("[FirebaseAuth] 이메일 중복 확인 실패: " + task.Exception);
-                    onCompleted?.Invoke(false, false);
-                    return;
+                    exists = e.MoveNext();
                 }
-
-                bool exists = false;
-                if (task.Result != null)
-                {
-                    using (var e = task.Result.GetEnumerator())
-                    {
-                        exists = e.MoveNext();
-                    }
-                }
-                onCompleted?.Invoke(true, exists);
-            });
-        });
+            }
+            onCompleted?.Invoke(true, exists);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"[FirebaseAuth] 이메일 중복 확인 실패: {ex.Message}");
+            onCompleted?.Invoke(false, false);
+        }
     }
 }
