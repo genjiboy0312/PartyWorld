@@ -126,16 +126,13 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
     public void ResetAllTiles()
     {
         foreach (HexTile tile in _hexTiles)
-        {
             tile.ResetTile();
-        }
 
         StartCoroutine(ConfirmResetTiles());
 
+        // RPC recursive fix: send to Others only (not self)
         if (PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient)
-        {
-            photonView.RPC(nameof(RPC_SyncResetAllTiles), RpcTarget.All);
-        }
+            photonView.RPC(nameof(RPC_SyncResetAllTiles), RpcTarget.Others);
     }
 
     private System.Collections.IEnumerator ConfirmResetTiles()
@@ -254,7 +251,14 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
     private void RPC_SyncGameStart() { _isGameActive = true; }
 
     [PunRPC]
-    private void RPC_SyncResetAllTiles() { ResetAllTiles(); }
+    private void RPC_SyncResetAllTiles()
+    {
+        // Direct tile reset (NOT calling ResetAllTiles() to avoid RPC recursion)
+        foreach (HexTile tile in _hexTiles)
+            tile.ResetTile();
+
+        StartCoroutine(ConfirmResetTiles());
+    }
 
     [PunRPC]
     private void RPC_TileSunk(int index) { ProcessTileSunk(index); }
