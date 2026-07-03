@@ -4,7 +4,7 @@
 
 `PartyWorld` Unity 프로젝트의 **변경 로그, 최근 작업 내역, 공지 사항**을 기록합니다.
 
-**마지막 업데이트**: 2026-06-18
+**마지막 업데이트**: 2026-07-03
 
 ---
 
@@ -123,3 +123,73 @@
 || 🟡 P1 | 모바일 최적화 (성능/해상도/터치 입력) | ⏳ 계획 수립 전 |
 || 🟢 P2 | 네트워크 안정성 개선 | ⏳ 계획 수립 전 |
 || 🟡 P1 | Controller.cs 분리 리팩터링 (JoyStick/CameraStick + Camera-Relative) | ✅ 완료 |
+
+### 2026-07-03 - [Fix: ReflectorNet 5.1.2 업데이트 + JSON Schema $defs URI 오류 수정]
+
+---
+#### 1) 진단 요약 (GPT 재접속 시 꼭 읽을 것)
+
+| 항목 | 내용 |
+|------|------|
+| **증상** | GPT가 "MCP 도구 사용 불가" 오류 발생. `tool-list`는 뜨지만 실제 도구 호출 시 schema validation 실패 |
+| **원인** | NuGet auto-update: `ReflectorNet 5.0.0` → `5.1.1`. 5.1.1부터 `System.String[]` 타입을 JSON Schema `$defs` 키로 사용 →
+|
+`#/$defs/System.String[]`는 유효한 uri-reference가 아님 (`[` `]` 문자 포함) → MCP 스키마 전체 손상
+| **해결** | `ReflectorNet 5.1.2` (NuGet.org) DLL을 다운로드해 5.1.1 폴더에 덮어쓰기
+| **5.1.2 fix** | `"#77: sanitize JSON Schema $defs keys to produce valid $ref URI references"` — 정확히 이 버그 수정
+| **검증** | Unity 컴파일 성공, `tool-list`에 MCP 도구 60개 전부 정상 등록 |
+
+---
+#### 2) ReflectorNet 버전별 행동 (GPT가 판단할 때 반드시 알아야 할 사실)
+
+| 버전 | 상태 | 이유 |
+|------|------|------|
+| ❌ **5.0.0** | 사용 불가 | `ViewQuery` 클래스 없음 → McpPlugin 6.1.3 소스코드 6개 컴파일 에러 |
+| ❌ **5.1.1** | 사용 불가 | JSON Schema `$defs` 키에 `[]` 포함 → uri-reference 오류 |
+| ✅ **5.1.2** | 현재 사용 중 | ViewQuery 있음 + `$defs` sanitize 있음 → 정상 작동 |
+| ✅ **5.3.1** | 최신 버전 | NuGet에서 확인됨, 업그레이드 가능하나 현재로서는 불필요 |
+
+---
+#### 3) 절대 하지 말것 (GPT Constraint)
+
+1. **MCP 소스 코드를 건드리지 말것** (`Packages/com.ivanmurzak.unity.mcp/`)",
+   - 사용자: "너 mcp 업데이트 건드리지마"
+   - MCP 코드는 문제없음. 문제는 ReflectorNet NuGet 패키지 버전임
+2. **ReflectorNet을 5.0.0으로 rollback 하지 말것**
+   - 롤백 시도했으나 ViewQuery 미존재로 McpPlugin 6.1.3이 컴파일 불가
+   - 정답: 5.1.2+ 로 업데이트 (5.0.0과 5.1.2 사이만 피하면 됨)
+3. **`.bak` 파일을 Unity가 임포트하게 두지 말것**
+   - NuGet 폴더 내 `.bak` 파일이 있으면 Unity가 어셈블리로 인식해 임포트 시도
+   - 발견 즉시 삭제할 것
+
+---
+#### 4) 재발생 시 대처법 (같은 문제가 다시 나타나면)
+
+```
+1. Unity Editor Console 로그 확인 → JSON Schema validation 에러 검색
+2. Assets/Plugins/NuGet/com.IvanMurzak.ReflectorNet.5.1.1/ReflectorNet.dll 의 Assembly Version 확인
+   (5.1.2여야 정상. 만약 NuGet이 다시 auto-update해서 5.1.1로 바뀌었으면 재발)
+3. NuGet.org에서 com.IvanMurzak.ReflectorNet 최신 버전 확인
+4. 최신 버전 DLL을 위 경로에 덮어쓰거나, 5.1.2 이상으로 유지
+5. Unity 재컴파일 후 tool-list로 60개 도구 정상 등록 확인
+```
+
+---
+#### 5) 중요 파일 경로 (GPT가 다음 세션에서 찾을 위치)
+
+| 파일 | 경로 | 비고 |
+|------|------|------|
+| ReflectorNet DLL | `Assets/Plugins/NuGet/com.IvanMurzak.ReflectorNet.5.1.1/ReflectorNet.dll` | 폴더명은 5.1.1이지만 DLL Assembly Version은 5.1.2 |
+| DLL meta | `Assets/Plugins/NuGet/com.IvanMurzak.ReflectorNet.5.1.1/ReflectorNet.dll.meta` | 변경 없음 (594 bytes) |
+| .gitignore | `.gitignore` | `Assets/_Recovery/` 추가됨 |
+
+---
+#### 6) Git 커밋 내역 (2026-07-03)
+
+| 커밋 | 설명 | 파일 |
+|------|------|------|
+| `022948e` | `chore: opencode 스킬 문서 CRLF 및 설명 업데이트` | 35 skill files |
+| `45b0983` | `feat: 게임 네트워크/UI 코드 업데이트 및 신규 스크립트 추가` | 7 game code files |
+| `5683a16` | `feat: Scene_Lobby, Scene_WaitingRoom 씬 업데이트` | 2 scenes |
+| `bce361e` | `fix: ReflectorNet 5.1.2 update - JSON Schema $defs key sanitize` | 1 DLL |
+| `05b2400` | `chore: .gitignore에 Assets/_Recovery/ 추가` | 1 .gitignore |
