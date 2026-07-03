@@ -72,3 +72,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 .sisyphus/
+
+# Unity auto-recovery files
+Assets/_Recovery/
