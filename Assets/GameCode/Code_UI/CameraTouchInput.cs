@@ -4,7 +4,6 @@ using UnityEngine.EventSystems;
 public class CameraTouchInput : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
 {
     [SerializeField] private FollowCamera _followCamera;
-    [SerializeField] private float _sensitivity = 0.1f;
 
     private Vector2 _lastTouchPos;
 

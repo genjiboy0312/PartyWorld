@@ -26,8 +26,6 @@ public class HexaStageManager : MonoBehaviourPunCallbacks
     [SerializeField] private bool _isGameEnded = false;
     [SerializeField] private float _remainingTime = 0f;
 
-    public enum HexGameState { Waiting, Playing, Result }
-    [SerializeField] private HexGameState _currentState = HexGameState.Waiting;
 
     private Player _winner;
 
@@ -79,7 +77,6 @@ public class HexaStageManager : MonoBehaviourPunCallbacks
     {
         _isGameStarted = true;
         _isGameEnded = false;
-        _currentState = HexGameState.Playing;
         _remainingTime = _gameDuration;
 
         if (HexArenaManager.Instance != null)
@@ -92,7 +89,6 @@ public class HexaStageManager : MonoBehaviourPunCallbacks
 
         _isGameEnded = true;
         _isGameStarted = false;
-        _currentState = HexGameState.Result;
 
         if (HexArenaManager.Instance != null)
             HexArenaManager.Instance.EndGame();

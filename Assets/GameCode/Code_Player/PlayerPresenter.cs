@@ -55,7 +55,6 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
             _model.OnJumpStateChanged += OnJumpStateChanged;
             _model.OnDiveStateChanged += OnDiveStateChanged;
             _model.OnDashStateChanged += OnDashStateChanged;
-            _model.OnGrapStateChanged += OnGrapStateChanged;
         }
 
         _gameManager = GameManager.Instance;
@@ -93,7 +92,6 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
             _model.OnJumpStateChanged -= OnJumpStateChanged;
             _model.OnDiveStateChanged -= OnDiveStateChanged;
             _model.OnDashStateChanged -= OnDashStateChanged;
-            _model.OnGrapStateChanged -= OnGrapStateChanged;
         }
     }
 
@@ -382,7 +380,6 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     private void OnGameStateChange(GameState newGameState) { }
     private void OnJumpStateChanged(bool isJump) { if (isJump) JumpWithVelocity(); }
     private void OnDiveStateChanged(bool isDive) { }
-    private void OnGrapStateChanged(bool isGrap) { }
     private void OnSpeedChanged(float newSpeed) { }
     private void OnDashStateChanged(bool isDash) { }
 }

@@ -252,7 +252,7 @@ public class CharacterCreationManager : MonoBehaviour
         if (DataManager.Instance != null)
         {
             DataManager.Instance.CurrentUserData.selectedCharacterId = selectedId;
-            DataManager.Instance.SaveUserDataToFirebase();
+            _ = DataManager.Instance.SaveUserDataToFirebaseAsync();
         }
 
         SceneManager.LoadScene(_nextSceneName);

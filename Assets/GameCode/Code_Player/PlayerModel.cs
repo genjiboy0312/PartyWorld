@@ -8,7 +8,6 @@ public class PlayerModel
     public event Action<bool> OnJumpStateChanged;
     public event Action<bool> OnDiveStateChanged;
     public event Action<bool> OnDashStateChanged;
-    public event Action<bool> OnGrapStateChanged;
     public event Action<float> OnSpeedChanged;
 
     [Header("Movement Settings")]
