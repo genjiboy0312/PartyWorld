@@ -3,10 +3,11 @@ using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 using PhotonHashtable = ExitGames.Client.Photon.Hashtable;
 
-public class WaitingRoomUIController : MonoBehaviour
+public class WaitingRoomUIController : MonoBehaviour, IInRoomCallbacks
 {
     private const string PlayerPropReady = "ready";
     private const string RoomPropCountdownActive = "lobbyCountdownActive";
@@ -42,10 +43,24 @@ public class WaitingRoomUIController : MonoBehaviour
     private float _editorOfflineCountdownEndTime;
 #endif
 
+    // Object Pooling for player entries
+    private readonly Stack<GameObject> _playerEntryPool = new Stack<GameObject>();
+    private readonly List<GameObject> _activePlayerEntries = new List<GameObject>();
+
     private void Awake()
     {
         _playerListContent = ResolvePlayerListContent();
         PhotonNetwork.AutomaticallySyncScene = true;
+    }
+
+    private void OnEnable()
+    {
+        PhotonNetwork.AddCallbackTarget(this);
+    }
+
+    private void OnDisable()
+    {
+        PhotonNetwork.RemoveCallbackTarget(this);
     }
 
     private void Start()
@@ -68,9 +83,9 @@ public class WaitingRoomUIController : MonoBehaviour
     {
         // 네트워크 상태/카운트다운을 매 프레임 UI에 반영
         UpdatePlayerCount();
-        UpdatePlayerList();
         UpdateCountdown();
         UpdateReadyLabel();
+        // NOTE: UpdatePlayerList() is event-driven via IInRoomCallbacks
     }
 
     private void OnReadyClicked()
@@ -115,13 +130,16 @@ public class WaitingRoomUIController : MonoBehaviour
         if (content == null)
             return;
 
-        // 기존 플레이어 엔트리 제거
-        foreach (Transform child in content)
+        // Return currently active entries to pool
+        foreach (GameObject entry in _activePlayerEntries)
         {
-            if (child.gameObject == _playerEntryTemplate)
-                continue;
-            Destroy(child.gameObject);
+            if (entry != null)
+            {
+                entry.SetActive(false);
+                _playerEntryPool.Push(entry);
+            }
         }
+        _activePlayerEntries.Clear();
 
         if (!PhotonNetwork.InRoom)
             return;
@@ -133,17 +151,7 @@ public class WaitingRoomUIController : MonoBehaviour
         {
             string name = string.IsNullOrWhiteSpace(players[i].NickName) ? $"Player_{players[i].ActorNumber}" : players[i].NickName;
 
-            GameObject entry;
-            if (_playerEntryTemplate != null)
-            {
-                entry = Instantiate(_playerEntryTemplate, content);
-                entry.SetActive(true);
-            }
-            else
-            {
-                entry = new GameObject($"PlayerEntry_{players[i].ActorNumber}");
-                entry.transform.SetParent(content, false);
-            }
+            GameObject entry = GetPooledEntry(content);
 
             Text entryText = entry.GetComponentInChildren<Text>();
             if (entryText != null)
@@ -160,7 +168,37 @@ public class WaitingRoomUIController : MonoBehaviour
                 }
                 entryText.color = isReady ? Color.green : Color.white;
             }
+
+            _activePlayerEntries.Add(entry);
         }
+    }
+
+    private GameObject GetPooledEntry(RectTransform content)
+    {
+        // Try pool first
+        while (_playerEntryPool.Count > 0)
+        {
+            GameObject pooled = _playerEntryPool.Pop();
+            if (pooled != null)
+            {
+                pooled.SetActive(true);
+                return pooled;
+            }
+        }
+
+        // Instantiate new entry
+        GameObject entry;
+        if (_playerEntryTemplate != null)
+        {
+            entry = Instantiate(_playerEntryTemplate, content);
+            entry.SetActive(true);
+        }
+        else
+        {
+            entry = new GameObject("PlayerEntry");
+            entry.transform.SetParent(content, false);
+        }
+        return entry;
     }
 
     private void UpdateCountdown()
@@ -224,16 +262,16 @@ public class WaitingRoomUIController : MonoBehaviour
         if (secondsLeft != _lastCountdownSecond)
         {
             _lastCountdownSecond = secondsLeft;
-                    _textCountdown.text = secondsLeft.ToString();
+            _textCountdown.text = secondsLeft.ToString();
 
             if (_countdownAnimCoroutine != null)
                 StopCoroutine(_countdownAnimCoroutine);
 
-                    _countdownAnimCoroutine = StartCoroutine(PlayCountdownPop());
-                }
+            _countdownAnimCoroutine = StartCoroutine(PlayCountdownPop());
+        }
 
-                HandleFallbackCountdownCompletion(remaining);
-            }
+        HandleFallbackCountdownCompletion(remaining);
+    }
 
     private void SetCountdownVisible(bool isVisible)
     {
@@ -509,4 +547,15 @@ public class WaitingRoomUIController : MonoBehaviour
         _lastCountdownSecond = -1;
     }
 #endif
+
+    // IInRoomCallbacks implementation — rebuild player list on Photon events
+    public void OnPlayerEnteredRoom(Player newPlayer) { UpdatePlayerList(); }
+    public void OnPlayerLeftRoom(Player otherPlayer) { UpdatePlayerList(); }
+    public void OnPlayerPropertiesUpdate(Player target, PhotonHashtable changedProps)
+    {
+        if (changedProps.ContainsKey(PlayerPropReady))
+            UpdatePlayerList();
+    }
+    public void OnRoomPropertiesUpdate(PhotonHashtable propertiesThatChanged) { }
+    public void OnMasterClientSwitched(Player newMasterClient) { }
 }
