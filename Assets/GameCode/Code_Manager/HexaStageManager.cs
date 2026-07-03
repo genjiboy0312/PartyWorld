@@ -1,10 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
 using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
-using TMPro;
 
 /// <summary>
 /// Hex-A-Gone 게임의 전체 흐름(UI, 타이머, 승리 판정)을 관리하는 스테이지 매니저

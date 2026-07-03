@@ -1,6 +1,5 @@
 using UnityEngine;
 using Photon.Pun;
-using Photon.Realtime;
 
 /// <summary>
 /// Fall Guys 스타일 버블 존

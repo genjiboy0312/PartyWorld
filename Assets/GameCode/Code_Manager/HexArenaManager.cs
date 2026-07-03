@@ -2,7 +2,6 @@ using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
 using Photon.Pun;
-using Photon.Realtime;
 
 /// <summary>
 /// 육각형 타일들의 물리적 상태와 플레이어 생존을 관리하는 아레나 매니저
