@@ -1765,7 +1765,7 @@ MonoBehaviour:
   m_FontData:
     m_Font: {fileID: 12800000, guid: 5efae2df5d460a747a02dedd6a0e17ae, type: 3}
     m_FontSize: 120
-    m_FontStyle: 1
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 5
     m_MaxSize: 120
@@ -1861,7 +1861,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: 5efae2df5d460a747a02dedd6a0e17ae, type: 3}
     m_FontSize: 18
     m_FontStyle: 0
     m_BestFit: 0
@@ -2013,15 +2013,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1676358963}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c492bda17459944b2b8a7412427d65, type: 3}
+  m_Script: {fileID: 11500000, guid: 6ace06d5056bc1a48ba7dc0b11cfde1e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LobbyUIController
-  _readyBtn: {fileID: 220466460}
-  _readyBtnText: {fileID: 1244226675}
-  _statusText: {fileID: 346114680}
-  _countdownText: {fileID: 1377947452}
-  _playerCountText: {fileID: 2000000002}
-  _playerListContent: {fileID: 941950915}
+  m_EditorClassIdentifier: GameCode::WaitingRoomUIController
+  _readyButton: {fileID: 220466460}
+  _textReady: {fileID: 1244226675}
+  _textCountdown: {fileID: 1377947452}
+  _textPlayerCount: {fileID: 2000000002}
+  _playerListScrollView: {fileID: 1936741734}
   _playerEntryTemplate: {fileID: 1481330351}
   _hideCountdownWhenInactive: 1
   _countdownPopScale: 1.35
