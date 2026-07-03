@@ -67,7 +67,7 @@ Read the /unity-initial-setup skill for detailed installation instructions.
       "$ref": "#/$defs/AIGD.PathPatchesPerGameObjectList"
     },
     "jsonPatchesPerGameObject": {
-      "$ref": "#/$defs/System.Collections.Generic.List<System.String>"
+      "$ref": "#/$defs/System.Collections.Generic.List%3CSystem.String%3E"
     }
   },
   "$defs": {

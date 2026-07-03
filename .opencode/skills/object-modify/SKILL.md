@@ -245,7 +245,7 @@ Any unknown or invalid fields and properties will be reported in the response. |
           "description": "Updated object data after modification."
         },
         "Logs": {
-          "$ref": "#/$defs/System.String[]",
+          "$ref": "#/$defs/System.String%5B%5D",
           "description": "Log of modifications made and any warnings/errors encountered."
         }
       },
