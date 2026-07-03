@@ -15,6 +15,8 @@ public class UIGameSetting : MonoBehaviour
 
     [Header("Graphic Settings")]
     [SerializeField] private Dropdown _qualityDropdown;
+    [SerializeField] private Text _fpsText;
+    private float _deltaTime;
 
     [Header("Setting Board")]
     [SerializeField] private GameObject _settingBoard;
@@ -47,6 +49,7 @@ public class UIGameSetting : MonoBehaviour
 
         // Default to Player tab
         ShowTab(0);
+        InvokeRepeating(nameof(UpdateFPSDisplay), 0f, 0.5f);
     }
 
     private void ShowTab(int index)
@@ -70,5 +73,17 @@ public class UIGameSetting : MonoBehaviour
         }
 
         Debug.Log($"[UIGameSetting] Quality changed to {tier}");
+    }
+
+    private void UpdateFPSDisplay()
+    {
+        if (_fpsText == null) return;
+        float fps = 1.0f / _deltaTime;
+        _fpsText.text = $"FPS : {Mathf.Ceil(fps)}";
+    }
+
+    private void Update()
+    {
+        _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f;
     }
 }

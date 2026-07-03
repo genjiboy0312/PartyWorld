@@ -549,8 +549,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         string sceneName = SceneManager.GetActiveScene().name;
 
-        // 로비: 전체 Ready 상태에 따라 카운트다운 재평가
-        if (sceneName == _roomLobbySceneName)
+        // 로비/웨이팅룸: 전체 Ready 상태에 따라 카운트다운 재평가
+        if (sceneName == _roomLobbySceneName || sceneName == _waitingRoomSceneName)
         {
             EvaluateLobbyCountdown();
             return;
@@ -572,7 +572,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
 
         string sceneName = SceneManager.GetActiveScene().name;
 
-        if (sceneName == _roomLobbySceneName)
+        // 로비/웨이팅룸 씬에서: Ready 변화에 따라 카운트다운 시작/취소(마스터만)
+        if (sceneName == _roomLobbySceneName || sceneName == _waitingRoomSceneName)
         {
             EvaluateLobbyCountdown();
             return;
@@ -609,7 +610,7 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.IsMasterClient)
             return;
 
-        if (scene.name == _roomLobbySceneName)
+        if (scene.name == _roomLobbySceneName || scene.name == _waitingRoomSceneName)
         {
             EvaluateLobbyCountdown();
             return;
@@ -725,7 +726,8 @@ public class NetworkAuthorityManager : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
             return;
 
-        if (SceneManager.GetActiveScene().name != _roomLobbySceneName)
+        string currentScene = SceneManager.GetActiveScene().name;
+        if (currentScene != _roomLobbySceneName && currentScene != _waitingRoomSceneName)
             return;
 
         if (_issuedLoadingForThisCountdown)
