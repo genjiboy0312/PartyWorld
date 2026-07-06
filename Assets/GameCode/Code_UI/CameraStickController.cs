@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class CameraStickController : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
+public class CameraStickController : MonoBehaviour, ICameraInputProvider, IDragHandler, IPointerDownHandler, IPointerUpHandler
 {
     [Header("Setting JoyStick")]
     [SerializeField] private Image _joyStickBackground;
@@ -100,4 +100,7 @@ public class CameraStickController : MonoBehaviour, IDragHandler, IPointerDownHa
     {
         _deltaInput = Vector2.zero;
     }
+
+    Vector2 ICameraInputProvider.GetCameraDelta() => GetDelta();
+    void ICameraInputProvider.ResetCameraDelta() => ResetDelta();
 }

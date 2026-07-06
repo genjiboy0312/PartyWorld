@@ -14,8 +14,14 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
     [SerializeField] private FollowCamera _followCamera;
 
     [Header("Settings Controller")]
-    [SerializeField] private JoyStickController _playerController;
-    [SerializeField] private CameraStickController _cameraController;
+    private IPlayerInputProvider _playerInput;
+    private ICameraInputProvider _cameraInput;
+
+    public void BindInputProviders(IPlayerInputProvider playerInput, ICameraInputProvider cameraInput)
+    {
+        _playerInput = playerInput;
+        _cameraInput = cameraInput;
+    }
     [SerializeField] private Button _btnJump;
     [SerializeField] private Button _btnDive;
     [SerializeField] private Button _btnDash;       //  Dash Attack
@@ -137,9 +143,9 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         float h = 0f;
         float v = 0f;
 
-        if (_cameraController != null)
+        if (_cameraInput != null)
         {
-            Vector2 delta = _cameraController.GetDelta();
+            Vector2 delta = _cameraInput.GetCameraDelta();
             h += delta.x;
             v += delta.y;
         }
@@ -148,9 +154,9 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         {
             _followCamera.AddRotation(h, v);
         }
-        else if (_cameraController != null)
+        else if (_cameraInput != null)
         {
-            _cameraController.ResetDelta();
+            _cameraInput.ResetCameraDelta();
         }
     }
 
@@ -159,10 +165,11 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
         float h = 0f;
         float v = 0f;
 
-        if (_playerController != null)
+        if (_playerInput != null)
         {
-            h += _playerController.InputHorizontal();
-            v += _playerController.InputVertical();
+            Vector2 move = _playerInput.GetMoveInput();
+            h += move.x;
+            v += move.y;
         }
 
         _inputH = Mathf.Clamp(h, -1f, 1f);

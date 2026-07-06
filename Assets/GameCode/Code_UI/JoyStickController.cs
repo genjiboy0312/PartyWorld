@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class JoyStickController : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler
+public class JoyStickController : MonoBehaviour, IPlayerInputProvider, IDragHandler, IPointerDownHandler, IPointerUpHandler
 {
     [Header("Setting JoyStick")]
     [SerializeField] private Image _joyStickBackground;
@@ -90,4 +90,6 @@ public class JoyStickController : MonoBehaviour, IDragHandler, IPointerDownHandl
 
     public float InputHorizontal() => (_isPointerDown || _isKeyboardActive) ? _posInput.x : 0f;
     public float InputVertical() => (_isPointerDown || _isKeyboardActive) ? _posInput.y : 0f;
+
+    public Vector2 GetMoveInput() => new Vector2(InputHorizontal(), InputVertical());
 }
