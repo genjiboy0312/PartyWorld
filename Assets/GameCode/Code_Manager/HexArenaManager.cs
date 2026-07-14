@@ -26,6 +26,9 @@ public class HexArenaManager : MonoBehaviourPunCallbacks
 
     [Header("Game Flow")]
     [SerializeField] private bool _isGameActive = false;
+    
+    // ── 카운트다운 중 플레이어 Freeze (정적 플래그, PlayerPresenter에서 참조) ──
+    public static bool IsFrozen { get; set; }
 
     // 타일 상태 동기화용 배열
     private int[] _tileDurabilities;

@@ -72,6 +72,7 @@ MonoBehaviour:
   - RPC_TileSunk
   - RPC_PlayerFinished
   - RPC_StartRace
+  - RPC_StartCountdown
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

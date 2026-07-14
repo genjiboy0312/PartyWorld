@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -19,15 +20,15 @@ public class HexaStageManager : MonoBehaviourPunCallbacks
     [SerializeField] private Text _timerText;
     [SerializeField] private Text _playerCountText;
     [SerializeField] private GameObject _resultPanel;
-    // [SerializeField] private TextMeshProUGUI _winnerText;
+    [SerializeField] private UI_HexCountdown _countdown;
 
     [Header("States")]
     [SerializeField] private bool _isGameStarted = false;
     [SerializeField] private bool _isGameEnded = false;
     [SerializeField] private float _remainingTime = 0f;
 
-
     private Player _winner;
+    private const float COUNTDOWN_DURATION = 12f;
 
     private void Awake()
     {
@@ -59,22 +60,59 @@ public class HexaStageManager : MonoBehaviourPunCallbacks
         UpdateUI();
     }
 
+    /// <summary>외부에서 호출: 카운트다운을 시작합니다.</summary>
     public void StartGame()
     {
         if (PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom)
         {
             if (PhotonNetwork.InRoom)
-                photonView.RPC(nameof(RPC_StartGame), RpcTarget.All);
+            {
+                double endTime = PhotonNetwork.Time + COUNTDOWN_DURATION;
+                photonView.RPC(nameof(RPC_StartCountdown), RpcTarget.All, endTime);
+            }
             else
-                StartGameInternal();
+            {
+                StartCoroutine(CountdownRoutine(COUNTDOWN_DURATION));
+            }
         }
     }
 
     [PunRPC]
-    private void RPC_StartGame() { StartGameInternal(); }
-
-    private void StartGameInternal()
+    private void RPC_StartCountdown(double endTime)
     {
+        float duration = Mathf.Max(0.1f, (float)(endTime - PhotonNetwork.Time));
+        StartCoroutine(CountdownRoutine(duration));
+    }
+
+    private IEnumerator CountdownRoutine(float duration)
+    {
+        if (HexArenaManager.Instance != null)
+            HexArenaManager.IsFrozen = true;
+
+        if (_countdown != null)
+        {
+            for (int i = 10; i >= 1; i--)
+            {
+                _countdown.ShowNumber(i);
+                yield return new WaitForSeconds(1f);
+            }
+
+            _countdown.ShowReady();
+            yield return new WaitForSeconds(_countdown.ReadyDuration);
+
+            _countdown.ShowStart();
+            yield return new WaitForSeconds(_countdown.StartDuration);
+
+            _countdown.Hide();
+        }
+        else
+        {
+            yield return new WaitForSeconds(duration);
+        }
+
+        if (HexArenaManager.Instance != null)
+            HexArenaManager.IsFrozen = false;
+
         _isGameStarted = true;
         _isGameEnded = false;
         _remainingTime = _gameDuration;

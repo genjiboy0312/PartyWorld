@@ -192,6 +192,19 @@ public class PlayerPresenter : MonoBehaviour, IPunObservable
 
     private void UpdateVelocityMovement()
     {
+        // ── HexArena 카운트다운 중이면 이동 정지 ──
+        if (HexArenaManager.Instance != null && HexArenaManager.IsFrozen)
+        {
+            if (_rigidbody3D != null)
+            {
+                Vector3 zeroV = _rigidbody3D.linearVelocity;
+                zeroV.x = 0f;
+                zeroV.z = 0f;
+                _rigidbody3D.linearVelocity = zeroV;
+            }
+            return;
+        }
+
         Vector3 inputDir = new Vector3(_inputH, 0, _inputV);
         if (inputDir.sqrMagnitude <= 0.01f)
         {
